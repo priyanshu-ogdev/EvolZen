@@ -1,0 +1,93 @@
+# Byte-compiled / optimized / C extensions
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# Packaging and distribution
+build/
+dist/
+wheels/
+*.egg-info/
+.eggs/
+*.egg
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+uv.lock.bak
+
+# Environment variables & local secrets
+.env
+.env.*
+!*.env.example
+*.pem
+*.key
+
+# Testing & code quality caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# Documentation builds
+site/
+docs/_build/
+
+# Machine learning checkpoints, models, & experiments
+checkpoints/
+runs/
+data/
+*.ckpt
+*.pt
+*.bin
+*.safetensors
+*.onnx
+wandb/
+.wandb
+tensorboard/
+*.tfevents.*
+
+# Databases & local storage
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+*.sqlite3
+*.db
+
+# Runtime logs
+*.log
+
+# Editor & IDE metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.bak
+*.code-workspace
+
+# Operating System artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db
+Thumbs.db:encryptable
+desktop.ini
+$RECYCLE.BIN/

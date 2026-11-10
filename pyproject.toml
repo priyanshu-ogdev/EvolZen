@@ -1,0 +1,150 @@
+[project]
+name = "evolzen"
+version = "0.1.0"
+description = "EvolZen — a grounded, evolutionarily-diverse, continually-learning multi-agent observer (concept research, not an AGI claim)"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "EvolZen Project Contributors" }]
+requires-python = ">=3.11,<3.13"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Private :: Do Not Upload",
+]
+
+# --- Base dependencies: install and pass tests on a CPU-only machine --------
+dependencies = [
+    # shared foundation
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pyyaml>=6.0",
+    "loguru>=0.7",
+    "duckdb>=1.1",
+    "numpy>=2.1",
+    "typer>=0.13",
+    # environment (1.1) / agents (1.2)
+    "gymnasium>=1.0",
+    "pettingzoo>=1.24",
+    "transformers>=4.46",
+    "peft>=0.13",
+    "accelerate>=1.1",
+    "outlines>=0.1",
+    "ray[default]>=2.38",
+    # predictor (2.1)
+    "trl>=0.12",
+    # recognition (2.3)
+    "faiss-cpu>=1.9",
+    "sentence-transformers>=3.2",
+    # evaluation (2.4-2.5)
+    "polars>=1.12",
+]
+
+[project.optional-dependencies]
+# The model framework is deliberately an explicit profile. CPU development installs the
+# official CPU wheel; the future CUDA machine selects `gpu` instead. Do not install both.
+cpu = ["torch>=2.5"]
+gpu = [
+    "torch>=2.5",
+    "vllm>=0.6",              # agents (1.2) — throughput inference for the live population
+    "bitsandbytes>=0.44",    # agents (1.2) — quantized local LLM loading
+    "deepspeed>=0.15",       # predictor (2.1) / recognition (2.3) — multi-GPU training
+    "flash-attn>=2.6",       # recognition (2.3) — JEPA encoder attention kernels
+    "faiss-gpu-cu12>=1.9; sys_platform == 'linux'",  # recognition (2.3) — GPU-accelerated routing
+]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.115",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "types-PyYAML>=6.0",
+    "pre-commit>=4.0",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.27",
+]
+tracking = ["wandb>=0.18"]
+
+[project.scripts]
+evolzen = "evolzen.cli.main:app"
+
+[project.urls]
+Repository = "https://github.com/priyanshu-ogdev/EvolZen"
+Documentation = "https://priyanshu-ogdev.github.io/EvolZen/"
+Issues = "https://github.com/priyanshu-ogdev/EvolZen/issues"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evolzen"]
+# py.typed (PEP 561) is included automatically — it lives inside the packaged directory above.
+
+[tool.uv]
+conflicts = [[{ extra = "cpu" }, { extra = "gpu" }]]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu126", extra = "gpu" },
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.115",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "types-PyYAML>=6.0",
+    "pre-commit>=4.0",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.27",
+]
+
+# --- Tool configuration ------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "N"]
+ignore = ["E501", "N818"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["evolzen"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["vllm", "wandb"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"

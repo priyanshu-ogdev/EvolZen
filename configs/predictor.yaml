@@ -1,0 +1,4 @@
+# Maps onto evolzen.config.PredictorSettings
+device: cpu
+checkpoint_dir: checkpoints/predictor
+rehearsal_buffer_size: 10000

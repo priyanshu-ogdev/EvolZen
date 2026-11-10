@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      foundation: ${{ steps.filter.outputs.foundation }}
+      environment: ${{ steps.filter.outputs.environment }}
+      agents: ${{ steps.filter.outputs.agents }}
+      economy: ${{ steps.filter.outputs.economy }}
+      exploration: ${{ steps.filter.outputs.exploration }}
+      library: ${{ steps.filter.outputs.library }}
+      predictor: ${{ steps.filter.outputs.predictor }}
+      containment: ${{ steps.filter.outputs.containment }}
+      recognition: ${{ steps.filter.outputs.recognition }}
+      evaluation: ${{ steps.filter.outputs.evaluation }}
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            foundation: &foundation
+              - "src/evolzen/config.py"
+              - "src/evolzen/logging.py"
+              - "src/evolzen/tracking.py"
+              - "src/evolzen/schemas/**"
+              - "src/evolzen/storage/**"
+              - "pyproject.toml"
+            environment:
+              - *foundation
+              - "src/evolzen/environment/**"
+              - "tests/environment/**"
+            agents:
+              - *foundation
+              - "src/evolzen/agents/**"
+              - "tests/agents/**"
+            economy:
+              - *foundation
+              - "src/evolzen/economy/**"
+              - "tests/economy/**"
+            exploration:
+              - *foundation
+              - "src/evolzen/exploration/**"
+              - "tests/exploration/**"
+            library:
+              - *foundation
+              - "src/evolzen/library/**"
+              - "tests/library/**"
+            predictor:
+              - *foundation
+              - "src/evolzen/predictor/**"
+              - "tests/predictor/**"
+            containment:
+              - *foundation
+              - "src/evolzen/containment/**"
+              - "tests/containment/**"
+            recognition:
+              - *foundation
+              - "src/evolzen/recognition/**"
+              - "src/evolzen/library/**"
+              - "tests/recognition/**"
+            evaluation:
+              - *foundation
+              - "src/evolzen/evaluation/**"
+              - "tests/evaluation/**"
+            docs:
+              - "docs/**"
+              - "mkdocs.yml"
+              - "**/README.md"
+
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+          enable-cache: true
+       - run: uv sync --extra cpu
+       - run: uv run --extra cpu ruff check .
+       - run: uv run --extra cpu mypy .
+
+  test:
+    needs: changes
+    if: |
+      needs.changes.outputs.environment == 'true' || needs.changes.outputs.agents == 'true' ||
+      needs.changes.outputs.economy == 'true' || needs.changes.outputs.exploration == 'true' ||
+      needs.changes.outputs.library == 'true' || needs.changes.outputs.predictor == 'true' ||
+      needs.changes.outputs.containment == 'true' || needs.changes.outputs.recognition == 'true' ||
+      needs.changes.outputs.evaluation == 'true' || needs.changes.outputs.foundation == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+       - run: uv sync --extra cpu
+       - run: uv run --extra cpu pytest --cov=src --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+
+  docs:
+    needs: changes
+    if: needs.changes.outputs.docs == 'true' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --group docs
+      - run: uv run --group docs mkdocs build --strict
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        run: uv run --group docs mkdocs gh-deploy --force

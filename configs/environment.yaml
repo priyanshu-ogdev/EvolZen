@@ -1,0 +1,4 @@
+# Maps onto evolzen.config.EnvironmentSettings
+device: cpu
+data_dir: data/environment
+transition_log_path: data/environment/transitions.duckdb

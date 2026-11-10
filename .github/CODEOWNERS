@@ -1,0 +1,32 @@
+# Review routing by path. Replace @TODO-* placeholders with real GitHub usernames/teams as the
+# research team assigns subsystem ownership. More specific paths override less specific ones.
+
+*                                        @TODO-assign-default-reviewer
+
+# Shared foundation — affects every subsystem; require a broadly-informed reviewer.
+/src/evolzen/config.py                  @TODO-core-owner
+/src/evolzen/logging.py                 @TODO-core-owner
+/src/evolzen/tracking.py                @TODO-core-owner
+/src/evolzen/schemas/                   @TODO-core-owner
+/src/evolzen/storage/                   @TODO-core-owner
+
+# Subsystems (Phases 1.1-1.5)
+/src/evolzen/environment/               @TODO-environment-owner
+/src/evolzen/agents/                    @TODO-agents-owner
+/src/evolzen/economy/                   @TODO-economy-owner
+/src/evolzen/exploration/               @TODO-exploration-owner
+/src/evolzen/library/                   @TODO-library-owner
+
+# Subsystems (Phases 2.1-2.5)
+/src/evolzen/predictor/                 @TODO-predictor-owner
+/src/evolzen/containment/               @TODO-containment-owner
+/src/evolzen/recognition/               @TODO-recognition-owner
+/src/evolzen/evaluation/                @TODO-evaluation-owner
+
+# Project-level docs and decisions — the whole team should weigh in.
+/docs/PRD.md                            @TODO-core-owner
+/docs/ARCHITECTURE.md                   @TODO-core-owner
+/docs/adr/                              @TODO-core-owner
+
+# CI/CD and repo hygiene
+/.github/                               @TODO-core-owner

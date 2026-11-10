@@ -1,0 +1,3 @@
+# Maps onto evolzen.config.AgentsSettings
+device: cpu
+population_size: 20

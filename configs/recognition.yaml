@@ -1,0 +1,3 @@
+# Maps onto evolzen.config.RecognitionSettings
+device: cpu
+ablation_enabled: true
