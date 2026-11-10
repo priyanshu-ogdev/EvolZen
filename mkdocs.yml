@@ -1,0 +1,97 @@
+site_name: EvolZen
+site_description: A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox
+repo_name: evolzen
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_source: true
+            docstring_style: google
+
+nav:
+  - Home: README.md
+  - PRD: PRD.md
+  - Architecture: ARCHITECTURE.md
+  - Paper Outline: PAPER.md
+  - Phase 0 (Foreground): phase-0-foreground.md
+  - Dependency Stack: dependency-stack.md
+  - CI/CD & Parallel Workflow: ci-cd.md
+  - Phases:
+      - "1.1 Environment Engine": phases/1.1-environment.md
+      - "1.2 The Agents": phases/1.2-agents.md
+      - "1.3 Economy & Knowledge Layer": phases/1.3-economy.md
+      - "1.4 Directed Exploration": phases/1.4-exploration.md
+      - "1.5 Growing Rule Library": phases/1.5-library.md
+      - "2.1 Grounded Predictor": phases/2.1-predictor.md
+      - "2.2 Verification Gate & Containment": phases/2.2-containment.md
+      - "2.3 Recognition Model": phases/2.3-recognition.md
+      - "2.4-2.5 Evaluation & Publication": phases/2.4-2.5-evaluation.md
+  - Research:
+      - Overview: research/README.md
+      - Literature Review: research/literature-review.md
+      - Comparative Landscape: research/landscape.md
+      - Design Evolution: research/design-evolution.md
+      - Design Audit: research/design-audit.md
+      - Objectives & Evaluation: research/objectives-and-evaluation.md
+  - Subsystem Design:
+      - Overview: subsystems/README.md
+      - Environment: subsystems/environment/README.md
+      - Developmental Agents:
+          - Overview: subsystems/agents/README.md
+          - Motivation Equations: subsystems/agents/motivation.md
+          - Lifecycle & Inheritance: subsystems/agents/lifecycle.md
+          - Learning & Evolution: subsystems/agents/learning.md
+          - Evaluation: subsystems/agents/evaluation.md
+          - Engineering: subsystems/agents/engineering.md
+          - Evidence: subsystems/agents/evidence.md
+      - Economy: subsystems/economy/README.md
+      - Exploration: subsystems/exploration/README.md
+      - Library: subsystems/library/README.md
+      - Predictor: subsystems/predictor/README.md
+      - Containment: subsystems/containment/README.md
+      - Recognition: subsystems/recognition/README.md
+      - Evaluation: subsystems/evaluation/README.md
+  - Decisions (ADRs):
+      - Overview: adr/README.md
+      - "0001 One package, not a workspace": adr/0001-single-package-not-workspace.md
+      - "0002 Dependency stack & optional extras": adr/0002-dependency-stack-and-optional-extras.md
+      - "0003 Nine subsystems, not two packages": adr/0003-nine-subsystems-not-two-packages.md
+      - "0004 Persistent growing world": adr/0004-persistent-growing-world.md
+      - "0005 Transition semantics & dual-track evaluation": adr/0005-transition-semantics-and-dual-track-evaluation.md
+      - "0006 Developmental eight-drive agents": adr/0006-developmental-eight-drive-agents.md
+  - API Reference:
+      - Overview: api/README.md
+      - Shared foundation: api/foundation.md
+      - environment: api/environment.md
+      - agents: api/agents.md
+      - economy: api/economy.md
+      - exploration: api/exploration.md
+      - library: api/library.md
+      - predictor: api/predictor.md
+      - containment: api/containment.md
+      - recognition: api/recognition.md
+      - evaluation: api/evaluation.md
