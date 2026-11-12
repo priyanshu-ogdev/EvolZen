@@ -8,7 +8,7 @@ implementing behavior, you want the subsystem folder, not this one.
 
 | Command | Wires to | Status |
 |---|---|---|
-| `evolzen run` | `evolzen.environment`, `evolzen.agents`, `evolzen.economy` | `NotImplementedError`, pending Phase 1.1's persistent-world contract and hardware pilot. |
+| `evolzen run` | `evolzen.environment`, `evolzen.agents`, `evolzen.economy` | `NotImplementedError`: Phase 1.1 engine (`SocialSandboxEngine`) and `run_environment_pilot` are implemented; CLI wiring to `configs/*.yaml` + `run_environment_pilot`, Phase 1.2/1.3 loops, and hardware pilot remain pending. |
 | `evolzen train` | `evolzen.predictor`, `evolzen.recognition` | `NotImplementedError`, pending Phase 2.1's planner. |
 | `evolzen evaluate` | `evolzen.evaluation` | `NotImplementedError`, pending the persistent-world and fresh-world evaluation generators. |
 

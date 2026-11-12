@@ -40,8 +40,8 @@ These are proposed population ablations, not universal empirical rules:
 ## How to build this
 
 1. Validate the numerical `born -> decide -> observe` loop and live-parent teaching.
-2. Implement a trusted world adapter, event persistence, resource/birth budgets and scheduling.
-3. Add bounded LLM candidate generation without converting eight drives into five silently.
+2. Wire the implemented Phase 1.1 host adapter (`evolzen.environment.adapter`, currently surfacing 7/17 `ActionType`s) and `TransitionLogStore` (`evolzen.storage`) into a population scheduler, define `AgentProfile`, reconcile the legacy five-drive stubs with the eight-drive core, and enforce living-agent resource/birth budgets.
+3. Add `outlines`-constrained LLM candidate generation (`ActionType` + `params`) without converting eight drives into five silently.
 4. Add private adapter updates and validation/retention rollback only after numerical baselines.
 5. Measure multi-generation QD selection and cultural transfer at equal experience budgets.
 6. Enable generated policy changes only through deployed containment. See the detailed

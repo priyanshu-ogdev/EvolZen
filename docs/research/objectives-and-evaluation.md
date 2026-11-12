@@ -1,6 +1,6 @@
 # Research Objectives & Evaluation Standard
 
-**Status:** Phase 0 research contract; no result is claimed yet.  
+**Status:** Phase 0 scaffolding is complete and code baselines exist for Phase 1.1 (`evolzen.environment`, `schemas/world.py`, `TransitionLogStore`), Phase 1.2-numerical (`agents/development/`), and Phase 1.5 (`evolzen.library`); **no empirical result is claimed yet**.  
 **Scope:** defines what EvolZen is trying to learn, what counts as evidence, and which comparisons
 must be completed before a paper claim is written.
 
@@ -175,5 +175,4 @@ must point to a measured field in `EvaluationReport` and to the corresponding ru
 | G5 — learning | Predictor baselines and transfer/forgetting curves exist before JEPA fusion claims. |
 | G6 — publication | Both evaluation tracks, all required ablations, exposure history, and limitations are reported. |
 
-The project plan is not considered complete until G0–G6 are satisfied. Phase 0 currently satisfies
-the documentation/scaffold portion of G0 only; it does not satisfy any empirical gate.
+The project plan is not considered complete until G0–G6 are satisfied. As of 2026-11-12 (`env` @ `81ee6eb`), Phase 0 scaffolding is complete and code baselines exist for Phase 1.1 (`evolzen.environment`, `schemas/world.py`, `TransitionLogStore`), Phase 1.2-numerical (`agents/development/`), and Phase 1.5 (`evolzen.library`), while remaining G0 items (`AgentProfile`, `ProvenanceRecord`, and Phase 1.1 hardening `ENV-01`–`ENV-08`) are still open. **G1–G6 empirical gates remain unsatisfied, and no empirical result is claimed yet.**

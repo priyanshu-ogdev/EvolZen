@@ -8,12 +8,13 @@ one phase — changing anything in this folder is a change that affects the whol
 | [`config.py`](config.py) | `pydantic-settings`-based configuration: one `EvolZenSettings` root, loaded from env vars, an optional `.env`, and the YAML files under `configs/`. |
 | [`logging.py`](logging.py) | One consistently-formatted logger (loguru) across every subsystem, taggable by phase. |
 | [`tracking.py`](tracking.py) | Pluggable experiment tracking (`NoOpTracker` by default, `WandbTracker` behind the `tracking` extra) — no subsystem hard-codes a tracking vendor. |
-| [`schemas/`](schemas/) | **The data contract.** Current Phase 0 types include `Transition`, `DriveVector`, and `Manual`; Phase 1.1 will add the versioned world snapshot, growth-event, agent-profile, provenance, and capability-package contracts before implementation proceeds. |
-| [`storage/`](storage/README.md) | Versioned transition-log interface; production persistence remains pending. |
+| [`schemas/`](schemas/) | **The data contract.** Currently includes `transition.py`, `drive_vector.py`, `manual.py`, `development.py`, `world.py`, and `library.py`; `schemas/__init__.py` re-exports `transition`, `drive_vector`, `manual`, and `library` (top-level re-exports for `world` and `development` remain pending). `AgentProfile` and `ProvenanceRecord` schemas remain planned. |
+| [`storage/`](storage/README.md) | DuckDB-backed append-only `TransitionLogStore` (`transition_log.py`, `SCHEMA_VERSION = 1`) for transitions, snapshots, growth events, and branches; an explicit `schema_version` mismatch/migration guard on open remains planned. |
 
-New `schemas/development.py` supplies frozen birth genomes, snapshots, outcomes, lessons and
-archive assessments for `agents/development/`. It does not add the proposed world snapshot,
-capability package or rich social-profile classes. See
+`schemas/development.py` supplies frozen birth genomes, snapshots, outcomes, lessons, and archive
+assessments for `agents/development/`, separate from Phase 1.1 `schemas/world.py` (`WorldState`,
+`WorldSnapshot`, `CapabilityPackage`, `ActionType`) and Phase 1.5 `schemas/library.py` (`RuleEntry`,
+`ValidityContext`, `VerificationEvidence`). `AgentProfile` and `ProvenanceRecord` remain planned. See
 [developmental contracts](../../docs/subsystems/agents/engineering.md).
 
 ## Subsystems built on top of this

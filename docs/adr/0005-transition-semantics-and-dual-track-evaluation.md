@@ -44,3 +44,16 @@ The two tracks are reported separately and never collapsed into one headline num
   distinction.
 - Human and frontier-model reference scores are only used when the reference system receives the
   same observations, action space, and time budget as EvolZen.
+
+## Implementation status
+
+The normative `(state_t, action_t, exogenous_input_t, seed) -> (emission_t, state_{t+1})`
+contract is implemented at baseline in `evolzen.environment.engine.SocialSandboxEngine` alongside
+`ExogenousInput` and `seed` in `evolzen.schemas.transition`, world contracts in
+`evolzen.schemas.world`, DuckDB persistence in `evolzen.storage.transition_log.TransitionLogStore`,
+and `evolzen.environment.replay` / `evolzen.environment.interventions` (with `moore_machine.py`
+retained as a compatibility module). Open Phase 1.1 hardening items (`replay_transitions` state
+propagation, `replay_from_store` `up_to_tick` boundary, `apply_intervention` sequence/currency
+reconciliation, and PettingZoo exogenous/store hooks) remain tracked. Empirical long-horizon shock
+recovery, dual-track OOD evaluation (`evolzen.evaluation`), and Phase 1.4/2.2 containment and
+synthesis gates remain **untested/pending**.

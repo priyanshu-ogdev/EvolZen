@@ -35,7 +35,24 @@ much smaller domain can be just as verifiable.
 **How it got better:** buildable on the actual hardware, while the explicit persistence and growth
 contract makes the revised research goal measurable. “Moore machine” is retained only as a legacy
 module name; exact replay is not treated as causal identification.
-**Citations:** OPINE-World, Tycho.
+
+**Phase 1.1 baseline implementation (2026-11-12, `env` @ `81ee6eb`):** upgraded from `Protocol`
+and `NotImplementedError` stubs to a working Python/DuckDB baseline: `SocialSandboxEngine` (17
+`ActionType` handlers, `CapabilityPackage` verification gates), `schemas/world.py` (`WorldState`,
+`WorldSnapshot`, `GrowthEvent`, `InvariantReport`, `BranchRecord`, `InterventionSpec`),
+`TransitionLogStore` (schema-versioned JSON DuckDB persistence, SHA-256 hash chain, atomic
+snapshots/branches), `check_invariants`, `extract_growth_events` / `summarize_growth`,
+`replay_transitions` / `replay_from_store` / `branch_from_snapshot`, `apply_intervention`,
+`adapter` (independent host-side legality/age re-validation for `agents/development/`),
+`SocialSandboxAECEnv` (PettingZoo `AECEnv` wrapper), and `run_environment_pilot`. An open
+Phase 1.1 hardening backlog remains (`ENV-01`–`ENV-08` replay/intervention/boundedness fixes,
+partial mechanics such as `ContractRecord` cancellation and `NormRecord` enforcement, expanding
+`adapter.legal_candidates` beyond 7 of 17 `ActionType`s, `invariants.py` failure-branch and
+Hypothesis property tests), and long-horizon as well as target-rig hardware pilots remain
+**untested**.
+**Citations:** OPINE-World (`arXiv:2607.01531`), Tycho (`arXiv:2607.28287`), Executable World
+Models (`arXiv:2605.05138`), PettingZoo (`arXiv:2009.14471`), OMNI-EPIC (`arXiv:2405.15568`,
+contrastive boundary), Procgen (`arXiv:1912.01588`).
 
 ## `evolzen.agents`
 

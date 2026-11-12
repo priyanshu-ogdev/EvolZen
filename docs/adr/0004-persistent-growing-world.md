@@ -48,3 +48,15 @@ not a claim to simulate real human demographics or psychology.
   stated hardware and exposes clearer causal and evaluation contracts.
 - The extension boundary is explicit: new world capabilities must be typed, versioned, sandboxed,
   and measurable. Unbounded mechanic invention remains out of scope.
+
+## Implementation status
+
+The Phase 1.1 baseline implements the six entity families, growth ledger, invariants, and bounded
+`CapabilityPackage` schemas in `evolzen.schemas.world`, the deterministic engine in
+`evolzen.environment.engine.SocialSandboxEngine`, DuckDB event/snapshot persistence in
+`evolzen.storage.transition_log.TransitionLogStore`, and replay/intervention helpers in
+`evolzen.environment.replay` and `evolzen.environment.interventions`. Open Phase 1.1 hardening
+items (living-agent `max_agents` enforcement, collection capacity bounds in `WorldState`, replay
+and intervention fixes, and 17-action adapter coverage) are tracked separately. Empirical
+long-horizon shock recovery, multi-generation population runs, dual-track OOD evaluation, and live
+Phase 1.4/2.2 containment and capability-synthesis gates remain **untested/pending**.

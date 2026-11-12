@@ -86,7 +86,7 @@ class ValidityContext(_LibraryRecord):
     Two :class:`RuleEntry` instances in the same family may have different
     ``ValidityContext`` values when mechanics changed between world versions.
 
-    Args:
+    Attributes:
         world_version: Opaque string tag for the world/environment version
             (e.g. ``"env-v1"``).
         mechanic_keys: Ordered tuple of mechanic identifiers the rule covers.
@@ -119,7 +119,7 @@ class ValidityContext(_LibraryRecord):
 class VerificationEvidence(_LibraryRecord):
     """Evidence linking a rule to the transitions it was verified against.
 
-    Args:
+    Attributes:
         evidence_id: Unique identifier for this evidence bundle.
         transition_ids: UUIDs of transitions used as positive verification cases.
         intervention_ids: UUIDs of interventions (counterfactuals) used.
@@ -150,7 +150,7 @@ class RuleEntry(_LibraryRecord):
     a new :class:`RuleEntry` is appended and the old one's ``status`` column is
     updated to ``RuleStatus.SUPERSEDED``; the old row remains in the store.
 
-    Args:
+    Attributes:
         rule_id: Globally unique identifier for this specific rule version.
         version: Monotonically increasing integer starting at 1; incremented on
             each supersession within the same family.
@@ -198,7 +198,7 @@ class SupersessionLink(_LibraryRecord):
     Supersession requires a non-trivial documented reason so the history of
     *why* a rule was replaced is preserved.
 
-    Args:
+    Attributes:
         old_rule_id: ``rule_id`` of the entry being superseded.
         new_rule_id: ``rule_id`` of the replacement entry.
         reason: Human-readable justification (minimum 10 characters).
@@ -226,7 +226,7 @@ class AuditEvent(_LibraryRecord):
     One event is written for each state-changing library operation
     (SPAWN, ROUTE, PROMOTE, SUPERSEDE, DEPRECATE, REJECT, REGRESSION_CHECK).
 
-    Args:
+    Attributes:
         event_id: Unique identifier for this event.
         event_type: Discriminant classifying the operation.
         rule_id: The ``rule_id`` the event concerns.
@@ -247,7 +247,7 @@ class RegressionResult(_LibraryRecord):
     Stored in the ``regression_results`` DuckDB table so that the zero-forgetting
     metric (Phase 1.5 success criterion) can be queried at any time.
 
-    Args:
+    Attributes:
         check_id: Unique identifier for this regression run.
         rule_id: The rule that was checked.
         transition_ids_checked: Transition fixture IDs that were replayed.

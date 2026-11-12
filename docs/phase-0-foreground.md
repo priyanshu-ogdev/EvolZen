@@ -1,10 +1,15 @@
 # Phase 0 — The Foreground (Completed Baseline Scaffold)
 
-**Status note:** Phase 0 scaffolding is complete and superseded by active subsystem work. Two
-subsystems now have tested implementations beyond Phase 0 stubs: the
-[developmental numerical agent core](subsystems/agents/engineering.md) (Phase 1.2 baseline) and the
-[growing rule library](subsystems/library/README.md) (Phase 1.5). The checklist below records the
-initial foreground engineering gates.
+**Status note:** Phase 0 scaffolding is complete and superseded by active subsystem work. Three
+baselines now have tested implementations beyond Phase 0 stubs: the
+[persistent social sandbox environment](subsystems/environment/README.md) (Phase 1.1:
+`evolzen.environment`, `evolzen.schemas.world`, and `evolzen.storage.transition_log`), the
+[developmental numerical agent core](subsystems/agents/engineering.md) (Phase 1.2 numerical
+baseline: `evolzen.agents.development` and `evolzen.schemas.development`), and the
+[growing rule library](subsystems/library/README.md) (Phase 1.5: `evolzen.library` and
+`evolzen.schemas.library`). Empirical long-horizon runs, Phase 1.1 hardening, LLM/QD population
+loops, downstream subsystems (Phases 1.3–1.4, 2.1–2.5), and hardware-isolated sandboxing remain
+pending. The checklist below records the initial foreground engineering gates.
 
 ## What Phase 0 is
 
@@ -32,15 +37,22 @@ trained models, no environment logic, no agent behavior.
 
 ## What Phase 0 explicitly does not do
 
-- It does not implement the persistent world engine — Phase 1.1 still owns the concrete world
-  state, growth categories, replay semantics, and domain-specific action vocabulary.
+> **Historical boundary:** The items below record what the Phase 0 foreground scaffold omitted
+> before subsystem implementations began. Phase 1.1 (`evolzen.environment`) now implements the
+> persistent social-sandbox baseline (with hardening and empirical pilots still pending), while
+> hardware-isolated sandboxing and downstream research phases remain separate work.
+
+- It did not implement the persistent world engine — Phase 1.1 owned the concrete world state,
+  growth categories, replay semantics, and domain-specific action vocabulary (now implemented at
+  baseline in `evolzen.environment`, `evolzen.schemas.world`, and `evolzen.storage.transition_log`).
 - It does not pin exact dependency versions — `pyproject.toml` specifies ranges;
   `uv lock --upgrade` resolves current-stable versions periodically.
 - It does not stand up the hardware-isolated sandboxing (Firecracker/gVisor) — that's
   infrastructure, not a Python dependency.
-- It does not include any actual research logic. Every function either has a minimal,
-  honestly-trivial implementation or raises `NotImplementedError` pointing at the phase doc
-  that specifies what should replace it.
+- It did not include any actual research logic — every function in Phase 0 had either a minimal,
+  honestly-trivial implementation or raised `NotImplementedError` pointing at the phase doc
+  specifying what should replace it (downstream stubs in Phases 1.2–1.4 and 2.1–2.5 still follow
+  this convention).
 
 ## Owning a subsystem
 

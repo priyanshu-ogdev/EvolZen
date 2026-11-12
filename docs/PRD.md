@@ -1,7 +1,15 @@
 # EvolZen — Product & Research Requirements Document
 
-**Status:** scaffold plus an initial Phase 1.2 numerical agent core; world integration and empirical
-research results remain pending. Implemented versus planned: [agent engineering](subsystems/agents/engineering.md).
+**Status:** Phase 0 scaffold complete, with baseline code implementations in three areas: Phase 1.1
+social sandbox (`evolzen.environment`, `evolzen.schemas.world`, `evolzen.storage.transition_log`),
+Phase 1.2 developmental numerical core (`evolzen.agents.development`, `evolzen.schemas.development`
+— see [agent engineering](subsystems/agents/engineering.md)), and Phase 1.5 growing rule library
+(`evolzen.library`, `evolzen.schemas.library` — see [library subsystem](subsystems/library/README.md)).
+Phase 1.1 hardening items (replay state-propagation and `up_to_tick` boundary fixes, bounded
+world-growth caps, 17-action adapter coverage, and empirical long-horizon/target-rig hardware
+pilots), missing cross-subsystem schemas (`AgentProfile`, `ProvenanceRecord`), `evolzen` CLI
+wiring, and Phases 1.2 (LLM/QD/self-modification), 1.3–1.4, and 2.1–2.5 remain pending/stubbed.
+**All empirical Phase 1.1–2.5 success metrics remain untested and unmeasured.**
 **Owner:** EvolZen research team.
 **Related:** [`ARCHITECTURE.md`](ARCHITECTURE.md) (how this is built), repository-root `AGENTS.md`
 (rules for AI coding agents working in this repo), this document (what and why).
@@ -139,9 +147,10 @@ by the rationale of RHAE, not presented as an ARC-AGI-3 result unless the protoc
 compatible. Human or frontier references are used only under matched observations, actions, and
 time budgets.
 
-**G7 (this document's own scope).** Phase 0: ship a working, dependency-locked, documented,
+**G7 (historical Phase 0 scope).** Phase 0: ship a working, dependency-locked, documented,
 typed codebase — this repository — so that G1-G6 can be pursued by a team of more than one
-person working in parallel, without first solving engineering-setup problems.
+person working in parallel, without first solving engineering-setup problems. *(Completed as the
+Phase 0 foreground baseline; see [phase-0-foreground.md](phase-0-foreground.md).)*
 
 ## 4. Non-goals
 
@@ -157,10 +166,11 @@ generalizable causal discovery from unstructured trajectories, formally verified
 alignment, or unrestricted open-ended world invention. It uses bounded mechanisms and reports
 where they fall short.
 
-**NG4.** Phase 0 does not implement the world engine, but the research direction is no longer an
-undecided three-way candidate list. Phase 1.1 must specify the persistent social-sandbox contract;
+**NG4.** *(Historical Phase 0 boundary)* Phase 0 did not implement the world engine, but the
+research direction is no longer an undecided three-way candidate list. Phase 1.1 specifies — and
+now implements at baseline in `evolzen.environment` — the persistent social-sandbox contract;
 negotiation, markets, and code tasks may be contained subsystems or evaluation slices, not
-substitutes for the world itself.
+substitutes for the world itself. *(Empirical validation and Phase 1.1 hardening remain pending.)*
 
 **NG5.** This project does not introduce artificial groupings of its nine subsystems into a
 smaller number of "parts" or installable packages for the sake of tidiness. If a future
@@ -216,6 +226,15 @@ protects every subsystem that executes agent-originated or synthesized code.
 | FR-14 | Learning uses trusted identity-matched outcomes; parental advice, own evidence and validation scores remain separate. | 1.2 | `evolzen.agents`, `evolzen.evaluation` |
 | FR-15 | Cultural-transfer and evolution claims compare matched experience/compute across generations, with held-out families/mechanics and no final-test fitness feedback. | 1.2–2.5 | `evolzen.agents`, `evolzen.evaluation` |
 
+**Current implementation status (untested empirically):** `FR-1` and `FR-2` have baseline
+implementations in `evolzen.environment`, `evolzen.schemas.world`, and
+`evolzen.storage.transition_log` (with open hardening items for replay state-propagation,
+`up_to_tick` boundary inclusion, bounded collection caps, and 17-action adapter coverage); `FR-6`
+has a baseline implementation in `evolzen.library` and `evolzen.schemas.library`; and
+`FR-12`–`FR-14` have an in-memory numerical baseline in `evolzen.agents.development` (not yet
+wired to the persistent world loop). `FR-3`–`FR-5`, `FR-7`–`FR-11`, `FR-15`, `AgentProfile`,
+`ProvenanceRecord`, and `evolzen` CLI execution remain pending/stubbed.
+
 ## 8. Non-functional requirements
 
 | ID | Requirement |
@@ -228,6 +247,13 @@ protects every subsystem that executes agent-originated or synthesized code.
 | NFR-6 | The whole project remains **one installable package** — no future revision should re-fragment it into multiple packages/workspaces without a new ADR justifying the specific problem that solves. |
 
 ## 9. Success metrics (project-level)
+
+> **Status (untested):** None of the empirical project-level success metrics below have been
+> measured or met. Unit and local smoke tests verify deterministic code invariants for the
+> Phase 1.1 environment baseline, Phase 1.2 numerical core, and Phase 1.5 rule library, while
+> empirical long-horizon world growth, shock recovery, multi-generation QD diversity,
+> forgetting/transfer, recognition ablations, hardware pilots, and fresh-world EAE remain
+> unmeasured.
 
 - **World growth:** durable, independently re-playable growth events per run, separated by
   artifact/capability, institution, norm, market, and role/lineage categories.
@@ -245,10 +271,15 @@ protects every subsystem that executes agent-originated or synthesized code.
 
 ## 10. Milestones & timeline
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) §9 for the phase-by-phase timeline. Phase 0 (this
-repository) is complete as a scaffold. Phase 1.1 is the next milestone and must first freeze the
-persistent-world contract, agent ontology, replay semantics, and hardware pilot gates before any
-full population or learning claim is scheduled.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) §9 for the phase-by-phase timeline. Phase 0 (the
+initial repository scaffold) is complete. Beyond Phase 0, baseline implementations exist for
+Phase 1.1 (`evolzen.environment`, `evolzen.schemas.world`, `evolzen.storage.transition_log`),
+Phase 1.5 (`evolzen.library`, `evolzen.schemas.library`), and the Phase 1.2 numerical
+developmental core (`evolzen.agents.development`, `evolzen.schemas.development`). Before any
+population-level or learning claim is scheduled, Phase 1.1 hardening (replay/bounded-growth
+fixes, 17-action adapter coverage, empirical long-horizon runs, and target-rig hardware pilot
+gates), shared schemas (`AgentProfile`, `ProvenanceRecord`), `evolzen` CLI wiring, and Phases
+1.2–1.4 and 2.1–2.5 remain to be completed and measured.
 
 ## 11. Risks & mitigations
 

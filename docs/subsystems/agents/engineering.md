@@ -34,15 +34,9 @@ There is deliberately no lossy automatic eight-to-five drive projection. Old inf
 do not silently understand the new schema. The new `DevelopmentArchive` holds developmental
 snapshots instead of coercing them into legacy entries.
 
-Existing shared-schema importers were inspected across the project. This change adds a parallel
-schema module and leaves `schemas/__init__.py` and existing model fields unchanged. World snapshot,
-rule/capability packages and richer profile schemas described elsewhere are still proposals, not
-newly implemented by this change.
+Existing shared-schema importers were inspected across the project. The developmental increment added `schemas/development.py` alongside existing model fields without changing `schemas/__init__.py`. Subsequent Phase 1.1 and Phase 1.5 work implemented `schemas/world.py` (`WorldState`, `WorldSnapshot`, `CapabilityPackage`, `ActionType`), `schemas/library.py` (`RuleEntry`, `ValidityContext`, `VerificationEvidence`), `storage/transition_log.py` (`TransitionLogStore`), and `environment/adapter.py` (`observe_features`, `legal_candidates`, `action_from_candidate`, `execute_decision`); `AgentProfile` and `ProvenanceRecord` remain planned.
 
-The root `AGENTS.md` still describes every module as a stub. Replacing that owner-protected
-snapshot text was refused by the editing tool pending explicit approval, so it was left unchanged.
-Its containment and schema-review rules remain authoritative; use this status map and the root
-README for the actual scope of the new numerical implementation.
+The root `AGENTS.md` still summarizes the Phase 0 engineering-scaffold baseline as owner-protected guidance and was left unchanged per repository constraints. Its containment and schema-review rules remain authoritative; use this status map and `docs/phases/` for current Phase 1.1, Phase 1.2 numerical-core, and Phase 1.5 implementation scope.
 
 ## Host call sequence
 
@@ -87,7 +81,7 @@ exactly-once transition IDs, and crash-safe atomic append before production use.
 | Milestone | Exit evidence | Status |
 |---|---|---|
 | A0: numerical contracts | Source tests for equations, birth, feedback, teaching and archive | Implemented; check results reported in delivery, not assumed |
-| A1: trusted world integration | Child acts in a real typed adapter and receives host-verified feedback; all receipts replayable | Pending world adapter |
+| A1: trusted world integration | Child acts in a real typed adapter and receives host-verified feedback; all receipts replayable | Host adapter (`evolzen.environment.adapter`, 7/17 `ActionType`s) & `TransitionLogStore` implemented; population scheduler & multi-generation integration pending |
 | A2: living families | Budgeted births, overlapping lives, teaching, death and crash-safe history | Local primitives only; scheduler pending |
 | A3: learned proposals | Shared local LLM proposes bounded candidates with no privileged-state leak | Pending |
 | A4: neural updates | Offline private adapters with replay, fixed validation and rollback | Pending |

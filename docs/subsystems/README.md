@@ -18,4 +18,8 @@ Subsystem folders hold detailed contracts, rationale and implementation status.
 | [evaluation](evaluation/README.md) | Independent measurements and frozen final evaluation | [2.4–2.5](../phases/2.4-2.5-evaluation.md) |
 
 Detailed agent documents supersede earlier five-coordinate Phase 0 interface stubs **for the active
-developmental path**. Those superseded stubs remain isolated pending Phase 1.1 domain freezing.
+developmental path**. Phase 1.1 world and action schemas are now implemented in
+`src/evolzen/schemas/world.py` (`WorldState`, `ActionType`, `CapabilityPackage`) and
+`src/evolzen/environment/adapter.py`; reconciling or retiring those legacy five-coordinate Phase 0
+stubs against the active eight-coordinate developmental core remains an explicit Phase 1.2 action
+item.
