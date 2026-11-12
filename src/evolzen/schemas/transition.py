@@ -1,14 +1,11 @@
-"""The Moore-machine transition schema (Phase 1.1).
+"""The interactive transition-system schema (Phase 1.1).
 
-`evolzen.environment` is formalized as a deterministic rendered Moore machine — states, typed
-actions, typed emissions — following Tycho (arXiv:2607.28287). This is a deliberate
-representation choice: it's what lets `evolzen.exploration.synthesizer` be an off-the-shelf
-coding-agent harness rather than a bespoke system, and it's what makes this project's transition
-logs directly comparable to the published ARC-AGI-3 literature.
-
-Every outcome logged through this schema must be independently re-derivable from the state and
-action alone (Phase 1.1's success metric) — that property is what "verifiable," as this project
-uses the word throughout, actually means.
+`evolzen.environment` is formalized as a seeded, typed interactive transition system —
+states, typed actions, explicit exogenous inputs, seeds, and typed emissions — following
+Tycho (arXiv:2607.28287) and ADR 0005. Every outcome logged through this schema must be
+independently re-derivable from `(state, action, exogenous_input, seed)` alone. These
+contracts are an EvolZen design choice and remain empirically untested until Phase 1.1
+experiments are run.
 """
 from __future__ import annotations
 
@@ -22,10 +19,9 @@ from pydantic import BaseModel, ConfigDict, Field
 class State(BaseModel):
     """A single, deterministic environment state.
 
-    `data` is intentionally an open dict — the concrete state representation depends on which
-    Phase 1.1 domain is chosen (negotiation game / market sim / code-with-tests) — but every
-    concrete domain implementation must ensure two `State` instances with equal `data` are
-    genuinely equivalent, since equality here is used by `evolzen.exploration.verifier`.
+    `data` holds canonical JSON-serializable state. Concrete domain implementations must
+    ensure two `State` instances with equal `data` are genuinely equivalent, since
+    `evolzen.exploration.verifier` and exact replay compare state equivalence.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -44,6 +40,16 @@ class Action(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
 
 
+class ExogenousInput(BaseModel):
+    """Explicit exogenous input applied alongside or between agent actions (Phase 1.1)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    tick: int = Field(default=0, ge=0)
+    events: tuple[dict[str, Any], ...] = ()
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
 class Emission(BaseModel):
     """What the environment emits in response to an action — the observable outcome."""
 
@@ -53,11 +59,11 @@ class Emission(BaseModel):
 
 
 class Transition(BaseModel):
-    """One (state, action) -> (emission, next_state) record.
+    """One `(state, action, exogenous_input, seed) -> (emission, next_state)` record.
 
     This is the unit `evolzen.environment` logs, `evolzen.exploration.verifier` checks
-    candidate rules against (exact reproduction of every recorded transition, not "fits well"),
-    and `evolzen.library` is built from. `evolzen.predictor` / `evolzen.recognition` never
+    candidate rules against (exact reproduction of every recorded transition), and
+    `evolzen.library` is built from. `evolzen.predictor` / `evolzen.recognition` never
     mutate these records; they only read them.
     """
 
@@ -67,5 +73,7 @@ class Transition(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     state: State
     action: Action
+    exogenous_input: ExogenousInput = Field(default_factory=ExogenousInput)
+    seed: int = 0
     emission: Emission
     next_state: State

@@ -41,6 +41,10 @@ class EnvironmentSettings(BaseModel):
     device: Device = Device.CPU
     data_dir: Path = Path("data/environment")
     transition_log_path: Path = Path("data/environment/transitions.duckdb")
+    default_seed: int = 42
+    max_ticks: int = Field(default=2000, ge=1)
+    max_agents: int = Field(default=64, ge=1)
+    snapshot_interval: int = Field(default=25, ge=1)
 
 
 class AgentsSettings(BaseModel):

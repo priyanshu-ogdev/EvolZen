@@ -2,3 +2,7 @@
 device: cpu
 data_dir: data/environment
 transition_log_path: data/environment/transitions.duckdb
+default_seed: 42
+max_ticks: 2000
+max_agents: 64
+snapshot_interval: 25

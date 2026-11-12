@@ -7,4 +7,5 @@
 ::: evolzen.schemas.drive_vector
 ::: evolzen.schemas.manual
 ::: evolzen.schemas.development
+::: evolzen.schemas.world
 ::: evolzen.storage.transition_log

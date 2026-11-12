@@ -1,7 +1,13 @@
 """Phase 0 sanity tests: settings load with defaults, YAML overrides, and env-var overrides."""
 from pathlib import Path
 
-from evolzen.config import AgentsSettings, Device, EvolZenSettings, load_settings
+from evolzen.config import (
+    AgentsSettings,
+    Device,
+    EnvironmentSettings,
+    EvolZenSettings,
+    load_settings,
+)
 
 
 def test_defaults() -> None:
@@ -28,3 +34,10 @@ def test_load_settings_applies_yaml_overrides(tmp_path: Path) -> None:
     yaml_path.write_text("population_size: 12\n")
     settings = load_settings(AgentsSettings, yaml_path)
     assert settings.population_size == 12
+
+
+def test_environment_yaml_loads_cleanly() -> None:
+    settings = load_settings(EnvironmentSettings, Path("configs/environment.yaml"))
+    assert settings.default_seed == 42
+    assert settings.max_ticks == 2000
+    assert settings.snapshot_interval == 25

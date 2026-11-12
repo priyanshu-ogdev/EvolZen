@@ -16,12 +16,13 @@ from evolzen.schemas.library import (
     VerificationEvidence,
 )
 from evolzen.schemas.manual import Manual
-from evolzen.schemas.transition import Action, Emission, State, Transition
+from evolzen.schemas.transition import Action, Emission, ExogenousInput, State, Transition
 
 __all__ = [
     # transition schemas
     "State",
     "Action",
+    "ExogenousInput",
     "Emission",
     "Transition",
     # drive / manual schemas
