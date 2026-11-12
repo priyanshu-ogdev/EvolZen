@@ -9,8 +9,8 @@ Precedence (highest wins): CLI flag > environment variable (`EVOLZEN_<GROUP>__<F
 file in this directory > class default.
 
 Not every subsystem has a config file here — only those with a settings group defined in
-`evolzen.config` (`environment`, `agents`, `economy`, `predictor`, `recognition`).
-`containment`, `exploration`, `library`, and `evaluation` don't have tunable settings yet;
+`evolzen.config` (`environment`, `agents`, `economy`, `library`, `predictor`, `recognition`).
+`containment`, `exploration`, and `evaluation` don't have tunable settings yet;
 add a settings group and a matching YAML file here together, in the same PR, when they do.
 When Phase 1.1 is implemented, add explicit settings for world seed/replay, growth bounds, and
 exogenous-input recording. When Phase 2.4 is implemented, add separate persistent-world and

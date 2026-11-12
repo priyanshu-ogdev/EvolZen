@@ -4,7 +4,37 @@ Changing anything in this subpackage is a change every one of the nine subsystem
 checked against. See the parent package README's "shared foundation" section before editing.
 """
 from evolzen.schemas.drive_vector import DriveVector
+from evolzen.schemas.library import (
+    AuditEvent,
+    AuditEventType,
+    ProvenanceClass,
+    RegressionResult,
+    RuleEntry,
+    RuleStatus,
+    SupersessionLink,
+    ValidityContext,
+    VerificationEvidence,
+)
 from evolzen.schemas.manual import Manual
 from evolzen.schemas.transition import Action, Emission, State, Transition
 
-__all__ = ["State", "Action", "Emission", "Transition", "DriveVector", "Manual"]
+__all__ = [
+    # transition schemas
+    "State",
+    "Action",
+    "Emission",
+    "Transition",
+    # drive / manual schemas
+    "DriveVector",
+    "Manual",
+    # library schemas (Phase 1.5)
+    "AuditEvent",
+    "AuditEventType",
+    "ProvenanceClass",
+    "RegressionResult",
+    "RuleEntry",
+    "RuleStatus",
+    "SupersessionLink",
+    "ValidityContext",
+    "VerificationEvidence",
+]

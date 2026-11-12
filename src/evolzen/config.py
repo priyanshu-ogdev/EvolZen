@@ -68,6 +68,30 @@ class PredictorSettings(BaseModel):
     rehearsal_buffer_size: int = Field(default=10_000, ge=1)
 
 
+class LibrarySettings(BaseModel):
+    """Phase 1.5 — evolzen.library.
+
+    Configuration for the append-only verified-rule library. All paths are
+    relative to the working directory unless absolute paths are supplied.
+    """
+
+    db_path: Path = Path("data/library.duckdb")
+    audit_log_path: Path = Path("data/library_audit.jsonl")
+    routing_confidence_threshold: float = Field(
+        default=0.85,
+        ge=0.0,
+        le=1.0,
+        description="Minimum similarity score (0–1) for routing a candidate to an existing entry "
+        "instead of spawning a new one. Default uses SequenceMatcher on rule code.",
+    )
+    max_regression_rounds: int = Field(
+        default=3,
+        ge=1,
+        description="Minimum number of successive addition rounds that must show zero forgetting "
+        "for the Phase 1.5 success metric to be considered met (untested until CI runs).",
+    )
+
+
 class RecognitionSettings(BaseModel):
     """Phase 2.3 — evolzen.recognition."""
 
@@ -89,6 +113,7 @@ class EvolZenSettings(BaseSettings):
     environment: EnvironmentSettings = EnvironmentSettings()
     agents: AgentsSettings = AgentsSettings()
     economy: EconomySettings = EconomySettings()
+    library: LibrarySettings = LibrarySettings()
     predictor: PredictorSettings = PredictorSettings()
     recognition: RecognitionSettings = RecognitionSettings()
 

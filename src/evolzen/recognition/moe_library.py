@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from evolzen.exploration.synthesizer import CandidateRule
 from evolzen.library.rule_library import RuleLibrary
+from evolzen.schemas.library import RuleEntry
 
 
 class ExpertRouter(Protocol):
@@ -29,7 +29,7 @@ class SparseMoELibrary:
         self._router = router
         self._top_k = top_k
 
-    def active_entries(self, query_embedding: list[float]) -> list[CandidateRule]:
+    def active_entries(self, query_embedding: list[float]) -> list[RuleEntry]:
         rule_ids = self._router.route(query_embedding, self._top_k)
         entries = [self._rule_library.get(rid) for rid in rule_ids]
         return [e for e in entries if e is not None]

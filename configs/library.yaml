@@ -1,0 +1,5 @@
+# Maps onto evolzen.config.LibrarySettings — Phase 1.5 (evolzen.library)
+db_path: data/library.duckdb
+audit_log_path: data/library_audit.jsonl
+routing_confidence_threshold: 0.85
+max_regression_rounds: 3
