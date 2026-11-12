@@ -1,6 +1,6 @@
 # Developmental agents: seven sins plus Null
 
-**Design version:** eight-drive-v1, October 24, 2026.
+**Design version:** eight-drive-v1, October 24, 2026 (workflow architecture upgraded November 12, 2026).
 **Status:** a deterministic numerical baseline is implemented; no experiment has established
 developmental intelligence, neural self-training, or population evolution.
 
@@ -21,15 +21,17 @@ depression, self-destruction, or a ninth drive.
 
 ## Read in order
 
-1. [Motivation mathematics](motivation.md): operational meanings, randomized equations,
+1. [Finalized Agentic Behaviour Architecture](architecture.md): 5-layer target stack, original vs.
+   literature comparison, and host synchronization invariants.
+2. [Motivation mathematics](motivation.md): operational meanings, randomized equations,
    normalization, action ranking, limits and alternatives.
-2. [Lifecycle and inheritance](lifecycle.md): age, competence, overlapping generations,
+3. [Lifecycle and inheritance](lifecycle.md): age, competence, overlapping generations,
    parenting and population control.
-3. [Learning and evolution](learning.md): memory, empirical updates, lessons, future LLM
+4. [Learning and evolution](learning.md): memory, empirical updates, lessons, future LLM
    training, validation gates and archive selection.
-4. [Evaluation protocol](evaluation.md): falsifiable questions, controls and development gates.
-5. [Engineering and delivery](engineering.md): source map, interfaces, status and integration.
-6. [Research evidence](evidence.md): sources actually inspected and what they do not establish.
+5. [Evaluation protocol](evaluation.md): falsifiable questions, controls and development gates.
+6. [Engineering and delivery](engineering.md): source map, interfaces, status and integration.
+7. [Research evidence](evidence.md): sources actually inspected and what they do not establish.
 
 ## A brain is more than its equation
 
@@ -58,5 +60,40 @@ Implemented upstream in Phase 1.1 (`evolzen.environment`, `evolzen.schemas.world
 
 Not implemented in `evolzen.agents`: `AgentProfile` schema, `outlines`-constrained LLM action generation (`TransformersBackend`/`VLLMBackend`), private adapter training, episodic text retrieval, reflective planning, persistent population scheduler, population budget enforcement, automatic QD-driven birth selection, or deployed `Sandbox` backend. Earlier five-coordinate `Agent`/`DriveVector` stubs remain isolated from this developmental core; now that Phase 1.1 `WorldState` and `ActionType` schemas are implemented, reconciling or retiring those legacy five-coordinate stubs against the eight-coordinate core is an explicit Phase 1.2 action item.
 
-See [ADR 0006](../../adr/0006-developmental-eight-drive-agents.md) and the source package under
+## Upgraded agentic growth workflow architecture
+
+To transition from the deterministic single-agent numerical core to multi-generational population
+and world growth, all subsystems couple through a six-stage **host-mediated lockstep workflow**:
+
+```mermaid
+flowchart LR
+    E["1. Environment Host\n(world_tick, State_t, seed,\n8-D homeostatic x_t)"] -->|"permitted x_t + Candidate[]"| D["2. Drive & Decision Core\n(drive_step W_kj -> MORL p_k;\n+ autotelic goal / LLM proposals)"]
+    D -->|"pending Decision\n(sequence lock)"| S["3. Containment & Execution\n(Sandbox + host legality check\n& transition replay)"]
+    S -->|"verified Outcome\n(8-D rewards, evidence_id)"| L["4. Lifetime Learning & Growth\n(observe EMA + exploration\nsynthesis -> RuleLibrary / Manuals)"]
+    L -->|"mature snapshots +\nverified competence"| A["5. Population QD Archive\n(DevelopmentArchive / CVT-MAP-Elites\ngated by EvolutionAssessment)"]
+    A -->|"diverse parent selection\n+ budget check"| G["6. Generational Reproduction\n(born inherit_genome + live teach\nwith parent intact)"]
+    G --> E
+```
+
+Design decisions anchoring this upgraded workflow:
+
+1. **MORL + Homeostatic Utility Framing (`hayes2022morl`, `keramati2014homeostatic`):**
+   `drive_step` generates normalized priority weights over internal/world discrepancies $x_t$,
+   keeping preference weighting separate from outcome estimation (`SkillEstimate`) and host legality.
+2. **Autotelic & Intrinsic Exploration Track (`merrick2010valuesystems`, `colas2022autotelic`, `oudeyer2007intrinsic`):**
+   Because pure greedy ranking stalls in novel environments, exploration proposals (`exploration.actor`
+   + `Candidate` generators) feed into the same verified pipeline under matched interaction budgets.
+3. **Immutable Memory & Manual Layer (`library`, `economy`):**
+   Verified skills persist in `evolzen.library.RuleLibrary` (append-only DuckDB + `ValidityContext`
+   + `RegressionBank`), while falsifiable cross-agent knowledge flows via `economy.ManualStore` and
+   living-parent `teach` without conflating advice with verified experience.
+4. **High-Dimensional QD Scaling (`vassiliades2018cvtmape`, `diversitycollapse2026`):**
+   Once behavioral descriptors exceed 2–3 dimensions (e.g., risk, reciprocity, specialization,
+   exploration, communication), the archive upgrades from fixed uniform bins to CVT-MAP-Elites while
+   monitoring topology coupling to avoid semantic collapse.
+5. **Strict Execution Containment (`agache2020firecracker`, `sidikrokach2026`, `hyperagents2026`):**
+   Any code-generating or metacognitive self-modification proposal executes exclusively inside
+   `evolzen.containment.Sandbox` with static default-deny capability bounds.
+
+See [ADR 0006](../../adr/0006-developmental-eight-drive-agents.md), [ADR 0008](../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade.md), and the source package under
 `src/evolzen/agents/`.

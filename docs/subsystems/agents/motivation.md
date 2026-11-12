@@ -68,10 +68,37 @@ Own experience overrides parental advice. The highest score wins; action ID brea
 candidate ordering irrelevant. Candidate counts are bounded. If no candidate is legal the call
 fails; the host must supply an explicit legal wait action when needed.
 
-This baseline is greedy and does not implement curiosity, planning or autonomous exploration.
-A controlled exploration schedule or LLM proposal distribution must be added as a separately
-measured condition. Predicted utility is not factual truth; observed outcome updates are how
-the baseline corrects a mistaken preference-to-action expectation.
+## Theoretical grounding & formal classification
+
+While the seven-sins-plus-Null names and $8 \times 8$ tendency matrix $W_{kj}$ are untested
+EvolZen design choices, their **mathematical form** maps directly onto three established
+frameworks in IEEE and ML literature:
+
+1. **Homeostatic Drive Modulation (Keramati & Gutkin, *eLife* 2014, `keramati2014homeostatic`):**
+   The context vector $x_t \in [-1, 1]^8$ encodes discrepancies (resource deficit, status gap,
+   consumption pressure, fatigue). Modulating drive activations $a_k(n)$ from internal and
+   environmental deviations functions as a bounded homeostatic weighting mechanism rather than a
+   claim about human emotion.
+2. **Multi-Objective Linear Scalarization (Hayes et al., *AAMAS* 2022, `hayes2022morl`):**
+   Evaluating `score(action) = sum_k p_k * expected_outcome_k(action) - cost(action)` is
+   mathematically **MORL linear scalarization** using dynamic preference weights $p_k(n)$ over
+   an 8-dimensional reward vector. By MORL theory, linear scalarization can only recover policies
+   on the **convex hull** of the Pareto front; whenever trade-offs (e.g., safety vs. immediate
+   consumption) are non-convex, future variants must ablate **non-linear (Chebyshev) utility**
+   instead of assuming linear weights suffice.
+3. **Priority Ratios vs. Stochastic Policy Operators (Asadi & Littman, *ICML* 2017, `asadi2017mellowmax`):**
+   `drive_step` uses Boltzmann softmax solely to normalize $a_k(n)$ into positive priority weights
+   $p_k(n)$, while `decide` uses **deterministic argmax** (`ranked[0]`). If future versions convert
+   action scores into stochastic exploration policies, standard Boltzmann softmax can suffer from
+   non-contraction/multiple fixed points under value iteration; the **Mellowmax** operator provides
+   a provably non-expansive alternative to test against greedy selection and $\epsilon$-greedy.
+
+This baseline is greedy and does not implement curiosity, planning or autonomous exploration
+(compare Merrick, *IEEE TAMD* 2010, `merrick2010valuesystems`; Colas et al., *JAIR* 2022,
+`colas2022autotelic`). A controlled exploration schedule, intrinsic competence-progress term, or
+LLM proposal distribution must be added as a separately measured condition. Predicted utility is
+not factual truth; observed outcome updates are how the baseline corrects a mistaken
+preference-to-action expectation.
 
 ## Preferences are not permissions
 

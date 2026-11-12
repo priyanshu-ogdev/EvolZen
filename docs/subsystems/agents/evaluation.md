@@ -17,6 +17,9 @@ Correct equations and passing tests do not establish developmental intelligence.
 | Is knowledge cumulative? | Overlapping generations vs reset-culture generations | Success across generations at equal total interactions and teaching cost |
 | Does evolution preserve diversity? | QD vs fitness-only vs random parent selection | Behavior coverage, lineage concentration, extinction and useful performance |
 | Are LLM updates worthwhile? | Frozen base, memory-only, private adapter | Transfer, retention, inference/training cost; planned, not baseline capability |
+| Is linear MORL scalarization sufficient? (`hayes2022morl`) | Linear weighted sum vs Chebyshev / non-linear scalarization | Pareto coverage, safety-constraint violations, and non-convex trade-off survival |
+| Does an intrinsic value system outperform greedy drives? (`merrick2010valuesystems`, `colas2022autotelic`) | Greedy 8-drive vs competence-progress / prediction-error intrinsic drive vs combined | Unique skills acquired, world-growth categories triggered, and exploration efficiency |
+| Should action choice be stochastic? (`asadi2017mellowmax`) | Deterministic argmax (`decide`) vs Boltzmann softmax vs Mellowmax temperature policy | Policy stability, exploration coverage, and variance across seeds |
 
 Test one causal factor at a time before attempting a full factorial study. The seven-sins names
 themselves are a potential language-model prompt confound: compare neutral labels with identical

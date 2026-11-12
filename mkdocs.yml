@@ -63,6 +63,7 @@ nav:
       - Environment: subsystems/environment/README.md
       - Developmental Agents:
           - Overview: subsystems/agents/README.md
+          - Agentic Behaviour Architecture: subsystems/agents/architecture.md
           - Motivation Equations: subsystems/agents/motivation.md
           - Lifecycle & Inheritance: subsystems/agents/lifecycle.md
           - Learning & Evolution: subsystems/agents/learning.md
@@ -85,6 +86,7 @@ nav:
       - "0005 Transition semantics & dual-track evaluation": adr/0005-transition-semantics-and-dual-track-evaluation.md
       - "0006 Developmental eight-drive agents": adr/0006-developmental-eight-drive-agents.md
       - "0007 Library persistence": adr/0007-library-persistence.md
+      - "0008 Convergent learning & planning": adr/0008-convergent-learning-and-hierarchical-planning-upgrade.md
   - API Reference:
       - Overview: api/README.md
       - Shared foundation: api/foundation.md

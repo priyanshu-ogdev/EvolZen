@@ -23,3 +23,4 @@ possible).
 - [0005 — Transition semantics and dual-track evaluation](0005-transition-semantics-and-dual-track-evaluation.md)
 - [0006 — Developmental eight-drive agents](0006-developmental-eight-drive-agents.md)
 - [0007 — DuckDB append-only rule store and JSONL audit log for library](0007-library-persistence.md)
+- [0008 — Convergent learning, non-convex MORL, and hierarchical planning upgrade](0008-convergent-learning-and-hierarchical-planning-upgrade.md)

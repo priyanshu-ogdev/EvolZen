@@ -101,3 +101,21 @@ competence, adaptation and safety metrics. Report all eight outcome components, 
 resource consumption, population extinction and teaching cost. A high Null agent must not earn
 infinite positive reward for doing nothing; wait has a world-time/opportunity cost. Harmless
 low-activity agents can occupy valid diversity niches without dominating fitness by inaction.
+
+
+## 6. Upgraded Learning & Convergence Roadmap (Proposed — [ADR 0008](../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade.md))
+
+The current EMA + greedy-argmax baseline has no regret bound, no non-convex Pareto coverage,
+one-step horizon, and assumes a stationary environment. Future milestones upgrade learning across
+three strictly ablated tiers (without claiming general intelligence per `PRD.md` §4):
+
+1. **Tier 1 (Uncertainty + Non-Convex MORL):** Track posterior variance in `SkillEstimate` for
+   **UCB** (`auer2002ucb1`) / **Thompson Sampling** (`russo2018thompson`) exploration with
+   sublinear regret, paired with **Chebyshev scalarization** (`vanmoffaert2014morl`) to cover
+   non-convex multi-objective Pareto fronts.
+2. **Tier 2 (Epistemic-Pragmatic Rollouts):** Replace one-step ranking with **Expected Free Energy**
+   (`friston2015epistemic`, `parr2022activeinference`) and multi-step latent world-model MPC
+   (`hafner2025dreamerv3`, `hansen2024tdmpc2`) inside `evolzen.predictor.planner`.
+3. **Tier 3 (Hierarchical Options + Multi-Agent Stabilization):** Package verified `RuleLibrary`
+   entries as temporal-abstraction **options** `(I, pi, beta)` (`sutton1999options`) and monitor
+   multi-agent non-stationarity (`busoniu2008marl`) alongside CVT-MAP-Elites behavioral coverage.
