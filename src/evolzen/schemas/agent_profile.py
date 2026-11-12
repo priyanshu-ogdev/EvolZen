@@ -46,3 +46,4 @@ class AgentProfile(BaseModel):
     def descriptor_vector(self) -> list[float]:
         """Return the behavioral descriptor as a mutable list for distance calculations."""
         return list(self.behavioral_descriptor)
+

@@ -67,3 +67,4 @@ def test_apply_profile_update_adds_roles_and_norms() -> None:
     assert "blacksmith" in updated.roles
     assert "generalist" in updated.roles
     assert "conserve_ore" in updated.adopted_norms
+

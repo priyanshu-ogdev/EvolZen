@@ -10,6 +10,8 @@ Citations:
 - Tycho (arXiv:2607.28287) for seeded, typed interactive transition systems;
 - OPINE-World (arXiv:2607.01531) for ontology-error-guided exploration over typed entities;
 - Executable World Models (arXiv:2605.05138) for verifiable executable world transitions;
+- Sequential Social Dilemmas (arXiv:1702.03037), Concordia (arXiv:2312.03664), and Melting Pot 2.0 (arXiv:2211.13746)
+  for multi-agent social dilemma dynamics, resource renewal, and spatial/social mediation;
 - PettingZoo (arXiv:2009.14471) for multi-agent environment interface compatibility;
 - Procgen (arXiv:1912.01588) for seed-stratified procedural world generation;
 - OMNI-EPIC (arXiv:2405.15568) as the contrastive boundary: EvolZen rejects arbitrary
