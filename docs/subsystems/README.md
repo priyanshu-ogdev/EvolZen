@@ -17,5 +17,5 @@ Subsystem folders hold detailed contracts, rationale and implementation status.
 | [recognition](recognition/README.md) | Transferable proposal priors | [2.3](../phases/2.3-recognition.md) |
 | [evaluation](evaluation/README.md) | Independent measurements and frozen final evaluation | [2.4–2.5](../phases/2.4-2.5-evaluation.md) |
 
-Detailed agent documents supersede conflicting legacy five-drive descriptions **for the new
-developmental path only**. Existing Python interfaces have not been silently migrated.
+Detailed agent documents supersede earlier five-coordinate Phase 0 interface stubs **for the active
+developmental path**. Those superseded stubs remain isolated pending Phase 1.1 domain freezing.

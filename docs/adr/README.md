@@ -22,3 +22,4 @@ possible).
 - [0004 — Persistent growing world with bounded extensibility](0004-persistent-growing-world.md)
 - [0005 — Transition semantics and dual-track evaluation](0005-transition-semantics-and-dual-track-evaluation.md)
 - [0006 — Developmental eight-drive agents](0006-developmental-eight-drive-agents.md)
+- [0007 — DuckDB append-only rule store and JSONL audit log for library](0007-library-persistence.md)

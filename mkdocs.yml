@@ -56,6 +56,7 @@ nav:
       - Comparative Landscape: research/landscape.md
       - Design Evolution: research/design-evolution.md
       - Design Audit: research/design-audit.md
+      - Docs & Codebase Audit: research/docs-and-codebase-audit.md
       - Objectives & Evaluation: research/objectives-and-evaluation.md
   - Subsystem Design:
       - Overview: subsystems/README.md
@@ -83,6 +84,7 @@ nav:
       - "0004 Persistent growing world": adr/0004-persistent-growing-world.md
       - "0005 Transition semantics & dual-track evaluation": adr/0005-transition-semantics-and-dual-track-evaluation.md
       - "0006 Developmental eight-drive agents": adr/0006-developmental-eight-drive-agents.md
+      - "0007 Library persistence": adr/0007-library-persistence.md
   - API Reference:
       - Overview: api/README.md
       - Shared foundation: api/foundation.md

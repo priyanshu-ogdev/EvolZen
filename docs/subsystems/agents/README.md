@@ -56,8 +56,9 @@ a pretrained LLM is *locally inexperienced*, not linguistically blank or biologi
 
 Not implemented: a functioning world, LLM generation, private adapter training, episodic text
 retrieval, reflective planning, persistent scheduler, population budget enforcement, automatic
-QD-driven birth selection or deployed sandbox backend. Existing `Agent`/`DriveVector` code remains
-the legacy five-coordinate path, not an implementation of this design.
+QD-driven birth selection or deployed sandbox backend. Earlier five-coordinate `Agent`/`DriveVector`
+stubs remain isolated from this developmental core and are slated for retirement once Phase 1.1
+freezes the domain `Action` schema.
 
 See [ADR 0006](../../adr/0006-developmental-eight-drive-agents.md) and the source package under
 `src/evolzen/agents/`.

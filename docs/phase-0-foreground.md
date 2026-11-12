@@ -1,9 +1,10 @@
-# Phase 0 — The Foreground
+# Phase 0 — The Foreground (Completed Baseline Scaffold)
 
-**Historical scaffold description.** The current repository additionally contains the
-[developmental numerical agent core](subsystems/agents/engineering.md). That increment is not
-a trained neural model or completed population experiment. The checklist below records earlier
-scaffold goals; it is not fresh evidence that installation, CI or the full suite passes here.
+**Status note:** Phase 0 scaffolding is complete and superseded by active subsystem work. Two
+subsystems now have tested implementations beyond Phase 0 stubs: the
+[developmental numerical agent core](subsystems/agents/engineering.md) (Phase 1.2 baseline) and the
+[growing rule library](subsystems/library/README.md) (Phase 1.5). The checklist below records the
+initial foreground engineering gates.
 
 ## What Phase 0 is
 

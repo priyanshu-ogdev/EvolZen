@@ -25,6 +25,8 @@
     organized by subsystem.
   - [`design-audit.md`](research/design-audit.md) — the audit and verdict for the supplied
     blueprints against the repository and the persistent-world goal.
+  - [`docs-and-codebase-audit.md`](research/docs-and-codebase-audit.md) — full `docs/` link/nav
+    validation, IEEE/ML citation coverage, and doc-to-codebase progress match.
   - [`objectives-and-evaluation.md`](research/objectives-and-evaluation.md) — the research
     objectives, hypotheses, baselines, evaluation standards, and decision gates.
   - [`references.bib`](research/references.bib) — full BibTeX citation list.

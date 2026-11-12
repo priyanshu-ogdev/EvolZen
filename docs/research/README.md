@@ -8,6 +8,7 @@ The literature this project's design is accountable to.
 | [`landscape.md`](landscape.md) | Comparative landscape and source-status notes; benchmark numbers are dated and should not be treated as permanent baselines. |
 | [`design-evolution.md`](design-evolution.md) | Historical record of design changes from the original voxel/observer blueprint. |
 | [`design-audit.md`](design-audit.md) | Section-by-section audit of the supplied blueprints against the repository and the revised persistent-world goal. |
+| [`docs-and-codebase-audit.md`](docs-and-codebase-audit.md) | Full `docs/` structural validation, verified IEEE/ML citations per phase, and codebase progress match. |
 | [`objectives-and-evaluation.md`](objectives-and-evaluation.md) | Research questions, hypotheses, baselines, evaluation tracks, split rules, and decision gates. |
 | [`references.bib`](references.bib) | Full BibTeX citation list. |
 

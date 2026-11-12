@@ -140,3 +140,44 @@ emotional intelligence, universal civilizational laws, or AGI.
 6. Run hardware and containment acceptance gates.
 7. Add predictor and recognition ablations only after the world produces nontrivial data.
 8. Run persistent-world and fresh-world evaluations separately.
+
+---
+
+## Audit 2026-11-12 — Library Review, `agents` Directory Relevance, and Frontier AGI / Diversity / Growth Literature
+
+**Audit scope:** Post-Phase-1.5 code & documentation review of `evolzen.library`, full code audit of `src/evolzen/agents/`, IEEE/ML citation expansion, and audit of recent models/benchmarks making AGI, diversity, or open-ended growth claims against `PRD.md` §4 (`NG1`–`NG5`).
+
+### 1. `evolzen.library` Review Findings & Fixes
+
+Reviewing the completed Phase 1.5 subsystem (`src/evolzen/library/`, `src/evolzen/schemas/library.py`, `tests/library/`) identified three concrete engineering improvements that were fixed and verified:
+
+1. **Context-aware default routing (`rule_library.py`):** `_default_confidence` previously scored `SequenceMatcher` similarity purely on `code` text. Updated `_default_confidence` to return `0.0` immediately when an existing entry is incompatible with the candidate's `ValidityContext` (`not is_applicable(b, a.validity)`), preventing cross-version routing across world changes.
+2. **Windows file-lock offset alignment (`audit.py`):** `msvcrt.locking` on Windows locks 1 byte starting from the current file descriptor offset; seeking to byte `0` before locking and before unlocking (after `fh.flush()`) ensures consistent lock/unlock offset alignment across concurrent writers.
+3. **Deterministic store query ordering (`persistence.py`):** Added `ORDER BY row_seq` to `LibraryStore.get_all()`.
+
+### 2. Full `src/evolzen/agents/` Relevance Audit
+
+`src/evolzen/agents/` currently contains **two separate, non-integrated code paths**, which remain intentionally isolated per `src/evolzen/agents/README.md` (`docs/subsystems/agents/engineering.md`):
+
+| Path | Modules | Relevance to Phase 1.2 & Revised Goal | Status / Gap |
+|---|---|---|---|
+| **Implemented numerical baseline** | `agents/development/{motivation,lifecycle,brain,learning,evolution}.py` + `schemas/development.py` | **High relevance (core Phase 1.2 baseline):** deterministic seeded `BirthGenome`, eight-coordinate recurrence (`Motive`), simulation-clock `LifeStage` boundaries (`born`, `stage_at`, `advance`), greedy candidate ranking (`decide`), identity-checked EMA outcome learning (`observe`), living-parent advice (`teach`), and gated `DevelopmentArchive`. | Clean, zero unsafe `eval`/`exec`, CPU-only. **Missing:** world adapter, persistent scheduler, population budget enforcement, LLM action proposals, and multi-generation empirical runs. |
+| **Legacy five-drive / LLM stub path** | `agents/{drive_vector,inference,qd_archive,self_modification}.py` + `schemas/drive_vector.py` | **Partial relevance / structural split:** `Agent`, `TransformersBackend`/`VLLMBackend` (`NotImplementedError` stubs), 5-coordinate `DriveVector`, `QualityDiversityArchive` (MAP-Elites), and `SelfModificationProposal`/`evaluate_proposal` (DGM-style gate). | Legacy path uses 5 drives (`DriveVector`) while `development/` uses 8 (`Motive`), and `self_modification.py` uses `eval` target `held_out_eval` without `Sandbox` wiring. Must stay reconciled or deprecated via explicit adapter once Phase 1.1 domain `Action` schema is frozen. |
+
+**Key architectural gaps discovered in `agents`:**
+- **No intrinsic-motivation signal vs. greedy baseline:** `agents/development/brain.py` uses purely greedy expected-outcome ranking (`score(action)`). Literature in *IEEE TEVC* (`oudeyer2007intrinsic`) and *IEEE TCDS* (`santucci2016grail`) emphasizes competence-progress / goal-discovery drives for open-ended environments.
+- **2D fixed archive grid:** `DevelopmentArchive` defaults to `dimensions=2, bins=5`; scaling to richer behavioral descriptors requires Voronoi partitioning such as CVT-MAP-Elites (*IEEE TEVC* 2018, `vassiliades2018cvtmape`).
+- **No unified `AgentProfile` schema yet:** PRD FR-3 requires roles, affiliations, memory scope, communication channels, and norms; only temperament, outcome estimates, and lessons exist today.
+
+### 3. Audit of Frontier AGI, Diversity, and Open-Ended Growth Models
+
+Recent systems and benchmarks frequently cited around AGI, self-improvement, and open-endedness were audited against EvolZen's falsifiable non-goals (`PRD.md` §4):
+
+| System / Paper | Source Status | Claim / Breakthrough | Audit Verdict for EvolZen |
+|---|---|---|---|
+| **ARC-AGI-2** (`chollet2025arcagi2`, `arXiv:2505.11831`) & *On the Measure of Intelligence* (`chollet2019measure`) | Preprint (benchmark specification) | Separates memorized pretraining from compositional fluid skill acquisition; standard unassisted text-reasoning models (e.g., DeepSeek-R1 ~1.1%–1.3% baseline) diverge sharply from iterative test-time program search (e.g., o3-class search pipelines). | Reinforces EvolZen's dual-track separation (`persistent-world` vs `fresh-world` EAE) and confirms that LLM pretraining alone does not establish generalization. |
+| **Voyager** (`wang2023voyager`, *TMLR* 2023) | Peer-reviewed journal | Automatic curriculum + compositional executable skill library in Minecraft + iterative self-verification reduces forgetting across tasks. | Direct precedent for coupling `evolzen.exploration` with `evolzen.library`, but EvolZen requires explicit `ValidityContext` and `Sandbox` containment because world rules can change (`env-v1` → `env-v2`). |
+| **OMNI-EPIC** (`faldor2024omniepic`, `arXiv:2405.15568`) | Preprint | Foundation models synthesize both interestingness priors and code-programmed environments (unlimited auto-curriculum). | Bounded in EvolZen: ADR 0004 explicitly rejects unrestricted open-ended world invention; new mechanics must enter as typed, versioned capability packages. |
+| **DGM & Hyperagents (`DGM-H`)** (`dgm2026`, `hyperagents2026`, `arXiv:2603.19461`) | `dgm2026`: ICLR 2026; `hyperagents2026`: Preprint | Extends empirical self-modification from coding-only benchmarks to metacognitive self-editing (task agent + meta-agent unified, inventing persistent memory/insight trackers). | High containment risk: self-referential meta-editing directly reinforces `SECURITY.md`'s hard rule that no self-modified code executes outside `evolzen.containment.Sandbox`. |
+| **Hughes et al. — Open-Endedness for ASI** (`hughes2024openended`, *ICML* 2024) | Peer-reviewed position paper | Argues open-ended novelty/learnability is necessary for ASI. | Treated as motivation for EvolZen's diversity and world-growth metrics (`qd_archive`, `GrowthEvent`), **not** as an AGI/ASI claim (`NG1`). |
+| **IEEE Continual Learning & QD Foundations** (`wang2024continualsurvey`, `oudeyer2007intrinsic`, `santucci2016grail`, `vassiliades2018cvtmape`) | Peer-reviewed IEEE journals (*TPAMI*, *TEVC*, *TCDS*) | Formalizes catastrophic-forgetting mitigations (replay, dynamic isolation, regularization), competence-progress intrinsic motivation, and CVT-scaled QD archives. | Primary peer-reviewed anchor for `evolzen.agents`, `evolzen.library`, and `evolzen.predictor` baselines and ablations. |

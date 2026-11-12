@@ -35,50 +35,77 @@ which makes the reused-vs-fresh gap a required field, not optional.
 ## Programmatic world-model synthesis
 
 Several recent approaches use actor/synthesizer/verifier systems that build an executable world
-model from interaction and check it against replay — OPINE-World [opineworld2026], Tycho's active
-identification formalization [tycho2026], and coding-agent-based variants
-[executableworldmodels2026]. These are relevant design precedents, not proof that the method is
-the field's universal leader or that it transfers to a persistent social sandbox. EvolZen may use
-an existing coding-agent harness as a candidate synthesizer, but all generated code remains behind
-containment and the transfer result is an explicit experiment.
+model from interaction and check it against replay:
+
+- **OPINE-World** (Courtis, Li & Sanner, `opineworld2026`, `arXiv:2607.01531`): pairs a
+  qualitative object-oriented natural-language proto-ontology with an executable Python world model
+  and Bayesian uncertainty exploration.
+- **Tycho** (Lehmann, Aioanei & Vahdati, `tycho2026`, `arXiv:2607.28287`): formalizes tasks as
+  parameterized deterministic transition systems and uses *active abstraction* to decide when to
+  construct, test, repair, or bypass executable hypotheses.
+- **Executable World Models** (Rodionov, `executableworldmodels2026`, `arXiv:2605.05138`):
+  maintains replay-verified Python world models refactored under a Minimum Description Length
+  simplicity bias before action planning.
+
+These are relevant design precedents, not proof that the method transfers automatically to a
+persistent social sandbox. EvolZen may use an existing coding-agent harness as a candidate
+synthesizer, but all generated code remains behind containment and transfer is tested explicitly.
 
 ## Representation learning and library learning
 
-LeJEPA and related JEPA work provide candidate objectives for learning representations, while
-DreamCoder provides a precedent for wake-sleep library learning [lejepa2025, dreamcoder2021].
+- **LeJEPA** (Balestriero & LeCun, `lejepa2025`, `arXiv:2511.08544`) and *When Does LeJEPA
+  Learn a World Model?* (`lejepaworldmodel2026`, `arXiv:2605.26379`) replace ad-hoc stop-gradient
+  or teacher-student heuristics with Sketched Isotropic Gaussian Regularization (SIGReg),
+  building on **I-JEPA** (`assran2023ijepa`, *CVPR* 2023).
+- **DreamCoder** (`dreamcoder2021`, *PLDI* 2021) and *Wake-Sleep Event Semantics* (Balogh,
+  `wakesleepschank2026`, `arXiv:2603.25975`) demonstrate wake-sleep operator compression over state
+  transformations, while **FAISS** (`johnson2019faiss`, *IEEE TBDATA* 2019) supports sparse
+  vector retrieval over `evolzen.library`.
+
 The proposed EvolZen combination is not assumed to be necessary, novel, or effective: it must be
-compared with simpler state encoders, symbolic baselines, and manual-only conditions. A similar
-2026 preprint may motivate the hypothesis, but it does not validate the implementation here.
+compared against simpler state encoders, symbolic baselines, and manual-only conditions.
 
 ## Continual learning remains an open engineering risk
 
-Continual learning remains an empirical risk rather than a solved property. Reported degradation
-varies with model, task sequence, metric, and update regime [tfgn2026]. Those numbers are not a
-universal baseline for EvolZen; the predictor phase must reproduce a matched protocol and report
-forgetting, spurious forgetting, forward transfer, backward transfer, adaptation latency, and
-update cost. A rehearsal buffer is a candidate mitigation, not a guarantee.
+Continual learning remains an empirical risk rather than a solved property (*IEEE TPAMI* survey,
+`wang2024continualsurvey`). **CLEAR** (`rolnick2019clear`, *NeurIPS* 2019) motivates mixing
+off-policy replay with on-policy updates; **TFGN** (Ganguli, `tfgn2026`, `arXiv:2605.15053`)
+explores task-free replay-free continual pretraining; and **CLaaS** (Fallah et al., `claas2026`,
+`arXiv:2606.05559`) investigates online continual adaptation services. Reported numbers are not
+imported as universal baselines for EvolZen; the predictor phase must measure forgetting,
+spurious forgetting, forward/backward transfer, adaptation latency, and update cost directly.
 
-## Recent agent-evolution precedents
+## Recent agent-evolution and economic precedents
 
-DGM and CORAL are relevant design precedents for empirically validated self-modification,
-archives, persistent memory, and safeguard checklists [dgm2026, coral2026]. They do not establish
-that small local LLM agents with drive vectors will evolve useful social types or grow a persistent
-world. EvolZen treats those transfers as hypotheses requiring matched ablations.
+- **DGM** (`dgm2026`, *ICLR* 2026), **Hyperagents** (Zhang et al., `hyperagents2026`,
+  `arXiv:2603.19461`), and **CORAL** (Qu et al., `coral2026`, `arXiv:2604.01658`) demonstrate
+  archive-gated empirical self-modification, metacognitive meta-agent editing (`DGM-H`), and
+  persistent-memory asynchronous multi-agent evolution.
+- **Economy of Minds** (Qi et al., `economyofminds2026`, `arXiv:2606.02859`) and **The AI
+  Economist** (`zheng2022aieconomist`, *Science Advances* 2022) motivate market auctions, wealth
+  feedback, and specialization rules without centralized scripting.
+
+They do not establish that small local LLM agents with drive vectors will evolve useful social
+types or grow a persistent world; EvolZen treats those transfers as hypotheses requiring matched
+ablations.
 
 ## Diversity collapse is a testable population risk
 
-A cited 2026 study reports three actionable patterns in a specific multi-agent ideation setting
-[diversitycollapse2026]. EvolZen treats them as hypotheses to reproduce: base-model alignment,
-authority structure, communication density, and group size may affect semantic diversity. They do
-not automatically predict diversity of persistent social roles or world growth.
+Chen et al. (`diversitycollapse2026`, *ACL 2026 Findings*, `arXiv:2604.18005`) identify how
+structural coupling, dense communication topologies, and authority-driven hierarchy create
+"semantic black holes" that collapse idea diversity in multi-agent LLM populations. EvolZen
+treats those mechanisms as testable hypotheses alongside **CVT-MAP-Elites** (`vassiliades2018cvtmape`,
+*IEEE TEVC* 2018) and limited-resource QD (`qdlimited2024`, *ICML* 2024).
 
 ## Containment has moved past cgroup/eBPF
 
-The containment literature motivates hardware isolation, default-deny capabilities, evaluator
-separation, resource ceilings, and recovery testing for long-running code-generating agents
-[sidikrokach2026, safetyopenended2025]. The repository does not call any backend a “default” or
-secure by name: the selected Firecracker/gVisor deployment must pass a target-host threat model,
-and behavior-sensitive governance may only tighten a static policy until separately reviewed.
+Systems and agent-security literature — **Firecracker** KVM microVMs (`agache2020firecracker`,
+*USENIX NSDI* 2020), *Safety Must Precede Open-Ended AI* (Sheth et al., `safetyopenended2025`,
+`arXiv:2502.04512`), and **Beyond Static Sandboxing** (Sidik & Rokach, `sidikrokach2026`,
+`arXiv:2604.11839`, documenting ~15× tool overprovisioning in default runtimes and ~73% tool
+reduction via PPO least-privilege capability scoping) — motivates hardware isolation,
+continuous runtime evaluation, and fail-closed default-deny governance. The selected deployment
+backend must still pass a target-host threat model before generated code runs outside tests.
 
 ## Full reference list
 
