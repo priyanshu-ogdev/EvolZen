@@ -2,7 +2,8 @@
 
 Verifies exact resource/currency conservation, capacity and scalar boundedness, valid
 ownership/membership integrity, and monotonic clock progression per docs/phases/1.1-environment.md,
-ADR 0004, and Tycho (arXiv:2607.28287). These invariant definitions are an EvolZen design
+ADR 0004, MCMAS multi-agent invariant verification (Lomuscio et al., 2017, doi:10.1007/s10009-015-0378-x),
+and Tycho (arXiv:2607.28287). These invariant definitions are an EvolZen design
 choice and remain empirically untested until Phase 1.1 experiments are run.
 """
 from __future__ import annotations

@@ -7,14 +7,17 @@ Implements `Environment` (Phase 0 protocol) and `PersistentEnvironment` with a c
 
 Design authority: docs/phases/1.1-environment.md, ADR 0004, ADR 0005.
 Citations:
+- Weyns et al. (JAAMAS 2007, doi:10.1007/s10458-006-0012-0) for the environment as a first-class programmatic abstraction;
+- Zeigler et al. (Academic Press 2000) for discrete-event simulation specification (DEVS) transition/emission formalisms;
 - Tycho (arXiv:2607.28287) for seeded, typed interactive transition systems;
 - OPINE-World (arXiv:2607.01531) for ontology-error-guided exploration over typed entities;
 - Executable World Models (arXiv:2605.05138) for verifiable executable world transitions;
-- Sequential Social Dilemmas (arXiv:1702.03037), Concordia (arXiv:2312.03664), and Melting Pot 2.0 (arXiv:2211.13746)
+- Sequential Social Dilemmas (AAMAS 2017, arXiv:1702.03037), Concordia (arXiv:2312.03664), and Melting Pot 2.0 (NeurIPS 2023, arXiv:2211.13746)
   for multi-agent social dilemma dynamics, resource renewal, and spatial/social mediation;
-- PettingZoo (arXiv:2009.14471) for multi-agent environment interface compatibility;
-- Procgen (arXiv:1912.01588) for seed-stratified procedural world generation;
-- OMNI-EPIC (arXiv:2405.15568) as the contrastive boundary: EvolZen rejects arbitrary
+- The AI Economist (Science Advances 2022, doi:10.1126/sciadv.abk2607) for multi-agent dynamic economies and taxation;
+- PettingZoo (NeurIPS 2021, arXiv:2009.14471) for multi-agent environment interface compatibility;
+- Procgen (ICML 2020, arXiv:1912.01588) for seed-stratified procedural world generation;
+- OMNI-EPIC (ICLR 2025, arXiv:2405.15568) as the contrastive boundary: EvolZen rejects arbitrary
   engine code mutation and admits only typed, replay-, intervention-, and
   containment-verified `CapabilityPackage` definitions.
 
