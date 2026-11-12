@@ -1,5 +1,5 @@
-"""Phase 0 sanity tests: shared schemas construct and validate correctly."""
-from evolzen.schemas import Action, DriveVector, Emission, Manual, State, Transition
+"""Phase 0 / Phase 1.2 sanity tests: shared schemas construct and validate correctly."""
+from evolzen.schemas import Action, AgentProfile, Emission, Manual, State, Transition
 from evolzen.schemas.manual import ManualEntry, ManualEntryStatus
 
 
@@ -16,9 +16,24 @@ def test_transition_roundtrip() -> None:
     assert restored.next_state.data["round"] == 2
 
 
-def test_drive_vector_as_vector_order_is_stable() -> None:
-    dv = DriveVector(resource_seeking=0.5, status=0.1, aggression=-0.3)
-    assert dv.as_vector() == [0.5, 0.1, 0.0, -0.3, 0.0]
+def test_agent_profile_roundtrip_and_descriptor_stability() -> None:
+    profile = AgentProfile(
+        agent_id="agent-0",
+        lineage_id="lineage-alpha",
+        generation=1,
+        parents=("agent-root",),
+        roles=("gatherer", "builder"),
+        institutional_affiliations=("guild-craft",),
+        adopted_norms=("norm-conserve",),
+        memory_horizon=64,
+        behavioral_descriptor=(0.8, 0.4, -0.2, 0.1, 0.9),
+    )
+    assert profile.agent_id == "agent-0"
+    assert profile.generation == 1
+    assert profile.descriptor_vector() == [0.8, 0.4, -0.2, 0.1, 0.9]
+    dumped = profile.model_dump_json()
+    restored = AgentProfile.model_validate_json(dumped)
+    assert restored == profile
 
 
 def test_manual_active_beliefs_excludes_falsified() -> None:

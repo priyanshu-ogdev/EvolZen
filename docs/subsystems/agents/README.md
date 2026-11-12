@@ -56,9 +56,16 @@ a pretrained LLM is *locally inexperienced*, not linguistically blank or biologi
 - a capacity-limited phenotype archive with host validation/safety/retention gates;
 - source tests covering these primitives (results must be reported separately).
 
-Implemented upstream in Phase 1.1 (`evolzen.environment`, `evolzen.schemas.world`, `evolzen.storage`): `SocialSandboxEngine`, `WorldState`/`ActionType` contracts, `TransitionLogStore`, `SocialSandboxAECEnv`, and the host adapter (`evolzen.environment.adapter`: `observe_features`, `legal_candidates` covering 7/17 `ActionType`s, `action_from_candidate`, `execute_decision`).
+Implemented in Phase 1.1 & Phase 1.2 (`evolzen.environment`, `evolzen.agents`, `evolzen.schemas`):
+- `SocialSandboxEngine`, `WorldState`/`ActionType` contracts, `TransitionLogStore`, `SocialSandboxAECEnv`, and host adapter (`evolzen.environment.adapter`).
+- Unified developmental `Agent` runtime (`evolzen.agents.agent`), combining `AgentProfile` and the 8-coordinate numerical developmental core.
+- Structured LLM inference (`evolzen.agents.inference.TransformersBackend`) with `outlines`-constrained generation and safe deterministic candidate fallback.
+- `CVTArchive` Centroidal Voronoi Tessellation MAP-Elites scaling across $k$-D behavioral descriptors.
+- Sandboxed capability self-modification (`evolzen.agents.self_modification`) gated by `evolzen.containment.Sandbox`.
+- `PopulationScheduler` (`evolzen.agents.scheduler`) coordinating round-robin stepping, living-parent teaching, and DuckDB transition persistence.
+- Legacy 5-axis `DriveVector` stubs cleanly retired per Option A consensus.
 
-Not implemented in `evolzen.agents`: `AgentProfile` schema, `outlines`-constrained LLM action generation (`TransformersBackend`/`VLLMBackend`), private adapter training, episodic text retrieval, reflective planning, persistent population scheduler, population budget enforcement, automatic QD-driven birth selection, or deployed `Sandbox` backend. Earlier five-coordinate `Agent`/`DriveVector` stubs remain isolated from this developmental core; now that Phase 1.1 `WorldState` and `ActionType` schemas are implemented, reconciling or retiring those legacy five-coordinate stubs against the eight-coordinate core is an explicit Phase 1.2 action item.
+Not implemented: multi-generation empirical benchmarking runs on hardware pilot, private LoRA adapter training, and GPU tensor-parallel live serving via `VLLMBackend`.
 
 ## Upgraded agentic growth workflow architecture
 

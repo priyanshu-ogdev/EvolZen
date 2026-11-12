@@ -1,36 +1,43 @@
-"""Quality-Diversity archive for agent-population selection (Phase 1.2).
+"""Quality-Diversity archives for agent-population selection (Phase 1.2).
 
 Replaces plain fitness-based selection, which the diversity-collapse literature identifies as
-a driver of premature convergence in multi-agent LLM populations. A MAP-Elites-style archive
-(arXiv:2406.03731) keyed on behavioral descriptors maintains a grid of diverse, locally-optimal
-behaviors instead of letting the whole population converge on one peak.
+a driver of premature convergence in multi-agent populations. Implements:
+1. `QualityDiversityArchive`: Grid-based MAP-Elites (arXiv:2406.03731) keyed on behavioral descriptors;
+2. `CVTArchive`: Centroidal Voronoi Tessellations MAP-Elites (Vassiliades et al., IEEE TEVC 2018,
+   DOI:10.1109/TEVC.2017.2735550) scaling to high-dimensional behavioral spaces.
+
+Behavioral descriptors measure phenotypic behavior (e.g., risk-tolerance, cooperativeness,
+specialization, exploration rate), separating diversity maintenance from direct fitness.
+
+Design authority: docs/phases/1.2-agents.md, ADR 0006, ADR 0008.
+All archive selection dynamics remain empirically untested until Phase 1.2 experiments are run.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import math
+from dataclasses import dataclass, field
+from typing import Any
 
-from evolzen.schemas.drive_vector import DriveVector
+from evolzen.schemas.agent_profile import AgentProfile
 
 
 @dataclass
 class QDArchiveEntry:
+    """Entry stored in a Quality-Diversity archive cell."""
+
     agent_id: str
-    drive_vector: DriveVector
+    profile: AgentProfile
     behavioral_descriptor: tuple[float, ...]
     fitness: float
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class QualityDiversityArchive:
-    """A MAP-Elites-style archive over agent behavioral descriptors.
-
-    `behavioral_descriptor` is a low-dimensional summary of *how* an agent behaves (e.g.
-    risk-tolerance x cooperativeness), distinct from `drive_vector`, which is the underlying
-    cause of that behavior. The archive keeps at most one entry per descriptor-space cell,
-    replacing an entry only when a new agent both lands in the same cell and has higher
-    fitness — this is what "coverage" means in the Phase 1.2 success metric.
-    """
+    """Grid-based MAP-Elites archive over agent behavioral descriptors."""
 
     def __init__(self, cell_resolution: float = 0.1) -> None:
+        if cell_resolution <= 0.0 or not math.isfinite(cell_resolution):
+            raise ValueError(f"cell_resolution must be positive and finite: {cell_resolution}")
         self._cell_resolution = cell_resolution
         self._cells: dict[tuple[int, ...], QDArchiveEntry] = {}
 
@@ -54,4 +61,82 @@ class QualityDiversityArchive:
         return len(self._cells)
 
     def entries(self) -> list[QDArchiveEntry]:
+        """Return all occupied archive entries."""
+        return list(self._cells.values())
+
+    def get(self, descriptor: tuple[float, ...]) -> QDArchiveEntry | None:
+        """Retrieve the occupant of the cell corresponding to `descriptor`."""
+        return self._cells.get(self._cell_key(descriptor))
+
+
+class CVTArchive:
+    """Centroidal Voronoi Tessellation (CVT) MAP-Elites archive for high-dimensional descriptors.
+
+    Uses fixed centroid niches in descriptor space to prevent exponential cell explosion
+    (Vassiliades et al., 2018).
+    """
+
+    def __init__(
+        self,
+        centroids: tuple[tuple[float, ...], ...],
+    ) -> None:
+        if not centroids:
+            raise ValueError("CVTArchive requires at least one centroid")
+        self._dimension = len(centroids[0])
+        if any(len(c) != self._dimension for c in centroids):
+            raise ValueError("All centroids must share the same dimensionality")
+        self._centroids = centroids
+        self._cells: dict[int, QDArchiveEntry] = {}
+
+    @classmethod
+    def uniform_hypercube(
+        cls,
+        num_centroids: int,
+        dimensions: int = 5,
+        *,
+        seed: int = 42,
+    ) -> CVTArchive:
+        """Generate deterministic pseudo-random centroid niches in [0, 1]^d."""
+        import random
+
+        rng = random.Random(seed)
+        generated: list[tuple[float, ...]] = []
+        for _ in range(num_centroids):
+            point = tuple(round(rng.uniform(0.0, 1.0), 4) for _ in range(dimensions))
+            generated.append(point)
+        return cls(tuple(generated))
+
+    def _nearest_centroid_index(self, descriptor: tuple[float, ...]) -> int:
+        if len(descriptor) != self._dimension:
+            raise ValueError(
+                f"Descriptor dimension {len(descriptor)} != centroid dimension {self._dimension}"
+            )
+        best_idx = 0
+        min_dist = float("inf")
+        for idx, centroid in enumerate(self._centroids):
+            dist = sum((a - b) ** 2 for a, b in zip(descriptor, centroid, strict=True))
+            if dist < min_dist:
+                min_dist = dist
+                best_idx = idx
+        return best_idx
+
+    def consider(self, entry: QDArchiveEntry) -> bool:
+        """Insert `entry` into its nearest centroid Voronoi cell if fitness exceeds incumbent."""
+        idx = self._nearest_centroid_index(entry.behavioral_descriptor)
+        current = self._cells.get(idx)
+        if current is None or entry.fitness > current.fitness:
+            self._cells[idx] = entry
+            return True
+        return False
+
+    def coverage(self) -> int:
+        """Number of populated Voronoi cells."""
+        return len(self._cells)
+
+    def total_niches(self) -> int:
+        """Total number of centroid niches in the tessellation."""
+        return len(self._centroids)
+
+    def entries(self) -> list[QDArchiveEntry]:
+        """Return all occupied entries."""
         return list(self._cells.values())

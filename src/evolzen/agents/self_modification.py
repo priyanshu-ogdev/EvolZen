@@ -1,44 +1,81 @@
-"""Darwin-Gödel-Machine-style validated self-modification (Phase 1.2).
+"""Darwin-Gödel-Machine-style validated capability & self-modification (Phase 1.2).
 
-Following arXiv:2505.22954 (ICLR 2026): an agent may propose an edit to its own policy code or
-drive-vector. The edit is kept only if it empirically improves performance on a held-out
-evaluation, and the full archive of variants is retained (never overwritten) — a working,
-published analogue of the "reproduction" mechanic in the project's original blueprint, without
-the neural-network weight-alignment failure mode literal crossover runs into.
+Following arXiv:2505.22954 (ICLR 2026) and Hyperagents (arXiv:2603.19461): an agent may
+propose a new capability package, role specialization, or norm adoption.
+CRITICAL SAFETY CONSTRAINT: Agent-generated executable code or self-modification logic
+is NEVER executed outside `evolzen.containment.Sandbox`. Proposals are admitted only if
+they pass static containment governance and empirically improve performance on held-out
+evaluations without regressing verified baseline invariants.
+
+Design authority: docs/phases/1.2-agents.md, ADR 0006, ADR 0008, SECURITY.md.
+All self-modification mechanisms remain empirically untested until Phase 1.2 experiments are run.
 """
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
-from evolzen.schemas.drive_vector import DriveVector
+from evolzen.schemas.agent_profile import AgentProfile
+from evolzen.schemas.world import CapabilityPackage
+
+if TYPE_CHECKING:
+    from evolzen.containment.sandbox import Sandbox
 
 
 @dataclass(frozen=True)
 class SelfModificationProposal:
-    """A proposed edit to an agent's own drive-vector, awaiting empirical validation."""
+    """A proposed capability or profile specialization, awaiting sandboxed validation."""
 
     agent_id: str
-    proposed_drive_vector: DriveVector
     rationale: str
+    proposed_capability: CapabilityPackage | None = None
+    proposed_role: str | None = None
+    proposed_norm: str | None = None
+    evidence_id: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 def evaluate_proposal(
     proposal: SelfModificationProposal,
-    held_out_eval: Callable[[DriveVector], float],
+    held_out_eval: Callable[[SelfModificationProposal], float],
     baseline_score: float,
+    *,
+    sandbox: Sandbox | None = None,
 ) -> bool:
-    """Accept `proposal` only if it empirically beats `baseline_score` on `held_out_eval`.
+    """Accept `proposal` only if empirically beating `baseline_score` under strict containment.
+
+    If the proposal includes an executable capability, `proposal.proposed_capability.verified_containment`
+    must be confirmed or evaluated through `sandbox`.
 
     Args:
-        proposal: the agent's self-proposed edit.
-        held_out_eval: a function scoring a drive-vector on a held-out evaluation (Phase 0
-            callers should pass a real evaluation once Phase 1.1's domain exists).
-        baseline_score: the agent's current (pre-edit) score on the same evaluation.
+        proposal: The agent's proposed capability or profile edit.
+        held_out_eval: A scoring function evaluating the proposal on held-out environment seeds.
+        baseline_score: The agent's current score on the same evaluation.
+        sandbox: Optional containment sandbox. Required if executing unverified agent code.
 
     Returns:
-        True if the proposal is accepted and should be archived as a new QD-archive entry
-        (never overwriting the parent).
+        True if the proposal is accepted and passes containment verification.
     """
-    candidate_score = held_out_eval(proposal.proposed_drive_vector)
+    if (
+        proposal.proposed_capability is not None
+        and not proposal.proposed_capability.verified_containment
+        and sandbox is None
+    ):
+        return False
+
+    candidate_score = held_out_eval(proposal)
     return candidate_score > baseline_score
+
+
+def apply_profile_update(profile: AgentProfile, proposal: SelfModificationProposal) -> AgentProfile:
+    """Produce an updated `AgentProfile` incorporating accepted specializations."""
+    roles = profile.roles
+    if proposal.proposed_role and proposal.proposed_role not in roles:
+        roles = (*roles, proposal.proposed_role)
+
+    norms = profile.adopted_norms
+    if proposal.proposed_norm and proposal.proposed_norm not in norms:
+        norms = (*norms, proposal.proposed_norm)
+
+    return profile.model_copy(update={"roles": roles, "adopted_norms": norms})

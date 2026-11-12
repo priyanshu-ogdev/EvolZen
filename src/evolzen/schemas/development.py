@@ -219,3 +219,8 @@ class BrainSnapshot(Record):
                     or not self.birth.born_at <= lesson.taught_at <= self.tick):
                 raise ValueError("Invalid lesson history")
         return self
+
+
+# Type aliases for cross-subsystem naming alignment
+AgentDevelopmentState = BrainSnapshot
+Stage = LifeStage
