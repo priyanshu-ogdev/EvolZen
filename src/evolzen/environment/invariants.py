@@ -69,8 +69,9 @@ def _check_resource_conservation(world: WorldState) -> WorldInvariant:
 
 def _check_bounded_state(world: WorldState) -> WorldInvariant:
     issues: list[str] = []
-    if len(world.agents) > world.max_agents:
-        issues.append(f"agents={len(world.agents)} > max_agents={world.max_agents}")
+    living_agents = sum(1 for a in world.agents.values() if a.alive)
+    if living_agents > world.max_agents:
+        issues.append(f"living_agents={living_agents} > max_agents={world.max_agents}")
     for loc_id, loc in world.locations.items():
         for res, qty in loc.resources.items():
             cap = loc.capacities.get(res)

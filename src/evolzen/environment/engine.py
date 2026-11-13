@@ -761,7 +761,8 @@ def _handle_assign_role(
 def _handle_spawn_offspring(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
-    if len(world.agents) >= world.max_agents:
+    living_count = sum(1 for a in world.agents.values() if a.alive)
+    if living_count >= world.max_agents:
         return _reject(world, "population ceiling reached")
     if next_tick - actor.born_at < world.adulthood_age:
         return _reject(world, "parent must reach adulthood_age before reproduction")

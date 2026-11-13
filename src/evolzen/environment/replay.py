@@ -54,12 +54,12 @@ def replay_transitions(
         if current_state.data != recorded.state.data:
             mismatches.append(f"step {idx}: initial state mismatch before transition {recorded.transition_id}")
         replayed = engine.step(
-            recorded.state,
+            current_state,
             recorded.action,
             recorded.exogenous_input,
             recorded.seed,
         )
-        prev_world = WorldState.from_state(recorded.state)
+        prev_world = WorldState.from_state(current_state)
         next_world = WorldState.from_state(replayed.next_state)
         report = check_invariants(prev_world, next_world)
         if not report.passed:
@@ -101,7 +101,7 @@ def replay_from_store(
         run_id=run_id,
         branch_id=branch_id,
         from_tick=snapshot.tick,
-        to_tick=up_to_tick - 1 if up_to_tick is not None else None,
+        to_tick=up_to_tick if up_to_tick is not None else None,
     )
     transitions = [
         tr
@@ -110,7 +110,7 @@ def replay_from_store(
         and (
             up_to_tick is None
             or (
-                int(tr.state.data.get("tick", 0)) < up_to_tick
+                int(tr.state.data.get("tick", 0)) <= up_to_tick
                 and int(tr.next_state.data.get("tick", 0)) <= up_to_tick
             )
         )

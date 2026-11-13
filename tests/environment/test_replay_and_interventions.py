@@ -8,6 +8,7 @@ from evolzen.environment import (
     apply_intervention,
     branch_from_snapshot,
     replay_from_store,
+    replay_transitions,
 )
 from evolzen.schemas.transition import Action, ExogenousInput
 from evolzen.schemas.world import ActionType, InterventionSpec, WorldState
@@ -144,4 +145,88 @@ def test_replay_from_store_up_to_tick_stops_at_exact_tick(tmp_path: Path) -> Non
         assert at_three.exact_match is True
         assert at_three.total_transitions == 1  # replays mid_snapshot (tick 2 -> tick 3)
         assert WorldState.from_state(at_three.final_state).tick == 3
+
+
+def test_replay_transitions_propagates_cascading_divergence() -> None:
+    engine = SocialSandboxEngine(default_seed=42)
+    s0 = engine.reset(seed=42)
+
+    tr0 = engine.step(
+        s0,
+        Action(agent_id="agent-0", action_type=ActionType.GATHER, params={"resource": "food", "amount": 1}),
+        seed=42,
+    )
+    tr1 = engine.step(
+        tr0.next_state,
+        Action(agent_id="agent-0", action_type=ActionType.CONSUME, params={"resource": "food", "amount": 1}),
+        seed=42,
+    )
+
+    # 1. Exact replay from s0 matches perfectly
+    res_exact = replay_transitions(engine, s0, [tr0, tr1])
+    assert res_exact.exact_match is True
+    assert res_exact.matched == 2
+
+    # 2. Replay from an initial state with perturbed fatigue (valid invariants, but divergent state)
+    w0_mod = WorldState.from_state(s0)
+    agent0 = w0_mod.agents["agent-0"]
+    w0_perturbed = w0_mod.model_copy(
+        update={"agents": {**w0_mod.agents, "agent-0": agent0.model_copy(update={"fatigue": 0.5})}}
+    )
+    s0_perturbed = w0_perturbed.to_state()
+
+    # With cascading state propagation, the perturbation propagates to step 1
+    res_perturbed = replay_transitions(engine, s0_perturbed, [tr0, tr1])
+    assert res_perturbed.exact_match is False
+    assert len(res_perturbed.mismatches) >= 1
+    # step 1 must see the divergent state from step 0
+    assert any("step 1: initial state mismatch" in m for m in res_perturbed.mismatches)
+
+
+def test_interventions_currency_reconciliation() -> None:
+    engine = SocialSandboxEngine(default_seed=42)
+    s0 = engine.reset(seed=42)
+
+    act = Action(agent_id="agent-0", action_type=ActionType.WAIT)
+    # Intervene on currency: increase agent-0 currency from 20 to 50
+    spec = InterventionSpec(
+        intervention_id="iv-currency-grant",
+        kind="set_variable",
+        target_path="agents.agent-0.currency",
+        value=50,
+    )
+    base_tr, iv_tr = apply_intervention(engine, s0, act, spec, seed=42)
+    assert base_tr.emission.data["accepted"] is True
+    assert iv_tr.emission.data["accepted"] is True
+
+    w_base = WorldState.from_state(base_tr.next_state)
+    w_iv = WorldState.from_state(iv_tr.next_state)
+    assert w_base.agents["agent-0"].currency == 20
+    assert w_iv.agents["agent-0"].currency == 50
+    # Currency conservation in w_iv must hold with reconciled initial_currency
+    assert w_iv.accounting.initial_currency == sum(a.currency for a in w_iv.agents.values())
+
+
+def test_interventions_sequence_path_indexing() -> None:
+    engine = SocialSandboxEngine(default_seed=42)
+    s0 = engine.reset(seed=42)
+
+    w0 = WorldState.from_state(s0)
+    # Give agent-0 a tuple of skills
+    w0_mod = w0.model_copy(
+        update={"agents": {**w0.agents, "agent-0": w0.agents["agent-0"].model_copy(update={"skills": ("foraging", "mining")})}}
+    )
+    s0_mod = w0_mod.to_state()
+
+    spec = InterventionSpec(
+        intervention_id="iv-sequence",
+        kind="set_variable",
+        target_path="agents.agent-0.skills.1",
+        value="masonry",
+    )
+    act = Action(agent_id="agent-0", action_type=ActionType.WAIT)
+    base_tr, iv_tr = apply_intervention(engine, s0_mod, act, spec, seed=42)
+    w_iv = WorldState.from_state(iv_tr.next_state)
+    assert w_iv.agents["agent-0"].skills == ("foraging", "masonry")
+
 

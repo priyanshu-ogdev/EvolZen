@@ -432,3 +432,43 @@ def test_empty_string_ids_and_max_ticks_guard_reject_cleanly() -> None:
     assert "max_ticks" in capped.emission.data["reason"]
     assert capped.emission.data["exogenous_applied"] == []
     assert WorldState.from_state(capped.next_state).tick == 5
+
+
+def test_spawn_offspring_living_agents_capacity() -> None:
+    engine = SocialSandboxEngine(default_seed=101)
+    s0 = engine.reset(seed=101, initial_agent_age=350)
+    w0 = WorldState.from_state(s0)
+
+    # Set max_agents to 4. Currently 4 agents exist in w0.
+    w0_small = w0.model_copy(update={"max_agents": 4})
+    s0_small = w0_small.to_state()
+
+    # When all 4 are alive, reproduction is rejected
+    rej = engine.step(
+        s0_small,
+        Action(agent_id="agent-0", action_type=ActionType.SPAWN_OFFSPRING, params={"child_id": "kid-blocked"}),
+    )
+    assert rej.emission.data["accepted"] is False
+    assert "population ceiling reached" in rej.emission.data["reason"]
+
+    # Mark 2 agents as deceased
+    agents_mod = dict(w0_small.agents)
+    agents_mod["agent-2"] = agents_mod["agent-2"].model_copy(update={"alive": False, "energy": 0.0})
+    agents_mod["agent-3"] = agents_mod["agent-3"].model_copy(update={"alive": False, "energy": 0.0})
+    w_with_dead = w0_small.model_copy(update={"agents": agents_mod})
+    s_with_dead = w_with_dead.to_state()
+
+    # Living agents is now 2 < 4. Reproduction should be accepted!
+    ok_step = engine.step(
+        s_with_dead,
+        Action(agent_id="agent-0", action_type=ActionType.SPAWN_OFFSPRING, params={"child_id": "kid-success"}),
+    )
+    assert ok_step.emission.data["accepted"] is True
+    w_next = WorldState.from_state(ok_step.next_state)
+    assert "kid-success" in w_next.agents
+    # Total historical agents is now 5 (3 living + 2 dead), exceeding max_agents=4
+    assert len(w_next.agents) == 5
+    assert sum(1 for a in w_next.agents.values() if a.alive) == 3
+    # Invariants must pass because living_agents <= max_agents
+    assert ok_step.emission.data["invariant_passed"] is True
+

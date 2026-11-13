@@ -31,11 +31,14 @@ def _reconcile_accounting(base: WorldState, modified: WorldState) -> WorldState:
             inflows[res] = inflows.get(res, 0) + delta
         elif delta < 0:
             consumed[res] = consumed.get(res, 0) + (-delta)
+    observed_currency = sum(a.currency for a in modified.agents.values()) + sum(
+        i.currency_reserve for i in modified.institutions.values()
+    )
     accounting = ResourceAccounting(
         initial_resources=modified.accounting.initial_resources,
         exogenous_inflows=inflows,
         consumed_or_decayed=consumed,
-        initial_currency=modified.accounting.initial_currency,
+        initial_currency=observed_currency,
     )
     return modified.model_copy(update={"accounting": accounting})
 
@@ -48,12 +51,34 @@ def _set_nested_path(payload: dict[str, Any], path: str, value: Any) -> dict[str
     copied = copy.deepcopy(payload)
     cursor: Any = copied
     for part in parts[:-1]:
-        if not isinstance(cursor, dict) or part not in cursor:
-            raise KeyError(f"Invalid intervention path segment {part!r} in {path!r}")
-        cursor = cursor[part]
-    if not isinstance(cursor, dict) or parts[-1] not in cursor:
-        raise KeyError(f"Invalid final intervention key {parts[-1]!r} in {path!r}")
-    cursor[parts[-1]] = value
+        if isinstance(cursor, dict):
+            if part not in cursor:
+                raise KeyError(f"Invalid intervention path segment {part!r} in {path!r}")
+            cursor = cursor[part]
+        elif isinstance(cursor, (list, tuple)):
+            if not part.isdigit():
+                raise KeyError(f"Invalid sequence index {part!r} in {path!r}")
+            idx = int(part)
+            if idx < 0 or idx >= len(cursor):
+                raise IndexError(f"Sequence index {idx} out of range in {path!r}")
+            cursor = cursor[idx]
+        else:
+            raise KeyError(f"Invalid traversal through non-container {type(cursor)!r} at segment {part!r} in {path!r}")
+
+    final_key = parts[-1]
+    if isinstance(cursor, dict):
+        if final_key not in cursor:
+            raise KeyError(f"Invalid final intervention key {final_key!r} in {path!r}")
+        cursor[final_key] = value
+    elif isinstance(cursor, list):
+        if not final_key.isdigit():
+            raise KeyError(f"Invalid sequence index {final_key!r} in {path!r}")
+        idx = int(final_key)
+        if idx < 0 or idx >= len(cursor):
+            raise IndexError(f"Sequence index {idx} out of range in {path!r}")
+        cursor[idx] = value
+    else:
+        raise KeyError(f"Cannot set property {final_key!r} on non-container {type(cursor)!r} in {path!r}")
     return copied
 
 
