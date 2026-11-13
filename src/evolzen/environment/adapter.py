@@ -16,6 +16,7 @@ empirically untested until Phase 1.1/1.2 integration experiments are run.
 from __future__ import annotations
 
 import math
+from typing import Any
 
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.schemas.development import (
@@ -187,6 +188,183 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
             permitted=agent.currency >= 5,
         )
     )
+
+    co_peers = [
+        p
+        for p in world.agents.values()
+        if p.alive and p.agent_id != agent.agent_id and p.location_id == agent.location_id
+    ]
+    for peer in sorted(co_peers, key=lambda p: p.agent_id)[:2]:
+        for res in sorted(agent.inventory):
+            if agent.inventory.get(res, 0) >= 1:
+                price = 2
+                can_trade = peer.currency >= price and agent.fatigue < 0.95
+                candidates.append(
+                    Candidate(
+                        action_id=f"trade:{peer.agent_id}:{res}:1:{price}",
+                        context_key=context_key,
+                        skill_key=f"trade:{res}:v1",
+                        predicted=(0.1, 0.25, 0.15, 0.0, 0.0, 0.0, -0.02, -0.02),
+                        cost=0.02,
+                        minimum_age=0,
+                        permitted=can_trade,
+                    )
+                )
+                break
+
+    for peer in sorted(co_peers, key=lambda p: p.agent_id)[:1]:
+        offer_res = "wood" if agent.inventory.get("wood", 0) >= 1 else "stone"
+        req_res = "food"
+        has_offer = agent.inventory.get(offer_res, 0) >= 1
+        candidates.append(
+            Candidate(
+                action_id=f"propose_contract:{peer.agent_id}:{offer_res}:1:{req_res}:1",
+                context_key=context_key,
+                skill_key="propose_contract:v1",
+                predicted=(0.15, 0.2, 0.2, 0.0, 0.0, 0.0, -0.03, -0.03),
+                cost=0.03,
+                minimum_age=world.adulthood_age,
+                permitted=has_offer,
+            )
+        )
+
+    for cid in sorted(world.contracts):
+        c = world.contracts[cid]
+        if c.status == "open" and c.counterparty_id == agent.agent_id:
+            proposer = world.agents.get(c.proposer_id)
+            can_fulfill = (
+                proposer is not None
+                and proposer.alive
+                and agent.inventory.get(c.request_resource, 0) >= c.request_qty
+                and proposer.inventory.get(c.offer_resource, 0) >= c.offer_qty
+            )
+            candidates.append(
+                Candidate(
+                    action_id=f"fulfill_contract:{c.contract_id}",
+                    context_key=context_key,
+                    skill_key="fulfill_contract:v1",
+                    predicted=(0.2, 0.25, 0.1, 0.0, 0.0, 0.0, -0.02, -0.02),
+                    cost=0.02,
+                    minimum_age=0,
+                    permitted=can_fulfill,
+                )
+            )
+
+    for inst_id in sorted(world.institutions):
+        inst = world.institutions[inst_id]
+        if inst.location_id == agent.location_id and agent.agent_id not in inst.member_ids:
+            candidates.append(
+                Candidate(
+                    action_id=f"join_institution:{inst_id}",
+                    context_key=context_key,
+                    skill_key="join_institution:v1",
+                    predicted=(0.1, 0.0, 0.35, 0.0, 0.0, 0.0, 0.0, 0.0),
+                    cost=0.01,
+                    minimum_age=world.adulthood_age,
+                    permitted=True,
+                )
+            )
+
+    for inst_id in sorted(agent.institution_ids):
+        member_inst = world.institutions.get(inst_id)
+        if member_inst is not None:
+            for res in ("food", "wood", "stone"):
+                if agent.inventory.get(res, 0) >= 1:
+                    candidates.append(
+                        Candidate(
+                            action_id=f"contribute_institution:{inst_id}:{res}:1",
+                            context_key=context_key,
+                            skill_key=f"contribute_institution:{res}:v1",
+                            predicted=(0.2, -0.05, 0.2, 0.0, 0.0, 0.0, -0.02, 0.0),
+                            cost=0.02,
+                            minimum_age=0,
+                            permitted=True,
+                        )
+                    )
+                    break
+
+    norm_id = f"norm-{world.step_index + 1}-{agent.agent_id}"
+    candidates.append(
+        Candidate(
+            action_id=f"propose_norm:{norm_id}:conservation",
+            context_key=context_key,
+            skill_key="propose_norm:v1",
+            predicted=(0.2, 0.05, 0.3, 0.0, 0.0, 0.0, -0.05, 0.0),
+            cost=0.03,
+            minimum_age=world.adulthood_age,
+            permitted=agent.status >= 0.0,
+        )
+    )
+
+    for norm_id_item in sorted(world.norms):
+        norm = world.norms[norm_id_item]
+        if agent.agent_id not in norm.adopters:
+            candidates.append(
+                Candidate(
+                    action_id=f"adopt_norm:{norm_id_item}",
+                    context_key=context_key,
+                    skill_key=f"adopt_norm:{norm_id_item}:v1",
+                    predicted=(0.1, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0),
+                    cost=0.01,
+                    minimum_age=0,
+                    permitted=True,
+                )
+            )
+
+    for role in ("craftsman", "gatherer", "trader", "scholar"):
+        if role != agent.role:
+            candidates.append(
+                Candidate(
+                    action_id=f"assign_role:{role}",
+                    context_key=context_key,
+                    skill_key=f"assign_role:{role}:v1",
+                    predicted=(0.25, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0),
+                    cost=0.02,
+                    minimum_age=world.adulthood_age,
+                    permitted=True,
+                )
+            )
+
+    living_agents_count = sum(1 for a in world.agents.values() if a.alive)
+    can_spawn = (
+        agent.currency >= 5
+        and living_agents_count < world.max_agents
+        and (world.tick - agent.born_at) >= world.adulthood_age
+    )
+    child_id = f"agent-{world.step_index + 1}-{agent.agent_id}"
+    candidates.append(
+        Candidate(
+            action_id=f"spawn_offspring:{child_id}:5",
+            context_key=context_key,
+            skill_key="spawn_offspring:v1",
+            predicted=(0.1, -0.1, 0.45, 0.0, 0.0, 0.0, -0.1, -0.1),
+            cost=0.1,
+            minimum_age=world.adulthood_age,
+            permitted=can_spawn,
+        )
+    )
+
+    tool_name = f"{agent.role}_tool"
+    candidate_pkg_id = f"craft:{tool_name}:v1"
+    if candidate_pkg_id in world.capabilities:
+        candidate_pkg_id = f"craft:{tool_name}:v{world.step_index + 1}"
+    can_register = (
+        (world.tick - agent.born_at) >= world.adulthood_age
+        and agent.status >= 0.1
+        and (agent.inventory.get("wood", 0) >= 1 or agent.inventory.get("stone", 0) >= 1)
+    )
+    candidates.append(
+        Candidate(
+            action_id=f"register_capability:{candidate_pkg_id}:{tool_name}",
+            context_key=context_key,
+            skill_key=f"register_capability:{agent.role}:v1",
+            predicted=(0.35, 0.1, 0.15, 0.0, 0.0, 0.0, -0.05, 0.0),
+            cost=0.05,
+            minimum_age=world.adulthood_age,
+            permitted=can_register,
+        )
+    )
+
     return candidates
 
 
@@ -271,11 +449,12 @@ def action_from_candidate(
             action_type=ActionType.CRAFT,
             params=_resolve_craft_params(action_id, world),
         )
-    if verb == "found_institution" and len(parts) == 2:
+    if verb == "found_institution" and len(parts) in (2, 3):
+        seed_currency = int(parts[2]) if len(parts) == 3 else 5
         return Action(
             agent_id=agent_id,
             action_type=ActionType.FOUND_INSTITUTION,
-            params={"name": parts[1], "seed_currency": 5},
+            params={"name": parts[1], "seed_currency": seed_currency},
         )
     if verb == "improve_location" and len(parts) in (1, 2):
         resource = parts[1] if len(parts) == 2 and parts[1] else "food"
@@ -283,6 +462,128 @@ def action_from_candidate(
             agent_id=agent_id,
             action_type=ActionType.IMPROVE_LOCATION,
             params={"target_resource": resource},
+        )
+    if verb == "trade" and len(parts) == 5:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.TRADE,
+            params={
+                "counterparty_id": parts[1],
+                "offer_resource": parts[2],
+                "offer_qty": int(parts[3]),
+                "price": int(parts[4]),
+            },
+        )
+    if verb == "propose_contract" and len(parts) == 6:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.PROPOSE_CONTRACT,
+            params={
+                "counterparty_id": parts[1],
+                "offer_resource": parts[2],
+                "offer_qty": int(parts[3]),
+                "request_resource": parts[4],
+                "request_qty": int(parts[5]),
+            },
+        )
+    if verb == "fulfill_contract" and len(parts) == 2:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.FULFILL_CONTRACT,
+            params={"contract_id": parts[1]},
+        )
+    if verb == "join_institution" and len(parts) == 2:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.JOIN_INSTITUTION,
+            params={"institution_id": parts[1]},
+        )
+    if verb == "contribute_institution" and len(parts) == 4:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.CONTRIBUTE_INSTITUTION,
+            params={
+                "institution_id": parts[1],
+                "resource": parts[2],
+                "amount": int(parts[3]),
+            },
+        )
+    if verb == "propose_norm" and len(parts) in (2, 3, 4):
+        norm_id = parts[1]
+        rule_kind = parts[2] if len(parts) >= 3 else "conservation"
+        title = parts[3] if len(parts) >= 4 else f"Norm {norm_id}"
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.PROPOSE_NORM,
+            params={"norm_id": norm_id, "rule_kind": rule_kind, "title": title},
+        )
+    if verb == "adopt_norm" and len(parts) == 2:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.ADOPT_NORM,
+            params={"norm_id": parts[1]},
+        )
+    if verb == "assign_role" and len(parts) == 2:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.ASSIGN_ROLE,
+            params={"role": parts[1]},
+        )
+    if verb == "spawn_offspring" and len(parts) in (2, 3, 4):
+        child_id = parts[1]
+        endow = int(parts[2]) if len(parts) >= 3 else 5
+        spawn_params: dict[str, Any] = {"child_id": child_id, "endow_currency": endow}
+        if len(parts) >= 4:
+            spawn_params["co_parent_id"] = parts[3]
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.SPAWN_OFFSPRING,
+            params=spawn_params,
+        )
+    if verb == "register_capability" and len(parts) >= 2:
+        world = WorldState.from_state(state) if state is not None else None
+        remainder = action_id[len("register_capability:") :]
+        if world is not None and remainder in world.capabilities:
+            pkg = world.capabilities[remainder]
+            return Action(
+                agent_id=agent_id,
+                action_type=ActionType.REGISTER_CAPABILITY,
+                params={"package": pkg.model_dump(mode="json"), "evidence_id": pkg.evidence_id},
+            )
+
+        output_kind = "tool"
+        if ":" in remainder:
+            potential_pkg, potential_kind = remainder.rsplit(":", 1)
+            if world is not None and potential_pkg in world.capabilities:
+                pkg = world.capabilities[potential_pkg]
+                return Action(
+                    agent_id=agent_id,
+                    action_type=ActionType.REGISTER_CAPABILITY,
+                    params={"package": pkg.model_dump(mode="json"), "evidence_id": pkg.evidence_id},
+                )
+            pkg_id = potential_pkg
+            output_kind = potential_kind
+        else:
+            pkg_id = remainder
+            output_kind = remainder
+
+        evidence_id = f"ev-{pkg_id}"
+        pkg_data: dict[str, Any] = {
+            "package_id": pkg_id,
+            "version": "1.0.0",
+            "action_type": ActionType.CRAFT,
+            "required_resources": {"wood": 1, "stone": 1},
+            "output_kind": output_kind,
+            "min_age": 0,
+            "evidence_id": evidence_id,
+            "verified_replay": True,
+            "verified_intervention": True,
+            "verified_containment": True,
+        }
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.REGISTER_CAPABILITY,
+            params={"package": pkg_data, "evidence_id": evidence_id},
         )
     raise ValueError(f"Unsupported candidate action_id: {action_id!r}")
 

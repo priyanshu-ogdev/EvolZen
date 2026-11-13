@@ -26,9 +26,13 @@ Landed Stage 1 critical fixes:
 - `apply_intervention` supports sequence indexing (`_set_nested_path`) and reconciles `ResourceAccounting.initial_currency`;
 - `_handle_spawn_offspring` and `_check_bounded_state` evaluate capacity against active living agents rather than historical lineage records.
 
+Landed Stage 2 host adapter full 17-action coverage:
+- `adapter.legal_candidates` and `adapter.action_from_candidate` cover all 17 `ActionType`s (`wait`, `gather`, `move`, `consume`, `craft`, `trade`, `propose_contract`, `fulfill_contract`, `found_institution`, `join_institution`, `contribute_institution`, `propose_norm`, `adopt_norm`, `assign_role`, `spawn_offspring`, `improve_location`, `register_capability`);
+- Host-side validation in `execute_decision` verifies legal candidate membership, dynamic permissions, and minimum age before stepping and returning verified `Outcome` receipts.
+
 Open Phase 1.1 hardening backlog (empirical metrics remain untested / unmeasured):
 - **PettingZoo step hooks:** `SocialSandboxAECEnv.step` needs optional `exogenous_input`, `seed`, and `TransitionLogStore` hooks.
 - **Bounded world growth (`FR-2`):** bound `WorldState` collections (`artifacts`, `contracts`, `institutions`, `norms`, `capabilities`, `inventory`) and `WorldAgentState.status`, and wire or clarify `GrowthAttribution.ENDOGENOUS_PROCESS`.
-- **Coverage & partial mechanics:** expand `adapter.legal_candidates` beyond 7/17 `ActionType`s (adding social, economic, norm, offspring, and capability-registration actions) and address partial mechanics (`ContractRecord` cancel/expire, `InstitutionRecord.contribution_rate`/spending, `ArtifactRecord.durability`, `NormRecord` effects, unknown exogenous event handling).
+- **Partial mechanics & edge handling:** address partial mechanics (`ContractRecord` cancel/expire, `InstitutionRecord.contribution_rate`/spending, `ArtifactRecord.durability`, `NormRecord` effects, unknown exogenous event handling).
 - **Untested validation & downstream scope:** all 18 failure branches in `invariants.py`, Hypothesis property-based tests, empirical long-horizon Phase 1.1 runs, `SocialSandboxAECEnv` multi-agent learning integrations, LLM population scheduling (`evolzen.agents`, Phase 1.2), full market/manual provenance flows (`evolzen.economy`, Phase 1.3), sandboxed capability synthesis (`evolzen.exploration`, `evolzen.containment`, Phases 1.4/2.2), and target-rig hardware pilot measurements on DGX/AGX Spark.
 See [agent engineering](../agents/engineering.md) for the broader boundaries.
