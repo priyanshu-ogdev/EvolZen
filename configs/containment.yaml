@@ -1,0 +1,6 @@
+# Maps onto evolzen.config.ContainmentSettings — Phase 2.2 (evolzen.containment)
+backend: gvisor
+runsc_path: runsc
+default_timeout_seconds: 2.0
+default_resource_ceiling_mb: 128
+enforce_containment: true

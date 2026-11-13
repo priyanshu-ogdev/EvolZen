@@ -107,6 +107,33 @@ class RecognitionSettings(BaseModel):
     )
 
 
+class ContainmentSettings(BaseModel):
+    """Phase 2.2 — evolzen.containment."""
+
+    backend: str = Field(
+        default="gvisor",
+        description="Containment executor backend: 'gvisor' or 'mock'.",
+    )
+    runsc_path: str = Field(
+        default="runsc",
+        description="Path or binary name for the gVisor runsc executable.",
+    )
+    default_timeout_seconds: float = Field(
+        default=2.0,
+        ge=0.1,
+        description="Default wall-time execution timeout in seconds.",
+    )
+    default_resource_ceiling_mb: int = Field(
+        default=128,
+        ge=16,
+        description="Default memory ceiling in MB.",
+    )
+    enforce_containment: bool = Field(
+        default=True,
+        description="Whether hardware-isolated containment is strictly enforced.",
+    )
+
+
 class EvolZenSettings(BaseSettings):
     """Root settings object, composed of one group per subsystem that needs configuration."""
 
@@ -120,6 +147,7 @@ class EvolZenSettings(BaseSettings):
     library: LibrarySettings = LibrarySettings()
     predictor: PredictorSettings = PredictorSettings()
     recognition: RecognitionSettings = RecognitionSettings()
+    containment: ContainmentSettings = ContainmentSettings()
 
 
 _SettingsT = TypeVar("_SettingsT", bound=BaseModel)
