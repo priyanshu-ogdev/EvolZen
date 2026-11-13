@@ -44,17 +44,17 @@ flowchart TB
 
 ## 3. Operational Invariants & Synchronization Rules
 
-1. **Lockstep Host Authority:** No agent updates beliefs without a host-minted [`Outcome`](../../../src/evolzen/schemas/development.py#L136-L145) matched on `(agent_id, sequence, action_id)` and deduplicated on `evidence_id`. Preferences never override `Candidate.permitted`, age limits, resource budgets, or [`CapabilityGovernor`](../../../src/evolzen/containment/governance.py).
+1. **Lockstep Host Authority:** No agent updates beliefs without a host-minted `Outcome` (in `evolzen.schemas.development`) matched on `(agent_id, sequence, action_id)` and deduplicated on `evidence_id`. Preferences never override `Candidate.permitted`, age limits, resource budgets, or `CapabilityGovernor` (in `evolzen.containment.governance`).
 2. **Three Separate Inheritance Channels:**
-   - *Genetic:* Numeric [`BirthGenome`](../../../src/evolzen/schemas/development.py#L62-L68) (`inherit_genome` with bounded mutation; zero weight crossover).
-   - *Cultural:* Evidence-linked living-parent [`Lesson`](../../../src/evolzen/schemas/development.py#L158-L164) items and falsifiable [`Manual`](../../../src/evolzen/schemas/manual.py) entries (`economy`), never credited as own competence samples.
-   - *Executable Skills:* Immutable, context-scoped [`RuleEntry`](../../../src/evolzen/schemas/library.py) records in [`RuleLibrary`](../../../src/evolzen/library/rule_library.py) verified against `RegressionBank` and executed exclusively inside [`Sandbox`](../../../src/evolzen/containment/sandbox.py).
+   - *Genetic:* Numeric `BirthGenome` (in `evolzen.schemas.development`, `inherit_genome` with bounded mutation; zero weight crossover).
+   - *Cultural:* Evidence-linked living-parent `Lesson` items (in `evolzen.schemas.development`) and falsifiable `Manual` entries (`economy`), never credited as own competence samples.
+   - *Executable Skills:* Immutable, context-scoped `RuleEntry` records in `RuleLibrary` (`evolzen.library`) verified against `RegressionBank` and executed exclusively inside `Sandbox` (`evolzen.containment.sandbox`).
 3. **Sequential Social Dilemma Evaluation:** All cooperative/competitive drive hypotheses (`greed`, `gluttony`, `envy`, `wrath`, `lust`, `null`) must be evaluated in temporally extended multi-agent runs (`leibo2017ssd`) reporting resource health, inequality, and extinction—never extrapolated from one-shot static choices.
 
 ---
 
 ## 4. Implementation Status Mapping
 
-- **Implemented now (Tier-0):** [`agents/development/`](../../../src/evolzen/agents/development/__init__.py) (`motivation.py`, `lifecycle.py`, `brain.py`, `learning.py`, `evolution.py`) + [`schemas/development.py`](../../../src/evolzen/schemas/development.py) (**32** verified test cases) and [`evolzen.library`](../../../src/evolzen/library/__init__.py) (**77** verified tests).
+- **Implemented now (Tier-0):** `agents/development/` (`motivation.py`, `lifecycle.py`, `brain.py`, `learning.py`, `evolution.py`) + `schemas/development.py` (**32** verified test cases) and `evolzen.library` (**77** verified tests).
 - **Target upgrades (Proposed / Untested):** Tier-1 UCB/Thompson + Chebyshev MORL (`ADR 0008`), Tier-2 Active Inference / latent MPC in `predictor.planner`, and Tier-3 SMDP options + opponent-aware MARL in `environment` / `agents`. Every tier enters code only with paired ablations against the Tier-0 baseline.
 

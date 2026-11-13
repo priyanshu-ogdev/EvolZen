@@ -19,7 +19,7 @@ Reference: docs/phases/1.5-library.md, docs/ARCHITECTURE.md §3.5.
 from __future__ import annotations
 
 import json
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -29,6 +29,8 @@ import duckdb
 
 from evolzen.library.audit import AuditLog, make_event
 from evolzen.schemas.library import AuditEventType, RegressionResult, RuleEntry
+from evolzen.schemas.transition import Transition
+from evolzen.storage.transition_log import TransitionLogStore
 
 if TYPE_CHECKING:
     from evolzen.library.rule_library import RuleLibrary
@@ -122,6 +124,98 @@ class RegressionBank:
                     "VALUES (?, ?, ?)",
                     [str(rule_id), str(tid), json.dumps(fixture)],
                 )
+
+    def register_fixtures(
+        self,
+        rule_id: UUID,
+        transition_ids: Sequence[UUID],
+        fixtures: Sequence[dict[str, Any]],
+    ) -> None:
+        """Store held-out fixtures for *rule_id*.
+
+        Alias for :meth:`register` to support explicit fixture registration.
+
+        Args:
+            rule_id: UUID of the rule these fixtures belong to.
+            transition_ids: Sequence of transition UUIDs (one per fixture).
+            fixtures: Sequence of fixture dicts (must be JSON-serialisable).
+        """
+        self.register(rule_id, transition_ids, fixtures)
+
+    def register_from_transitions(
+        self,
+        rule_id: UUID,
+        transitions: Sequence[Transition],
+        expected_emission_fn: Callable[[Transition], dict[str, Any]] | None = None,
+    ) -> list[UUID]:
+        """Convert recorded transitions into regression fixtures and register them.
+
+        Security Note: Fixtures store only plain serialisable dictionaries and
+        never execute arbitrary rule code.
+
+        Args:
+            rule_id: UUID of the rule these fixtures validate.
+            transitions: Sequence of recorded :class:`~evolzen.schemas.transition.Transition`
+                records from the environment.
+            expected_emission_fn: Optional callable to extract expected emission
+                dict from a transition. Defaults to `transition.emission.data`.
+
+        Returns:
+            List of transition UUIDs registered as fixtures.
+        """
+        transition_ids: list[UUID] = []
+        fixtures: list[dict[str, Any]] = []
+
+        for t in transitions:
+            tid = t.transition_id
+            expected = (
+                expected_emission_fn(t)
+                if expected_emission_fn is not None
+                else dict(t.emission.data)
+            )
+            fixture: dict[str, Any] = {
+                "transition_id": str(tid),
+                "expected_emission": expected,
+                "action_type": t.action.action_type,
+                "agent_id": t.action.agent_id,
+                "state_id": str(t.state.state_id),
+                "next_state_id": str(t.next_state.state_id),
+                "seed": t.seed,
+            }
+            transition_ids.append(tid)
+            fixtures.append(fixture)
+
+        self.register_fixtures(rule_id, transition_ids, fixtures)
+        return transition_ids
+
+    def register_from_transition_store(
+        self,
+        rule_id: UUID,
+        store: TransitionLogStore,
+        run_id: str,
+        up_to_tick: int | None = None,
+        expected_emission_fn: Callable[[Transition], dict[str, Any]] | None = None,
+    ) -> list[UUID]:
+        """Load transitions from a `TransitionLogStore` and register them as fixtures.
+
+        Args:
+            rule_id: UUID of the rule to register fixtures for.
+            store: The :class:`~evolzen.storage.transition_log.TransitionLogStore`
+                instance to load transitions from.
+            run_id: Run identifier to filter transitions by.
+            up_to_tick: Optional maximum tick (inclusive) to load up to.
+            expected_emission_fn: Optional callable to extract expected emission
+                dict from a transition. Defaults to `transition.emission.data`.
+
+        Returns:
+            List of transition UUIDs registered as fixtures.
+        """
+        transitions = store.list_transitions(run_id=run_id, to_tick=up_to_tick)
+        return self.register_from_transitions(
+            rule_id=rule_id,
+            transitions=transitions,
+            expected_emission_fn=expected_emission_fn,
+        )
 
     # ------------------------------------------------------------------
     # Retrieval

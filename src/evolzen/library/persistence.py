@@ -24,6 +24,9 @@ from evolzen.schemas.library import (
     SupersessionLink,
     VerificationEvidence,
 )
+from evolzen.schemas.world import CapabilityPackage
+
+SCHEMA_VERSION: int = 1
 
 
 class LibraryStore:
@@ -54,8 +57,34 @@ class LibraryStore:
     # ------------------------------------------------------------------
 
     def _ensure_schema(self) -> None:
-        """Create all sequences and tables if they do not already exist."""
+        """Create all sequences and tables if they do not already exist.
+
+        Raises:
+            RuntimeError: If the database schema version is greater than
+                :const:`SCHEMA_VERSION`.
+        """
         with duckdb.connect(str(self._db_path)) as con:
+            con.execute("""
+                CREATE TABLE IF NOT EXISTS schema_meta (
+                    schema_version INTEGER NOT NULL,
+                    initialized_at TIMESTAMP NOT NULL
+                )
+            """)
+            meta_rows = con.execute(
+                "SELECT schema_version FROM schema_meta ORDER BY initialized_at DESC LIMIT 1"
+            ).fetchall()
+            if not meta_rows:
+                con.execute(
+                    "INSERT INTO schema_meta (schema_version, initialized_at) VALUES (?, current_timestamp)",
+                    [SCHEMA_VERSION],
+                )
+            else:
+                found = int(meta_rows[0][0])
+                if found > SCHEMA_VERSION:
+                    raise RuntimeError(
+                        f"Incompatible database schema version {found} > {SCHEMA_VERSION}"
+                    )
+
             con.execute("CREATE SEQUENCE IF NOT EXISTS rule_entries_seq START 1")
             con.execute("""
                 CREATE TABLE IF NOT EXISTS rule_entries (
@@ -81,6 +110,17 @@ class LibraryStore:
                     check_id TEXT NOT NULL,
                     rule_id  TEXT NOT NULL,
                     payload  TEXT NOT NULL
+                )
+            """)
+            con.execute("CREATE SEQUENCE IF NOT EXISTS cap_packages_seq START 1")
+            con.execute("""
+                CREATE TABLE IF NOT EXISTS capability_packages (
+                    row_seq      BIGINT PRIMARY KEY DEFAULT nextval('cap_packages_seq'),
+                    package_id   TEXT NOT NULL,
+                    version      TEXT NOT NULL,
+                    evidence_id  TEXT NOT NULL,
+                    status       TEXT NOT NULL,
+                    payload      TEXT NOT NULL
                 )
             """)
 
@@ -311,4 +351,188 @@ class LibraryStore:
             Integer count of active rule IDs.
         """
         return len(self.get_active())
+
+    # ------------------------------------------------------------------
+    # Capability package operations
+    # ------------------------------------------------------------------
+
+    def append_capability(
+        self,
+        package: CapabilityPackage,
+        status: RuleStatus = RuleStatus.ACTIVE,
+    ) -> None:
+        """Append a new capability package record.
+
+        Never overwrites an existing row (append-only).
+
+        Args:
+            package: The :class:`~evolzen.schemas.world.CapabilityPackage` to persist.
+            status: Lifecycle status of the capability package (defaults to ACTIVE).
+        """
+        payload = package.model_dump_json()
+        with duckdb.connect(str(self._db_path)) as con:
+            con.execute(
+                "INSERT INTO capability_packages (package_id, version, evidence_id, status, payload) "
+                "VALUES (?, ?, ?, ?, ?)",
+                [
+                    str(package.package_id),
+                    str(package.version),
+                    str(package.evidence_id),
+                    str(status.value),
+                    payload,
+                ],
+            )
+
+    def get_capability_by_id(self, package_id: str) -> CapabilityPackage | None:
+        """Return the latest state of a capability package, or ``None`` if not found.
+
+        "Latest" is defined by highest ``row_seq`` for the given ``package_id``.
+
+        Args:
+            package_id: Unique string identifier of the package to look up.
+
+        Returns:
+            The most-recent :class:`~evolzen.schemas.world.CapabilityPackage`, or ``None``.
+        """
+        with duckdb.connect(str(self._db_path)) as con:
+            rows = con.execute(
+                "SELECT payload FROM capability_packages WHERE package_id = ? "
+                "ORDER BY row_seq DESC LIMIT 1",
+                [str(package_id)],
+            ).fetchall()
+        if not rows:
+            return None
+        return CapabilityPackage.model_validate_json(rows[0][0])
+
+    def get_all_capabilities(self) -> list[CapabilityPackage]:
+        """Return the latest state of every capability package in the store.
+
+        Uses a window function to deduplicate: only the row with the highest
+        ``row_seq`` per ``package_id`` is returned.
+
+        Returns:
+            List of latest :class:`~evolzen.schemas.world.CapabilityPackage` objects (all statuses).
+        """
+        with duckdb.connect(str(self._db_path)) as con:
+            rows = con.execute("""
+                SELECT payload
+                FROM (
+                    SELECT row_seq, payload, ROW_NUMBER() OVER (
+                        PARTITION BY package_id ORDER BY row_seq DESC
+                    ) AS rn
+                    FROM capability_packages
+                ) sub
+                WHERE rn = 1
+                ORDER BY row_seq
+            """).fetchall()
+        return [CapabilityPackage.model_validate_json(row[0]) for row in rows]
+
+    def get_active_capabilities(self) -> list[CapabilityPackage]:
+        """Return only capability packages whose current status is ``ACTIVE``.
+
+        Returns:
+            List of active :class:`~evolzen.schemas.world.CapabilityPackage` objects.
+        """
+        with duckdb.connect(str(self._db_path)) as con:
+            rows = con.execute(
+                """
+                SELECT payload
+                FROM (
+                    SELECT row_seq, status, payload, ROW_NUMBER() OVER (
+                        PARTITION BY package_id ORDER BY row_seq DESC
+                    ) AS rn
+                    FROM capability_packages
+                ) sub
+                WHERE rn = 1 AND status = ?
+                ORDER BY row_seq
+                """,
+                [str(RuleStatus.ACTIVE.value)],
+            ).fetchall()
+        return [CapabilityPackage.model_validate_json(row[0]) for row in rows]
+
+    def list_capabilities_by_evidence(
+        self, evidence_id: str
+    ) -> list[CapabilityPackage]:
+        """Return all capability packages associated with a specific verification evidence ID.
+
+        Returns the latest state per ``package_id`` matching the given ``evidence_id``.
+
+        Args:
+            evidence_id: Identifier of the verification evidence bundle.
+
+        Returns:
+            List of matching :class:`~evolzen.schemas.world.CapabilityPackage` objects.
+        """
+        with duckdb.connect(str(self._db_path)) as con:
+            rows = con.execute(
+                """
+                SELECT payload
+                FROM (
+                    SELECT row_seq, evidence_id, payload, ROW_NUMBER() OVER (
+                        PARTITION BY package_id ORDER BY row_seq DESC
+                    ) AS rn
+                    FROM capability_packages
+                ) sub
+                WHERE rn = 1 AND evidence_id = ?
+                ORDER BY row_seq
+                """,
+                [str(evidence_id)],
+            ).fetchall()
+        return [CapabilityPackage.model_validate_json(row[0]) for row in rows]
+
+    def update_capability_status(
+        self, package_id: str, new_status: RuleStatus
+    ) -> None:
+        """Record a capability package status change by appending an updated row.
+
+        The original row is never modified (append-only); this appends a new row
+        carrying the updated status and the same payload.
+
+        Args:
+            package_id: Identifier of the package whose status is changing.
+            new_status: New lifecycle status.
+
+        Raises:
+            KeyError: If no capability package with *package_id* exists.
+        """
+        with duckdb.connect(str(self._db_path)) as con:
+            rows = con.execute(
+                "SELECT version, evidence_id, payload FROM capability_packages WHERE package_id = ? "
+                "ORDER BY row_seq DESC LIMIT 1",
+                [str(package_id)],
+            ).fetchall()
+            if not rows:
+                raise KeyError(f"No capability package found for package_id={package_id}")
+            version, evidence_id, payload = rows[0]
+            con.execute(
+                "INSERT INTO capability_packages (package_id, version, evidence_id, status, payload) "
+                "VALUES (?, ?, ?, ?, ?)",
+                [str(package_id), str(version), str(evidence_id), str(new_status.value), payload],
+            )
+
+    def count_capabilities(self) -> int:
+        """Total number of distinct capability package IDs in the store (all statuses).
+
+        Returns:
+            Integer count of distinct ``package_id`` values.
+        """
+        with duckdb.connect(str(self._db_path)) as con:
+            result = con.execute(
+                "SELECT COUNT(DISTINCT package_id) FROM capability_packages"
+            ).fetchone()
+        return int(result[0]) if result else 0
+
+    def count_active_capabilities(self) -> int:
+        """Number of capability packages whose current status is ``ACTIVE``.
+
+        Returns:
+            Integer count of active capability package IDs.
+        """
+        return len(self.get_active_capabilities())
+
+
+__all__ = [
+    "LibraryStore",
+    "SCHEMA_VERSION",
+]
 

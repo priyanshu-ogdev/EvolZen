@@ -13,7 +13,7 @@ Modules
 """
 
 from evolzen.library.audit import AuditLog, make_event
-from evolzen.library.persistence import LibraryStore
+from evolzen.library.persistence import SCHEMA_VERSION, LibraryStore
 from evolzen.library.regression_bank import RegressionBank
 from evolzen.library.rule_library import RoutingConfidenceFn, RuleLibrary
 from evolzen.library.validity import (
@@ -29,6 +29,7 @@ __all__ = [
     "make_event",
     # Persistence
     "LibraryStore",
+    "SCHEMA_VERSION",
     # Regression bank
     "RegressionBank",
     # Library orchestrator

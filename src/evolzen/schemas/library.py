@@ -14,7 +14,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -131,12 +131,17 @@ class VerificationEvidence(_LibraryRecord):
             before exhausting the full test set.
     """
 
-    evidence_id: UUID
-    transition_ids: tuple[UUID, ...]
-    intervention_ids: tuple[UUID, ...]
-    held_out_combination_ids: tuple[UUID, ...]
-    false_promotion_rate: float = Field(ge=0.0, le=1.0)
-    resource_ceiling_hit: bool
+    evidence_id: UUID = Field(default_factory=uuid4)
+    transition_ids: tuple[UUID, ...] = ()
+    intervention_ids: tuple[UUID, ...] = ()
+    held_out_combination_ids: tuple[UUID, ...] = ()
+    false_promotion_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    resource_ceiling_hit: bool = False
+
+    @property
+    def evidence_id_str(self) -> str:
+        """String representation of evidence_id for string-based linkages."""
+        return str(self.evidence_id)
 
 
 # ---------------------------------------------------------------------------

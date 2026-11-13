@@ -4,7 +4,7 @@
 ::: evolzen.logging
 ::: evolzen.tracking
 ::: evolzen.schemas.transition
-::: evolzen.schemas.drive_vector
+::: evolzen.schemas.agent_profile
 ::: evolzen.schemas.manual
 ::: evolzen.schemas.development
 ::: evolzen.schemas.world

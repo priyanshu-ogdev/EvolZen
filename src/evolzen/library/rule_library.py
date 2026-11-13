@@ -22,7 +22,7 @@ from __future__ import annotations
 import difflib
 from collections.abc import Callable
 from datetime import UTC, datetime
-from uuid import UUID, uuid4
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from evolzen.exploration.synthesizer import CandidateRule
 from evolzen.library.audit import AuditLog, make_event
@@ -38,10 +38,19 @@ from evolzen.schemas.library import (
     ValidityContext,
     VerificationEvidence,
 )
+from evolzen.schemas.world import CapabilityPackage, WorldState
 
 #: Callable type for similarity scoring between two rule entries.
 #: Must return a float in ``[0.0, 1.0]``; higher means more similar.
 RoutingConfidenceFn = Callable[[RuleEntry, RuleEntry], float]
+
+
+def _package_id_to_uuid(package_id: str) -> UUID:
+    """Deterministic conversion of a string package_id to a UUID for audit events."""
+    try:
+        return UUID(package_id)
+    except ValueError:
+        return uuid5(NAMESPACE_URL, f"evolzen:capability:{package_id}")
 
 
 def _default_confidence(a: RuleEntry, b: RuleEntry) -> float:
@@ -495,3 +504,247 @@ class RuleLibrary:
             Integer count.
         """
         return self._store.count_active()
+
+    # ------------------------------------------------------------------
+    # Capability package management
+    # ------------------------------------------------------------------
+
+    def register_capability(
+        self,
+        package: CapabilityPackage,
+        evidence: VerificationEvidence | None = None,
+    ) -> CapabilityPackage:
+        """Register a verified capability package into the library.
+
+        Validates verification gates (or updates verification flags using *evidence*),
+        appends the package to the store with ``ACTIVE`` status, records an audit event,
+        and returns the registered package.
+
+        Args:
+            package: The :class:`~evolzen.schemas.world.CapabilityPackage` to register.
+            evidence: Optional :class:`~evolzen.schemas.library.VerificationEvidence`
+                bundle backing the capability.
+
+        Returns:
+            The registered :class:`~evolzen.schemas.world.CapabilityPackage`.
+
+        Raises:
+            ValueError: If the package fails verification gates or if evidence validation fails.
+        """
+        event_type = AuditEventType.SPAWN
+        if evidence is not None:
+            if evidence.resource_ceiling_hit:
+                raise ValueError(
+                    "Verification evidence hit resource ceiling; cannot register capability"
+                )
+            if evidence.false_promotion_rate > 0.0:
+                raise ValueError(
+                    f"Verification evidence false promotion rate {evidence.false_promotion_rate} > 0.0"
+                )
+            ev_id = evidence.evidence_id_str
+            if package.evidence_id and package.evidence_id != ev_id:
+                raise ValueError(
+                    f"Mismatched evidence_id between package ({package.evidence_id}) and evidence ({ev_id})"
+                )
+            package = package.model_copy(
+                update={
+                    "evidence_id": ev_id,
+                    "verified_replay": True,
+                    "verified_intervention": True,
+                    "verified_containment": True,
+                }
+            )
+            event_type = AuditEventType.PROMOTE
+        else:
+            if not (
+                package.verified_replay
+                and package.verified_intervention
+                and package.verified_containment
+            ):
+                raise ValueError(
+                    f"Capability package {package.package_id} failed verification gates: "
+                    "verified_replay, verified_intervention, and verified_containment must all be True"
+                )
+
+        self._store.append_capability(package, status=RuleStatus.ACTIVE)
+        if self._audit is not None:
+            self._audit.record(
+                make_event(
+                    event_type,
+                    rule_id=_package_id_to_uuid(package.package_id),
+                    detail={
+                        "package_id": package.package_id,
+                        "version": package.version,
+                        "action_type": str(package.action_type),
+                        "evidence_id": package.evidence_id,
+                    },
+                )
+            )
+        return package
+
+    def get_capability(self, package_id: str) -> CapabilityPackage | None:
+        """Return the latest state of a capability package, or ``None`` if not found.
+
+        Args:
+            package_id: Unique string identifier of the package.
+
+        Returns:
+            The :class:`~evolzen.schemas.world.CapabilityPackage` or ``None``.
+        """
+        return self._store.get_capability_by_id(package_id)
+
+    def get_active_capabilities(self) -> list[CapabilityPackage]:
+        """Return all active capability packages in the library.
+
+        Returns:
+            List of active :class:`~evolzen.schemas.world.CapabilityPackage` objects.
+        """
+        return self._store.get_active_capabilities()
+
+    def supersede_capability(
+        self,
+        old_package_id: str,
+        new_package: CapabilityPackage,
+        reason: str,
+    ) -> CapabilityPackage:
+        """Supersede an existing capability package with *new_package*.
+
+        Validates *reason* (at least 10 non-whitespace characters), marks the
+        old capability package as ``SUPERSEDED`` in the store, appends the
+        new package with ``ACTIVE`` status, records an ``AuditEventType.SUPERSEDE``
+        event in the audit log, and returns *new_package*.
+
+        Args:
+            old_package_id: Identifier of the package being superseded.
+            new_package: Replacement :class:`~evolzen.schemas.world.CapabilityPackage`.
+            reason: Human-readable justification (minimum 10 characters).
+
+        Returns:
+            The newly registered :class:`~evolzen.schemas.world.CapabilityPackage`.
+
+        Raises:
+            KeyError: If *old_package_id* does not exist in the store.
+            ValueError: If *reason* is invalid or *new_package* fails verification.
+        """
+        validate_supersession_reason(reason)
+        old = self._store.get_capability_by_id(old_package_id)
+        if old is None:
+            raise KeyError(f"No capability package found for package_id={old_package_id}")
+
+        if not (
+            new_package.verified_replay
+            and new_package.verified_intervention
+            and new_package.verified_containment
+        ):
+            raise ValueError(
+                f"Replacement capability package {new_package.package_id} failed verification gates"
+            )
+
+        self._store.update_capability_status(old_package_id, RuleStatus.SUPERSEDED)
+        self._store.append_capability(new_package, status=RuleStatus.ACTIVE)
+        if self._audit is not None:
+            self._audit.record(
+                make_event(
+                    AuditEventType.SUPERSEDE,
+                    rule_id=_package_id_to_uuid(old_package_id),
+                    detail={
+                        "old_package_id": old_package_id,
+                        "new_package_id": new_package.package_id,
+                        "reason": reason,
+                    },
+                )
+            )
+        return new_package
+
+    def export_capabilities_to_world(self, world: WorldState) -> WorldState:
+        """Return a copy of *world* with active library capabilities merged into `world.capabilities`.
+
+        Args:
+            world: Current :class:`~evolzen.schemas.world.WorldState`.
+
+        Returns:
+            Updated copy of *world* containing all active library capabilities.
+        """
+        active_caps = self.get_active_capabilities()
+        merged = dict(world.capabilities)
+        for pkg in active_caps:
+            merged[pkg.package_id] = pkg
+        return world.model_copy(update={"capabilities": merged})
+
+    def import_capabilities_from_world(
+        self, world: WorldState
+    ) -> list[CapabilityPackage]:
+        """Import verified capabilities from *world.capabilities* into the library store.
+
+        Only capability packages that satisfy all verification gates
+        (``verified_replay``, ``verified_intervention``, ``verified_containment``)
+        and are not already present in the store are imported.
+
+        Args:
+            world: :class:`~evolzen.schemas.world.WorldState` to import from.
+
+        Returns:
+            List of newly imported :class:`~evolzen.schemas.world.CapabilityPackage` instances.
+        """
+        imported: list[CapabilityPackage] = []
+        for pkg in world.capabilities.values():
+            if not (
+                pkg.verified_replay
+                and pkg.verified_intervention
+                and pkg.verified_containment
+            ):
+                continue
+            if self._store.get_capability_by_id(pkg.package_id) is not None:
+                continue
+            self._store.append_capability(pkg, status=RuleStatus.ACTIVE)
+            if self._audit is not None:
+                self._audit.record(
+                    make_event(
+                        AuditEventType.SPAWN,
+                        rule_id=_package_id_to_uuid(pkg.package_id),
+                        detail={
+                            "package_id": pkg.package_id,
+                            "source": "import_capabilities_from_world",
+                        },
+                    )
+                )
+            imported.append(pkg)
+        return imported
+
+    def capability_count(self) -> int:
+        """Total number of distinct capability package IDs (all statuses)."""
+        return self._store.count_capabilities()
+
+    def active_capability_count(self) -> int:
+        """Number of capability packages whose current status is ACTIVE."""
+        return self._store.count_active_capabilities()
+
+    # ------------------------------------------------------------------
+    # Filtered rule querying
+    # ------------------------------------------------------------------
+
+    def find_by_mechanic(self, mechanic_key: str) -> list[RuleEntry]:
+        """Return all active rules explaining *mechanic_key*.
+
+        Args:
+            mechanic_key: Mechanic identifier to filter by.
+
+        Returns:
+            List of active :class:`~evolzen.schemas.library.RuleEntry` objects
+            whose ``explains`` tuple contains *mechanic_key*.
+        """
+        return [e for e in self.get_active() if mechanic_key in e.explains]
+
+    def find_by_world_version(self, world_version: str) -> list[RuleEntry]:
+        """Return all active rules whose ``validity.world_version == world_version``.
+
+        Args:
+            world_version: World version identifier to filter by.
+
+        Returns:
+            List of active :class:`~evolzen.schemas.library.RuleEntry` objects
+            whose validity context matches *world_version*.
+        """
+        return [
+            e for e in self.get_active() if e.validity.world_version == world_version
+        ]
