@@ -110,6 +110,13 @@ _LOCATION_IMPROVE_COST: dict[str, int] = {"wood": 2, "stone": 2}
 _LOCATION_CAPACITY_INCREMENT = 10
 _MAX_LOCATION_CAPACITY = 200
 
+_MAX_ARTIFACTS = 512
+_MAX_CONTRACTS = 256
+_MAX_INSTITUTIONS = 64
+_MAX_NORMS = 64
+_MAX_CAPABILITIES = 64
+_DEFAULT_CONTRACT_TTL = 100
+
 
 def _resolve_identifier(
     params: dict[str, Any],
@@ -193,22 +200,79 @@ def _handle_gather(
     locations = dict(world.locations)
     locations[loc.location_id] = loc.model_copy(update={"resources": loc_resources})
 
+    # Tool durability decay and fatigue mitigation
+    artifacts = dict(world.artifacts)
+    tool = None
+    for art in artifacts.values():
+        if art.owner_id == actor.agent_id and art.durability > 0:
+            tool = art
+            break
+
+    fatigue_delta = 0.05
+    if tool is not None:
+        fatigue_delta = 0.025  # Tools mitigate manual gathering fatigue by 50%
+        new_dur = max(0, tool.durability - 1)
+        artifacts[tool.artifact_id] = tool.model_copy(update={"durability": new_dur})
+
+    # Norm violation / compliance mechanics
+    status_delta = 0.0
+    reward_social_delta = 0.0
+    for norm in world.norms.values():
+        if norm.rule_kind == "conservation":
+            cap = loc.capacities.get(resource, 100)
+            rem = available - amount
+            is_depleted = rem < int(0.2 * cap)
+            if is_depleted:
+                if actor.agent_id in norm.adopters:
+                    # Hypocrisy penalty for norm adopters depleting commons
+                    status_delta -= 0.1
+                    reward_social_delta -= 0.1
+                elif any(
+                    p in norm.adopters
+                    for p in world.agents
+                    if world.agents[p].location_id == actor.location_id and world.agents[p].alive
+                ):
+                    # Social friction from community members
+                    status_delta -= 0.05
+                    reward_social_delta -= 0.05
+            else:
+                if actor.agent_id in norm.adopters:
+                    status_delta += 0.02
+                    reward_social_delta += 0.02
+
     inv = dict(actor.inventory)
     inv[resource] = inv.get(resource, 0) + amount
     updated = actor.model_copy(
         update={
             "inventory": inv,
-            "fatigue": round(_clamp(actor.fatigue + 0.05, 0.0, 1.0), 6),
+            "status": round(_clamp(actor.status + status_delta, 0.0, 1.0), 6),
+            "fatigue": round(_clamp(actor.fatigue + fatigue_delta, 0.0, 1.0), 6),
             "energy": round(_clamp(actor.energy - 0.02, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
-    next_world = _replace_agent(world.model_copy(update={"locations": locations}), updated)
+    next_world = _replace_agent(
+        world.model_copy(update={"locations": locations, "artifacts": artifacts}),
+        updated,
+    )
+    base_rewards = (0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05)
+    rewards = _clamp_rewards(
+        (
+            base_rewards[0],
+            base_rewards[1],
+            base_rewards[2] + reward_social_delta,
+            base_rewards[3],
+            base_rewards[4],
+            base_rewards[5],
+            base_rewards[6],
+            base_rewards[7],
+        )
+    )
     return _StepOutcome(
         world=next_world,
         accepted=True,
         reason=f"gathered {amount} {resource}",
-        rewards=(0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05),
+        rewards=rewards,
     )
 
 
@@ -279,6 +343,8 @@ def _handle_consume(
 def _handle_craft(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
+    if len(world.artifacts) >= _MAX_ARTIFACTS:
+        return _reject(world, "artifact collection capacity reached")
     if "package_id" in action.params and action.params["package_id"] is not None:
         raw_pkg_id = action.params["package_id"]
         if not isinstance(raw_pkg_id, str) or not raw_pkg_id.strip():
@@ -356,7 +422,7 @@ def _handle_craft(
         update={
             "inventory": inv,
             "skills": skills,
-            "status": round(actor.status + 0.15, 6),
+            "status": round(_clamp(actor.status + 0.15, 0.0, 1.0), 6),
             "fatigue": round(_clamp(actor.fatigue + 0.08, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
@@ -396,6 +462,20 @@ def _handle_trade(
     if counterparty.currency < price:
         return _reject(world, f"counterparty {counterparty_id} lacks currency {price}")
 
+    institutions = dict(world.institutions)
+    local_inst = next(
+        (i for i in institutions.values() if i.location_id == actor.location_id),
+        None,
+    )
+    fee = 0
+    if local_inst is not None and local_inst.contribution_rate > 0 and price > 0:
+        raw_fee = int(round(price * local_inst.contribution_rate))
+        fee = max(0, min(price, raw_fee))
+        if fee > 0:
+            institutions[local_inst.institution_id] = local_inst.model_copy(
+                update={"currency_reserve": local_inst.currency_reserve + fee}
+            )
+
     actor_inv = dict(actor.inventory)
     actor_inv[resource] = actor_inv[resource] - qty
     cp_inv = dict(counterparty.inventory)
@@ -404,8 +484,8 @@ def _handle_trade(
     updated_actor = actor.model_copy(
         update={
             "inventory": actor_inv,
-            "currency": actor.currency + price,
-            "status": round(actor.status + 0.05, 6),
+            "currency": actor.currency + (price - fee),
+            "status": round(_clamp(actor.status + 0.05, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -415,11 +495,17 @@ def _handle_trade(
             "currency": counterparty.currency - price,
         }
     )
-    next_world = _replace_agent(_replace_agent(world, updated_actor), updated_cp)
+    base_world = world.model_copy(update={"institutions": institutions}) if fee > 0 else world
+    next_world = _replace_agent(_replace_agent(base_world, updated_actor), updated_cp)
+    reason = (
+        f"traded {qty} {resource} to {counterparty_id} for {price}"
+        if fee == 0 or local_inst is None
+        else f"traded {qty} {resource} to {counterparty_id} for {price} (withheld {fee} institutional fee to {local_inst.institution_id})"
+    )
     return _StepOutcome(
         world=next_world,
         accepted=True,
-        reason=f"traded {qty} {resource} to {counterparty_id} for {price}",
+        reason=reason,
         rewards=(0.1, 0.25, 0.15, 0.0, 0.0, 0.0, -0.02, -0.02),
     )
 
@@ -427,6 +513,8 @@ def _handle_trade(
 def _handle_propose_contract(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
+    if len(world.contracts) >= _MAX_CONTRACTS:
+        return _reject(world, "contract collection capacity reached")
     raw_cp = action.params.get("counterparty_id", "")
     if not isinstance(raw_cp, str) or not raw_cp.strip():
         return _reject(world, f"invalid contract counterparty {raw_cp!r}")
@@ -492,6 +580,21 @@ def _handle_fulfill_contract(
     contract = world.contracts.get(contract_id)
     if contract is None or contract.status != "open":
         return _reject(world, f"contract {contract_id!r} is not open")
+
+    # Contract cancellation by either party
+    if action.params.get("cancel") is True:
+        if actor.agent_id != contract.proposer_id and actor.agent_id != contract.counterparty_id:
+            return _reject(world, "only contract parties may cancel contract")
+        contracts = dict(world.contracts)
+        contracts[contract_id] = contract.model_copy(update={"status": "cancelled"})
+        updated_actor = actor.model_copy(update={"last_action_tick": next_tick})
+        return _StepOutcome(
+            world=_replace_agent(world.model_copy(update={"contracts": contracts}), updated_actor),
+            accepted=True,
+            reason=f"cancelled contract {contract_id}",
+            rewards=(0.0, 0.0, -0.05, 0.0, 0.0, 0.0, 0.0, 0.0),
+        )
+
     if actor.agent_id != contract.counterparty_id:
         return _reject(world, "only counterparty may fulfill contract")
     proposer = world.agents.get(contract.proposer_id)
@@ -514,12 +617,12 @@ def _handle_fulfill_contract(
     updated_actor = actor.model_copy(
         update={
             "inventory": c_inv,
-            "status": round(actor.status + 0.1, 6),
+            "status": round(_clamp(actor.status + 0.1, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
     updated_proposer = proposer.model_copy(
-        update={"inventory": p_inv, "status": round(proposer.status + 0.1, 6)}
+        update={"inventory": p_inv, "status": round(_clamp(proposer.status + 0.1, 0.0, 1.0), 6)}
     )
     next_world = _replace_agent(
         _replace_agent(world.model_copy(update={"contracts": contracts}), updated_actor),
@@ -536,6 +639,8 @@ def _handle_fulfill_contract(
 def _handle_found_institution(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
+    if len(world.institutions) >= _MAX_INSTITUTIONS:
+        return _reject(world, "institution collection capacity reached")
     age = next_tick - actor.born_at
     raw_min_age = action.params.get("min_age", world.adulthood_age)
     if isinstance(raw_min_age, bool) or not isinstance(raw_min_age, int) or raw_min_age < 0:
@@ -584,7 +689,7 @@ def _handle_found_institution(
         update={
             "currency": actor.currency - seed_currency,
             "institution_ids": (*actor.institution_ids, inst_id),
-            "status": round(actor.status + 0.25, 6),
+            "status": round(_clamp(actor.status + 0.25, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -614,7 +719,7 @@ def _handle_join_institution(
     updated = actor.model_copy(
         update={
             "institution_ids": (*actor.institution_ids, inst_id),
-            "status": round(actor.status + 0.05, 6),
+            "status": round(_clamp(actor.status + 0.05, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -636,6 +741,32 @@ def _handle_contribute_institution(
     inst = world.institutions.get(inst_id)
     if inst is None or actor.agent_id not in inst.member_ids:
         return _reject(world, f"actor is not a member of {inst_id!r}")
+
+    # Optional direct currency contribution to reserve
+    raw_cur = action.params.get("currency")
+    if raw_cur is not None:
+        if isinstance(raw_cur, bool) or not isinstance(raw_cur, int) or raw_cur < 1:
+            return _reject(world, "currency contribution must be a positive integer")
+        if actor.currency < raw_cur:
+            return _reject(world, f"insufficient currency {actor.currency} to contribute {raw_cur}")
+        institutions = dict(world.institutions)
+        institutions[inst_id] = inst.model_copy(
+            update={"currency_reserve": inst.currency_reserve + raw_cur}
+        )
+        updated = actor.model_copy(
+            update={
+                "currency": actor.currency - raw_cur,
+                "status": round(_clamp(actor.status + 0.1, 0.0, 1.0), 6),
+                "last_action_tick": next_tick,
+            }
+        )
+        return _StepOutcome(
+            world=_replace_agent(world.model_copy(update={"institutions": institutions}), updated),
+            accepted=True,
+            reason=f"contributed {raw_cur} currency to {inst_id}",
+            rewards=(0.1, -0.05, 0.3, 0.0, 0.0, 0.0, -0.02, 0.0),
+        )
+
     resource, res_err = _resolve_identifier(action.params, "resource", default="food")
     if res_err is not None or resource is None:
         return _reject(world, res_err or "invalid resource")
@@ -654,7 +785,7 @@ def _handle_contribute_institution(
     updated = actor.model_copy(
         update={
             "inventory": inv,
-            "status": round(actor.status + 0.1, 6),
+            "status": round(_clamp(actor.status + 0.1, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -669,6 +800,8 @@ def _handle_contribute_institution(
 def _handle_propose_norm(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
+    if len(world.norms) >= _MAX_NORMS:
+        return _reject(world, "norm collection capacity reached")
     norm_id, norm_err = _resolve_identifier(
         action.params,
         "norm_id",
@@ -697,7 +830,7 @@ def _handle_propose_norm(
     updated = actor.model_copy(
         update={
             "adopted_norms": (*actor.adopted_norms, norm_id),
-            "status": round(actor.status + 0.1, 6),
+            "status": round(_clamp(actor.status + 0.1, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -726,6 +859,7 @@ def _handle_adopt_norm(
     updated = actor.model_copy(
         update={
             "adopted_norms": (*actor.adopted_norms, norm_id),
+            "status": round(_clamp(actor.status + 0.05, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -746,9 +880,15 @@ def _handle_assign_role(
     updated = actor.model_copy(
         update={
             "role": role,
-            "status": round(actor.status + 0.1, 6),
+            "status": round(_clamp(actor.status + 0.1, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
+    )
+    return _StepOutcome(
+        world=_replace_agent(world, updated),
+        accepted=True,
+        reason=f"assigned role {role}",
+        rewards=(0.25, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0),
     )
     return _StepOutcome(
         world=_replace_agent(world, updated),
@@ -821,7 +961,7 @@ def _handle_spawn_offspring(
     updated_actor = actor.model_copy(
         update={
             "currency": actor.currency - endow_currency,
-            "status": round(actor.status + 0.15, 6),
+            "status": round(_clamp(actor.status + 0.15, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
@@ -869,17 +1009,34 @@ def _handle_improve_location(
     locations = dict(world.locations)
     locations[loc.location_id] = loc.model_copy(update={"capacities": capacities})
     accounting = world.accounting.model_copy(update={"consumed_or_decayed": consumed})
+
+    # Tool durability decay and fatigue mitigation
+    artifacts = dict(world.artifacts)
+    tool = None
+    for art in artifacts.values():
+        if art.owner_id == actor.agent_id and art.durability > 0:
+            tool = art
+            break
+
+    fatigue_delta = 0.08
+    if tool is not None:
+        fatigue_delta = 0.04  # Tool halves improvement fatigue
+        new_dur = max(0, tool.durability - 2)
+        artifacts[tool.artifact_id] = tool.model_copy(update={"durability": new_dur})
+
     updated = actor.model_copy(
         update={
             "inventory": inv,
-            "status": round(actor.status + 0.15, 6),
-            "fatigue": round(_clamp(actor.fatigue + 0.08, 0.0, 1.0), 6),
+            "status": round(_clamp(actor.status + 0.15, 0.0, 1.0), 6),
+            "fatigue": round(_clamp(actor.fatigue + fatigue_delta, 0.0, 1.0), 6),
             "energy": round(_clamp(actor.energy - 0.03, 0.0, 1.0), 6),
             "last_action_tick": next_tick,
         }
     )
     next_world = _replace_agent(
-        world.model_copy(update={"locations": locations, "accounting": accounting}),
+        world.model_copy(
+            update={"locations": locations, "accounting": accounting, "artifacts": artifacts}
+        ),
         updated,
     )
     return _StepOutcome(
@@ -893,6 +1050,8 @@ def _handle_improve_location(
 def _handle_register_capability(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
+    if len(world.capabilities) >= _MAX_CAPABILITIES:
+        return _reject(world, "capability collection capacity reached")
     raw_pkg = action.params.get("package")
     if not isinstance(raw_pkg, dict):
         return _reject(world, "package parameter must be a mapping")
@@ -923,7 +1082,10 @@ def _handle_register_capability(
     caps = dict(world.capabilities)
     caps[pkg.package_id] = pkg
     updated = actor.model_copy(
-        update={"status": round(actor.status + 0.15, 6), "last_action_tick": next_tick}
+        update={
+            "status": round(_clamp(actor.status + 0.15, 0.0, 1.0), 6),
+            "last_action_tick": next_tick,
+        }
     )
     return _StepOutcome(
         world=_replace_agent(world.model_copy(update={"capabilities": caps}), updated),
@@ -1002,6 +1164,8 @@ def _apply_exogenous(
                     update={"resources": new_res, "shock_factor": shock_factor}
                 )
             applied.append("shock")
+        elif kind != "advance_tick":
+            applied.append(f"unhandled:{kind}")
 
     accounting = ResourceAccounting(
         initial_resources=world.accounting.initial_resources,
@@ -1033,6 +1197,33 @@ def _expire_agents(world: WorldState, next_tick: int) -> WorldState:
         else:
             agents[agent_id] = agent
     return world.model_copy(update={"agents": agents})
+
+
+def _expire_contracts(
+    world: WorldState, next_tick: int, ttl: int = _DEFAULT_CONTRACT_TTL
+) -> WorldState:
+    """Sweep and transition stale or orphan open contracts to 'cancelled'."""
+    contracts: dict[str, ContractRecord] = {}
+    changed = False
+    for cid, c in world.contracts.items():
+        if c.status == "open":
+            proposer = world.agents.get(c.proposer_id)
+            counterparty = world.agents.get(c.counterparty_id)
+            expired = (next_tick - c.created_tick) >= ttl
+            orphan = (
+                proposer is None
+                or not proposer.alive
+                or counterparty is None
+                or not counterparty.alive
+            )
+            if expired or orphan:
+                contracts[cid] = c.model_copy(update={"status": "cancelled"})
+                changed = True
+            else:
+                contracts[cid] = c
+        else:
+            contracts[cid] = c
+    return world.model_copy(update={"contracts": contracts}) if changed else world
 
 
 class SocialSandboxEngine:
@@ -1152,15 +1343,16 @@ class SocialSandboxEngine:
                     outcome = handler(world, actor, action, next_tick)
 
             post_exog_world, applied_exog = _apply_exogenous(outcome.world, resolved_exog)
-            final_world = _expire_agents(
-                post_exog_world.model_copy(
-                    update={
-                        "tick": next_tick,
-                        "step_index": world.step_index + 1,
-                        "seed": resolved_seed,
-                    }
-                ),
+            swept_world = _expire_contracts(
+                _expire_agents(post_exog_world, next_tick),
                 next_tick,
+            )
+            final_world = swept_world.model_copy(
+                update={
+                    "tick": next_tick,
+                    "step_index": world.step_index + 1,
+                    "seed": resolved_seed,
+                }
             )
 
         report = check_invariants(world, final_world)

@@ -97,7 +97,7 @@ class WorldAgentState(WorldRecord):
     lineage_id: Identifier
     parents: tuple[Identifier, ...] = ()
     generation: NonNegInt = 0
-    status: Annotated[float, Field(ge=0.0, allow_inf_nan=False)] = 0.0
+    status: Annotated[float, Field(ge=0.0, le=1.0, allow_inf_nan=False)] = 0.0
     skills: tuple[str, ...] = ()
     institution_ids: tuple[Identifier, ...] = ()
     adopted_norms: tuple[Identifier, ...] = ()

@@ -28,11 +28,19 @@ Landed Stage 1 critical fixes:
 
 Landed Stage 2 host adapter full 17-action coverage:
 - `adapter.legal_candidates` and `adapter.action_from_candidate` cover all 17 `ActionType`s (`wait`, `gather`, `move`, `consume`, `craft`, `trade`, `propose_contract`, `fulfill_contract`, `found_institution`, `join_institution`, `contribute_institution`, `propose_norm`, `adopt_norm`, `assign_role`, `spawn_offspring`, `improve_location`, `register_capability`);
+- Added `cancel_contract:{cid}` candidate generation and parsing for proposers of open contracts;
 - Host-side validation in `execute_decision` verifies legal candidate membership, dynamic permissions, and minimum age before stepping and returning verified `Outcome` receipts.
 
+Landed Stage 3 operational mechanics:
+- **Tool Durability & Fatigue Mitigation:** Handlers `_handle_gather` and `_handle_improve_location` consume tool durability on work actions while halving physical fatigue accumulation;
+- **Norm Compliance & Social Friction:** `_handle_gather` evaluates conservation norms during common-pool harvesting, penalizing hypocrisy (-0.1 status/social reward) and community friction (-0.05 status/social reward) during resource scarcity (< 20% cap) while rewarding sustainable harvests (+0.02);
+- **Institutional Trade Fee Withholding & Reserves:** `_handle_trade` withholds `contribution_rate` fee on local trades directly to `local_inst.currency_reserve` while maintaining exact `resource_conservation` invariant; `_handle_contribute_institution` supports direct currency contributions;
+- **Contract Cancellation & Expiration Sweep:** Handlers support voluntary cancellation (`cancel=True` in `_handle_fulfill_contract`) and automatic expiration sweep (`_expire_contracts`) for stale open contracts exceeding TTL (100 ticks) or with deceased parties;
+- **FR-2 Bounded Collections & Status:** Enforced upper bounds on `WorldAgentState.status` (`[0.0, 1.0]`) across schemas, invariants, and engine handlers. Enforced capacity bounds (`artifacts <= 512`, `contracts <= 256`, `institutions <= 64`, `norms <= 64`, `capabilities <= 64`) in `invariants.py` and action rejection;
+- **Exogenous Provenance:** `_apply_exogenous` captures unhandled exogenous events (`unhandled:<kind>`) in `applied_exog` and records them in transition emissions (`exogenous_applied`).
+
 Open Phase 1.1 hardening backlog (empirical metrics remain untested / unmeasured):
-- **PettingZoo step hooks:** `SocialSandboxAECEnv.step` needs optional `exogenous_input`, `seed`, and `TransitionLogStore` hooks.
-- **Bounded world growth (`FR-2`):** bound `WorldState` collections (`artifacts`, `contracts`, `institutions`, `norms`, `capabilities`, `inventory`) and `WorldAgentState.status`, and wire or clarify `GrowthAttribution.ENDOGENOUS_PROCESS`.
-- **Partial mechanics & edge handling:** address partial mechanics (`ContractRecord` cancel/expire, `InstitutionRecord.contribution_rate`/spending, `ArtifactRecord.durability`, `NormRecord` effects, unknown exogenous event handling).
+- **PettingZoo step hooks:** `SocialSandboxAECEnv.step` needs optional `exogenous_input`, `seed`, and `TransitionLogStore` hooks;
+- **Endogenous Process Growth Attribution:** Wire or clarify active world-tick emitter for `GrowthAttribution.ENDOGENOUS_PROCESS`;
 - **Untested validation & downstream scope:** all 18 failure branches in `invariants.py`, Hypothesis property-based tests, empirical long-horizon Phase 1.1 runs, `SocialSandboxAECEnv` multi-agent learning integrations, LLM population scheduling (`evolzen.agents`, Phase 1.2), full market/manual provenance flows (`evolzen.economy`, Phase 1.3), sandboxed capability synthesis (`evolzen.exploration`, `evolzen.containment`, Phases 1.4/2.2), and target-rig hardware pilot measurements on DGX/AGX Spark.
 See [agent engineering](../agents/engineering.md) for the broader boundaries.

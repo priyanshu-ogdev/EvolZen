@@ -249,6 +249,18 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
                     permitted=can_fulfill,
                 )
             )
+        if c.status == "open" and c.proposer_id == agent.agent_id:
+            candidates.append(
+                Candidate(
+                    action_id=f"cancel_contract:{c.contract_id}",
+                    context_key=context_key,
+                    skill_key="cancel_contract:v1",
+                    predicted=(0.0, 0.0, -0.05, 0.0, 0.0, 0.0, 0.0, 0.0),
+                    cost=0.01,
+                    minimum_age=0,
+                    permitted=True,
+                )
+            )
 
     for inst_id in sorted(world.institutions):
         inst = world.institutions[inst_id]
@@ -491,6 +503,12 @@ def action_from_candidate(
             agent_id=agent_id,
             action_type=ActionType.FULFILL_CONTRACT,
             params={"contract_id": parts[1]},
+        )
+    if verb == "cancel_contract" and len(parts) == 2:
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.FULFILL_CONTRACT,
+            params={"contract_id": parts[1], "cancel": True},
         )
     if verb == "join_institution" and len(parts) == 2:
         return Action(

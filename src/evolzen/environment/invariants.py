@@ -91,6 +91,21 @@ def _check_bounded_state(world: WorldState) -> WorldInvariant:
             issues.append(f"{agent_id}.energy={agent.energy} out of [0, 1]")
         if not (0.0 <= agent.fatigue <= 1.0):
             issues.append(f"{agent_id}.fatigue={agent.fatigue} out of [0, 1]")
+        if not (0.0 <= agent.status <= 1.0):
+            issues.append(f"{agent_id}.status={agent.status} out of [0.0, 1.0]")
+
+    # Bounded collections (FR-2)
+    if len(world.artifacts) > 512:
+        issues.append(f"artifacts={len(world.artifacts)} > 512")
+    if len(world.contracts) > 256:
+        issues.append(f"contracts={len(world.contracts)} > 256")
+    if len(world.institutions) > 64:
+        issues.append(f"institutions={len(world.institutions)} > 64")
+    if len(world.norms) > 64:
+        issues.append(f"norms={len(world.norms)} > 64")
+    if len(world.capabilities) > 64:
+        issues.append(f"capabilities={len(world.capabilities)} > 64")
+
     return WorldInvariant(
         name="bounded_state",
         description="Resource stocks remain within location capacities and scalar states remain finite/bounded.",
