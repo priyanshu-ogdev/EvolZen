@@ -128,6 +128,7 @@ docs = [
 line-length = 100
 target-version = "py311"
 src = ["src", "tests"]
+exclude = [".agents", ".gemini", ".venv", "build", "dist"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "N"]
