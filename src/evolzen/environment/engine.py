@@ -1226,6 +1226,29 @@ def _expire_contracts(
     return world.model_copy(update={"contracts": contracts}) if changed else world
 
 
+def _expand_endogenous_ecology(world: WorldState, next_tick: int) -> WorldState:
+    """Passively expand location capacity for flourishing, undisturbed ecosystems."""
+    if next_tick % 50 != 0 or next_tick == 0:
+        return world
+    locations = dict(world.locations)
+    changed = False
+    for loc_id, loc in sorted(world.locations.items()):
+        if loc.shock_factor < 1.0:
+            continue
+        new_caps = dict(loc.capacities)
+        loc_changed = False
+        for res, cap in sorted(loc.capacities.items()):
+            if loc.resources.get(res, 0) >= cap and cap < _MAX_LOCATION_CAPACITY:
+                new_caps[res] = min(cap + 1, _MAX_LOCATION_CAPACITY)
+                loc_changed = True
+                changed = True
+        if loc_changed:
+            locations[loc_id] = loc.model_copy(update={"capacities": new_caps})
+    if not changed:
+        return world
+    return world.model_copy(update={"locations": locations})
+
+
 class SocialSandboxEngine:
     """Stateless deterministic Phase 1.1 social-sandbox transition engine.
 
@@ -1343,8 +1366,11 @@ class SocialSandboxEngine:
                     outcome = handler(world, actor, action, next_tick)
 
             post_exog_world, applied_exog = _apply_exogenous(outcome.world, resolved_exog)
-            swept_world = _expire_contracts(
-                _expire_agents(post_exog_world, next_tick),
+            swept_world = _expand_endogenous_ecology(
+                _expire_contracts(
+                    _expire_agents(post_exog_world, next_tick),
+                    next_tick,
+                ),
                 next_tick,
             )
             final_world = swept_world.model_copy(

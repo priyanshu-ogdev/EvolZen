@@ -39,8 +39,12 @@ Landed Stage 3 operational mechanics:
 - **FR-2 Bounded Collections & Status:** Enforced upper bounds on `WorldAgentState.status` (`[0.0, 1.0]`) across schemas, invariants, and engine handlers. Enforced capacity bounds (`artifacts <= 512`, `contracts <= 256`, `institutions <= 64`, `norms <= 64`, `capabilities <= 64`) in `invariants.py` and action rejection;
 - **Exogenous Provenance:** `_apply_exogenous` captures unhandled exogenous events (`unhandled:<kind>`) in `applied_exog` and records them in transition emissions (`exogenous_applied`).
 
+Landed Stage 4 PettingZoo AECEnv upgrades & endogenous process attribution:
+- **PettingZoo Macro-Shocks & Seeding:** `SocialSandboxAECEnv.step()` accepts `exogenous_input` and deterministic `seed` kwargs, allowing RL and AEC callers to simulate macroeconomic shocks and seed schedules;
+- **TransitionLogStore Hook:** `SocialSandboxAECEnv.__init__` accepts optional `store: TransitionLogStore | None = None` and automatically appends every executed transition with DuckDB hash-chain linkage; surfaces `env.last_transition` and `env.store`;
+- **Expanded 16-Action Discrete Space:** Expanded `_act_space` to `Discrete(16)` with full typed translation and action masks for trade, institution joining, contributions, norm proposals, norm adoptions, and reproduction alongside physical foraging/crafting;
+- **Endogenous Process Growth Attribution:** Added `_expand_endogenous_ecology` in `engine.py`, passively expanding carrying capacity by 1 for undisturbed flourishing ecosystems (`shock_factor == 1.0`, full resource capacity, `next_tick % 50 == 0`), activating the previously dormant `GrowthAttribution.ENDOGENOUS_PROCESS` emitter in `growth.py`.
+
 Open Phase 1.1 hardening backlog (empirical metrics remain untested / unmeasured):
-- **PettingZoo step hooks:** `SocialSandboxAECEnv.step` needs optional `exogenous_input`, `seed`, and `TransitionLogStore` hooks;
-- **Endogenous Process Growth Attribution:** Wire or clarify active world-tick emitter for `GrowthAttribution.ENDOGENOUS_PROCESS`;
 - **Untested validation & downstream scope:** all 18 failure branches in `invariants.py`, Hypothesis property-based tests, empirical long-horizon Phase 1.1 runs, `SocialSandboxAECEnv` multi-agent learning integrations, LLM population scheduling (`evolzen.agents`, Phase 1.2), full market/manual provenance flows (`evolzen.economy`, Phase 1.3), sandboxed capability synthesis (`evolzen.exploration`, `evolzen.containment`, Phases 1.4/2.2), and target-rig hardware pilot measurements on DGX/AGX Spark.
 See [agent engineering](../agents/engineering.md) for the broader boundaries.

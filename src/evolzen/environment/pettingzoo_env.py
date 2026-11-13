@@ -24,14 +24,15 @@ from pettingzoo.utils import AgentSelector  # type: ignore[import-untyped]
 
 from evolzen.environment.adapter import observe_features
 from evolzen.environment.engine import SocialSandboxEngine
-from evolzen.schemas.transition import Action, State, Transition
+from evolzen.schemas.transition import Action, ExogenousInput, State, Transition
 from evolzen.schemas.world import ActionType, CapabilityPackage, WorldAgentState, WorldState
+from evolzen.storage.transition_log import TransitionLogStore
 
 ObsArray = NDArray[np.float32]
 DiscreteAction = int | np.integer[Any]
 SandboxActionInput = DiscreteAction | Action | None
 
-_NUM_DISCRETE_ACTIONS = 10
+_NUM_DISCRETE_ACTIONS = 16
 
 
 def _first_verified_craft_package(world: WorldState) -> CapabilityPackage | None:
@@ -90,6 +91,51 @@ def _compute_action_mask(world: WorldState, agent: WorldAgentState) -> NDArray[n
     ):
         mask[9] = 1
 
+    # 10: trade: sell 1 food to co-located living peer for 2 currency
+    peers = [
+        p
+        for p, a in world.agents.items()
+        if p != agent.agent_id and a.alive and a.location_id == agent.location_id
+    ]
+    if (
+        peers
+        and agent.inventory.get("food", 0) >= 1
+        and any(world.agents[p].currency >= 2 for p in peers)
+    ):
+        mask[10] = 1
+
+    # 11: join institution: local institution where agent is not yet a member
+    unjoined_local = [
+        iid
+        for iid, inst in world.institutions.items()
+        if inst.location_id == agent.location_id and agent.agent_id not in inst.member_ids
+    ]
+    if unjoined_local:
+        mask[11] = 1
+
+    # 12: contribute institution: has joined an institution and has currency
+    if agent.institution_ids and agent.currency >= 1:
+        mask[12] = 1
+
+    # 13: propose norm: agent has status >= 0.1 and norms collection below cap
+    if agent.status >= 0.1 and len(world.norms) < 64:
+        mask[13] = 1
+
+    # 14: adopt norm: unadopted norm exists in world
+    unadopted_norms = [nid for nid in world.norms if nid not in agent.adopted_norms]
+    if unadopted_norms:
+        mask[14] = 1
+
+    # 15: spawn offspring: adult with sufficient energy and currency, below max_agents
+    living_count = sum(1 for a in world.agents.values() if a.alive)
+    if (
+        age >= world.adulthood_age
+        and agent.energy >= 0.5
+        and agent.currency >= 10
+        and living_count < world.max_agents
+    ):
+        mask[15] = 1
+
     return mask
 
 
@@ -109,6 +155,7 @@ class SocialSandboxAECEnv(AECEnv[str, ObsArray, SandboxActionInput]):  # type: i
         render_mode: str | None = None,
         run_id: str = "pettingzoo-run",
         branch_id: str = "main",
+        store: TransitionLogStore | None = None,
     ) -> None:
         super().__init__()
         if render_mode is not None and render_mode not in self.metadata["render_modes"]:
@@ -117,6 +164,8 @@ class SocialSandboxAECEnv(AECEnv[str, ObsArray, SandboxActionInput]):  # type: i
         self._default_seed = seed
         self._run_id = run_id
         self._branch_id = branch_id
+        self._store = store
+        self._last_transition: Transition | None = None
         self.render_mode = render_mode
 
         self._obs_space: gymnasium.spaces.Box = gymnasium.spaces.Box(
@@ -149,6 +198,16 @@ class SocialSandboxAECEnv(AECEnv[str, ObsArray, SandboxActionInput]):  # type: i
     def current_state(self) -> State:
         """Return the authoritative immutable `State` snapshot."""
         return self._state
+
+    @property
+    def store(self) -> TransitionLogStore | None:
+        """Return the optional TransitionLogStore attached for persistence."""
+        return self._store
+
+    @property
+    def last_transition(self) -> Transition | None:
+        """Return the most recent Transition executed by step()."""
+        return self._last_transition
 
     def _ensure_spaces_for(self, agent: str) -> None:
         if agent not in self.observation_spaces:
@@ -291,10 +350,69 @@ class SocialSandboxAECEnv(AECEnv[str, ObsArray, SandboxActionInput]):  # type: i
                 action_type=ActionType.FOUND_INSTITUTION,
                 params={"name": "guild", "seed_currency": 5},
             )
+        if action_index == 9:
+            return Action(
+                agent_id=agent,
+                action_type=ActionType.IMPROVE_LOCATION,
+                params={"target_resource": "food"},
+            )
+        if action_index == 10:
+            peers = [
+                p
+                for p, a in world.agents.items()
+                if p != agent and a.alive and a.location_id == actor.location_id
+            ]
+            cp = peers[0] if peers else ""
+            return Action(
+                agent_id=agent,
+                action_type=ActionType.TRADE,
+                params={
+                    "counterparty_id": cp,
+                    "offer_resource": "food",
+                    "offer_qty": 1,
+                    "price": 2,
+                },
+            )
+        if action_index == 11:
+            unjoined = [
+                iid
+                for iid, inst in world.institutions.items()
+                if inst.location_id == actor.location_id and agent not in inst.member_ids
+            ]
+            target_inst = unjoined[0] if unjoined else ""
+            return Action(
+                agent_id=agent,
+                action_type=ActionType.JOIN_INSTITUTION,
+                params={"institution_id": target_inst},
+            )
+        if action_index == 12:
+            target_inst = actor.institution_ids[0] if actor.institution_ids else ""
+            return Action(
+                agent_id=agent,
+                action_type=ActionType.CONTRIBUTE_INSTITUTION,
+                params={"institution_id": target_inst, "currency": 1},
+            )
+        if action_index == 13:
+            return Action(
+                agent_id=agent,
+                action_type=ActionType.PROPOSE_NORM,
+                params={
+                    "title": f"Conserve {actor.location_id}",
+                    "rule_kind": "conservation",
+                },
+            )
+        if action_index == 14:
+            unadopted = [nid for nid in world.norms if nid not in actor.adopted_norms]
+            target_norm = unadopted[0] if unadopted else ""
+            return Action(
+                agent_id=agent,
+                action_type=ActionType.ADOPT_NORM,
+                params={"norm_id": target_norm},
+            )
         return Action(
             agent_id=agent,
-            action_type=ActionType.IMPROVE_LOCATION,
-            params={"target_resource": "food"},
+            action_type=ActionType.SPAWN_OFFSPRING,
+            params={"seed_currency": 5},
         )
 
     def _resolve_action(self, agent: str, action: SandboxActionInput) -> Action:
@@ -325,7 +443,13 @@ class SocialSandboxAECEnv(AECEnv[str, ObsArray, SandboxActionInput]):  # type: i
             self.agent_selection = self._agent_selector.next()
         self._deads_step_first()
 
-    def step(self, action: SandboxActionInput) -> None:
+    def step(
+        self,
+        action: SandboxActionInput,
+        *,
+        exogenous_input: ExogenousInput | None = None,
+        seed: int | None = None,
+    ) -> None:
         """Advance the sandbox by one turn for `self.agent_selection`."""
         agent = self.agent_selection
         if self.terminations[agent] or self.truncations[agent]:
@@ -337,7 +461,16 @@ class SocialSandboxAECEnv(AECEnv[str, ObsArray, SandboxActionInput]):  # type: i
         self._clear_rewards()
 
         resolved = self._resolve_action(agent, action)
-        transition: Transition = self._engine.step(self._state, resolved)
+        transition: Transition = self._engine.step(
+            self._state,
+            resolved,
+            exogenous_input=exogenous_input,
+            seed=seed,
+        )
+        self._last_transition = transition
+        if self._store is not None:
+            self._store.append(transition, run_id=self._run_id, branch_id=self._branch_id)
+
         self._state = transition.next_state
         world = WorldState.from_state(self._state)
 
