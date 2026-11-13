@@ -75,6 +75,61 @@ def compute_gini_coefficient(wealths: Sequence[float | int]) -> float:
     return round(max(0.0, min(1.0, gini)), 4)
 
 
+def compute_wealth_gini(balances: dict[str, int]) -> float:
+    """Compute Gini inequality coefficient across agent balances.
+
+    Citation:
+        Zheng et al. (Science Advances, 2022, DOI: 10.1126/sciadv.abk2607) — The AI Economist.
+
+    Args:
+        balances: Mapping of agent identifier to non-negative integer currency.
+
+    Returns:
+        Float in [0.0, 1.0], where 0.0 is perfect equality.
+    """
+    return compute_gini_coefficient(list(balances.values()))
+
+
+def verify_currency_conservation(
+    initial_currency: int,
+    agent_balances: dict[str, int],
+    institution_reserves: dict[str, int],
+) -> bool:
+    """Verify that total currency across agents and institutions exactly reconciles with initial stock.
+
+    Authority:
+        `docs/phases/1.3-economy.md` (conservation invariants).
+
+    Args:
+        initial_currency: Baseline total currency in the world.
+        agent_balances: Current agent balances.
+        institution_reserves: Current institution currency reserves.
+
+    Returns:
+        True if total currency is conserved without leakage or unauthorized inflation.
+    """
+    total = sum(agent_balances.values()) + sum(institution_reserves.values())
+    return bool(total == initial_currency)
+
+
+def measure_shock_recovery(pre_shock_volume: float, post_shock_volume: float) -> float:
+    """Measure economic recovery ratio following an exogenous shock.
+
+    Calculates post-shock activity/trade volume as a proportion of pre-shock baseline volume.
+
+    Args:
+        pre_shock_volume: Baseline activity or trade volume before shock.
+        post_shock_volume: Observed activity or trade volume following shock recovery.
+
+    Returns:
+        Float recovery ratio in [0.0, inf) (e.g. 1.0 indicates 100% recovery to pre-shock baseline).
+    """
+    if pre_shock_volume <= 0.0:
+        return 1.0 if post_shock_volume >= pre_shock_volume else 0.0
+    ratio = post_shock_volume / pre_shock_volume
+    return round(max(0.0, ratio), 4)
+
+
 def compute_specialization_index(roles_or_skills: Sequence[str]) -> tuple[float, float]:
     """Calculate the Herfindahl-Hirschman Index (HHI) and Shannon entropy of agent roles/skills.
 

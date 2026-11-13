@@ -35,8 +35,11 @@ from evolzen.schemas.manual import (
     Manual,
     ManualEntry,
     ManualEntryStatus,
-    ProvenanceRecord,
     ProvenanceSource,
+)
+from evolzen.schemas.provenance import (
+    ProvenanceCategory,
+    ProvenanceRecord,
 )
 from evolzen.schemas.transition import Action, Emission, ExogenousInput, State, Transition
 from evolzen.schemas.world import ActionType, WorldAgentState, WorldState
@@ -68,10 +71,11 @@ __all__ = [
     "ActionType",
     "WorldAgentState",
     "WorldState",
-    # manual schemas (Phase 1.3)
+    # manual & provenance schemas (Phase 1.3)
     "Manual",
     "ManualEntry",
     "ManualEntryStatus",
+    "ProvenanceCategory",
     "ProvenanceRecord",
     "ProvenanceSource",
     # library schemas (Phase 1.5)

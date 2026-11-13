@@ -2,7 +2,7 @@
 
 from evolzen.agents.development.brain import advance, decide
 from evolzen.agents.development.evolution import DevelopmentArchive, DevelopmentElite
-from evolzen.agents.development.learning import observe, teach
+from evolzen.agents.development.learning import observe, teach, teach_manual
 from evolzen.agents.development.lifecycle import born, stage_at
 from evolzen.agents.development.motivation import drive_step, inherit_genome, sample_genome
 
@@ -16,6 +16,7 @@ __all__ = [
     "sample_genome",
     "stage_at",
     "teach",
+    "teach_manual",
     "DevelopmentArchive",
     "DevelopmentElite",
 ]

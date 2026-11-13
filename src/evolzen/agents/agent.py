@@ -19,7 +19,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from evolzen.agents.development import advance, born, decide, observe, stage_at, teach
+from evolzen.agents.development import (
+    advance,
+    born,
+    decide,
+    observe,
+    stage_at,
+    teach,
+    teach_manual,
+)
 from evolzen.schemas.agent_profile import AgentProfile
 from evolzen.schemas.development import (
     AgentDevelopmentState,
@@ -30,6 +38,7 @@ from evolzen.schemas.development import (
     Outcome,
     Signal,
 )
+from evolzen.schemas.manual import ManualEntry
 from evolzen.schemas.transition import Action
 
 if TYPE_CHECKING:
@@ -136,6 +145,28 @@ class Agent:
         context_key: str,
         skill_key: str,
         tick: int,
+        manual_entry: ManualEntry | None = None,
     ) -> None:
         """Transmit parental advice to `child` without mutating personal evidence or world state."""
-        child.development = teach(self.development, child.development, context_key, skill_key, tick)
+        child.development = teach(
+            self.development,
+            child.development,
+            context_key,
+            skill_key,
+            tick,
+            manual_entry=manual_entry,
+        )
+
+    def teach_manual(
+        self,
+        child: Agent,
+        manual_entry: ManualEntry,
+        tick: int,
+    ) -> None:
+        """Transmit an active manual entry hypothesis to `child` without mutating personal evidence."""
+        child.development = teach_manual(
+            self.development,
+            child.development,
+            manual_entry,
+            tick,
+        )

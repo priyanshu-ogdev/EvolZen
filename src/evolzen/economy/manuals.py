@@ -21,8 +21,9 @@ from pydantic import BaseModel, Field
 from evolzen.schemas.manual import (
     Manual,
     ManualEntry,
+    ManualEntryStatus,
+    ProvenanceCategory,
     ProvenanceRecord,
-    ProvenanceSource,
 )
 
 
@@ -82,15 +83,32 @@ class ManualStore:
         """Return all stored manuals in key order."""
         return [self._manuals[k] for k in sorted(self._manuals)]
 
-    def check_real_data_floor(self, real_fraction: float) -> None:
+    def check_real_data_floor(self, real_fraction: float | None = None) -> None:
         """Raise if a generation's corpus doesn't meet the real-data floor.
 
         Args:
             real_fraction: Proportion of training data from non-synthetic sources.
+                If None, computes actual real fraction across all stored manuals
+                using `manual.real_data_fraction()`.
 
         Raises:
             RealDataFloorViolation: When real_fraction < self._real_data_floor.
         """
+        if real_fraction is None:
+            if not self._manuals:
+                actual_fraction = 1.0
+            else:
+                total_entries = sum(len(m.entries) for m in self._manuals.values())
+                if total_entries == 0:
+                    actual_fraction = 1.0
+                else:
+                    real_entries = sum(
+                        m.real_data_fraction() * len(m.entries)
+                        for m in self._manuals.values()
+                    )
+                    actual_fraction = float(real_entries / total_entries)
+            real_fraction = actual_fraction
+
         if real_fraction < self._real_data_floor:
             raise RealDataFloorViolation(
                 f"real_fraction={real_fraction:.3f} is below the configured floor "
@@ -100,7 +118,7 @@ class ManualStore:
     def calculate_real_fraction(self, entries: Sequence[ManualEntry] | None = None) -> float:
         """Calculate the proportion of entries sourced from non-model-generated material.
 
-        Non-model sources include HUMAN_EXTERNAL, HUMAN_DEMONSTRATION, and SIMULATOR_TRACE.
+        Non-model sources include HUMAN_AUTHORED, HUMAN_DEMONSTRATION, and SIMULATOR_TRACE.
 
         Args:
             entries: Sequence of entries to evaluate. If None, evaluates all stored entries.
@@ -118,15 +136,7 @@ class ManualStore:
         if not targets:
             return 1.0
 
-        real_count = 0
-        for entry in targets:
-            if entry.provenance is not None:
-                if entry.provenance.source_type != ProvenanceSource.MODEL_GENERATED:
-                    real_count += 1
-            else:
-                # Entries without explicit provenance are flagged as unverified/synthetic
-                pass
-
+        real_count = sum(1 for entry in targets if entry.is_ground_truth)
         return float(real_count / len(targets))
 
     def verify_generation_corpus(self, entries: Sequence[ManualEntry]) -> float:
@@ -145,7 +155,44 @@ class ManualStore:
         self.check_real_data_floor(fraction)
         return fraction
 
-    def falsify(
+    def add_entry(
+        self,
+        situation_key: str,
+        entry: ManualEntry | None = None,
+        *,
+        text: str = "",
+        written_by: str = "",
+        status: ManualEntryStatus = ManualEntryStatus.HYPOTHESIS,
+        revised_from: str | None = None,
+        evidence_ids: Sequence[str] = (),
+        provenance: ProvenanceRecord | None = None,
+        category: ProvenanceCategory | None = None,
+    ) -> ManualEntry:
+        """Add a manual entry to the manual for `situation_key`.
+
+        Accepts either an instantiated :class:`ManualEntry` or keyword attributes.
+        """
+        manual = self.get_or_create(situation_key)
+        if entry is not None:
+            manual.add_entry(entry)
+            return entry
+
+        cat = category if category is not None else (
+            provenance.category if provenance is not None else ProvenanceCategory.MODEL_GENERATED
+        )
+        new_entry = ManualEntry(
+            text=text,
+            status=status,
+            written_by=written_by,
+            revised_from=revised_from,
+            evidence_ids=tuple(evidence_ids),
+            provenance=provenance,
+            category=cat,
+        )
+        manual.add_entry(new_entry)
+        return new_entry
+
+    def falsify_entry(
         self,
         situation_key: str,
         index: int,
@@ -155,7 +202,9 @@ class ManualStore:
         manual = self.get_or_create(situation_key)
         return manual.falsify_entry(index, evidence_id=evidence_id)
 
-    def revise(
+    falsify = falsify_entry
+
+    def revise_entry(
         self,
         situation_key: str,
         index: int,
@@ -163,6 +212,7 @@ class ManualStore:
         written_by: str,
         evidence_id: str | None = None,
         provenance: ProvenanceRecord | None = None,
+        category: ProvenanceCategory | None = None,
     ) -> ManualEntry:
         """Falsify a prior belief and introduce an updated revised belief linking prior text."""
         manual = self.get_or_create(situation_key)
@@ -172,7 +222,27 @@ class ManualStore:
             written_by=written_by,
             evidence_id=evidence_id,
             provenance=provenance,
+            category=category,
         )
+
+    revise = revise_entry
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize ManualStore to a dictionary representation."""
+        return {
+            "real_data_floor": self._real_data_floor,
+            "manuals": {k: m.model_dump(mode="json") for k, m in self._manuals.items()},
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ManualStore:
+        """Deserialize a ManualStore from dictionary data."""
+        floor = float(data.get("real_data_floor", 0.0))
+        store = cls(real_data_floor=floor)
+        manuals_data = data.get("manuals", {})
+        for k, m_dict in manuals_data.items():
+            store._manuals[k] = Manual.model_validate(m_dict)
+        return store
 
     def confirm(
         self,

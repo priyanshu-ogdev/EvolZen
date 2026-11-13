@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, overload
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -164,38 +164,78 @@ class Market:
 
     balances: dict[str, int] = field(default_factory=dict)
     base_prices: dict[str, int] = field(default_factory=lambda: {"food": 2, "wood": 2, "stone": 3})
+    prices: dict[str, float] = field(default_factory=dict)
     order_books: dict[str, OrderBook] = field(default_factory=dict)
 
-    def balance_of(self, entity_id: str) -> int:
-        """Return non-negative currency balance for `entity_id`."""
-        return self.balances.get(entity_id, 0)
+    def balance_of(self, agent_id: str) -> int:
+        """Return non-negative currency balance for `agent_id`."""
+        return self.balances.get(agent_id, 0)
 
-    def set_balance(self, entity_id: str, amount: int) -> None:
-        """Set integer currency balance for `entity_id`."""
-        if amount < 0:
-            raise ValueError(f"Balance for {entity_id} cannot be negative: {amount}")
-        self.balances[entity_id] = amount
+    def set_balance(self, agent_id: str, amount: int | float) -> None:
+        """Set integer currency balance for `agent_id`."""
+        int_amount = int(amount)
+        if int_amount < 0:
+            raise ValueError(f"Balance for {agent_id} cannot be negative: {amount}")
+        self.balances[agent_id] = int_amount
 
-    def transfer(self, from_entity: str, to_entity: str, amount: int) -> None:
-        """Move integer `amount` from one entity's balance to another's.
+    def sync_from_world(self, world: WorldState) -> None:
+        """Sync market balances from world agent currency and institution reserves.
 
         Args:
-            from_entity: Source agent or institution identifier.
-            to_entity: Destination agent or institution identifier.
-            amount: Non-negative integer currency to transfer.
+            world: Authoritative WorldState containing agents and institutions.
+        """
+        for agent_id, agent in world.agents.items():
+            self.balances[agent_id] = agent.currency
+        for inst_id, inst in world.institutions.items():
+            self.balances[inst_id] = inst.currency_reserve
+
+    def transfer(self, from_agent: str, to_agent: str, amount: int | float) -> None:
+        """Move integer `amount` from one entity's balance to another's.
+
+        Supports int or int-equivalent float values for backward compatibility.
+
+        Args:
+            from_agent: Source agent or institution identifier.
+            to_agent: Destination agent or institution identifier.
+            amount: Non-negative integer or int-equivalent float currency to transfer.
 
         Raises:
-            ValueError: If amount is negative or insufficient balance.
+            ValueError: If amount is negative, not integer-equivalent, or balance is insufficient.
         """
-        if amount < 0:
-            raise ValueError(f"Transfer amount must be non-negative: {amount}")
-        if self.balance_of(from_entity) < amount:
+        if isinstance(amount, float):
+            if not amount.is_integer() and amount != int(amount):
+                raise ValueError(f"Transfer amount float must be integer-equivalent: {amount}")
+            int_amount = int(amount)
+        elif isinstance(amount, int):
+            int_amount = amount
+        else:
+            raise TypeError(f"Transfer amount must be int or float: {type(amount)}")
+
+        if int_amount < 0:
+            raise ValueError(f"Transfer amount must be non-negative: {int_amount}")
+        if self.balance_of(from_agent) < int_amount:
             raise ValueError(
-                f"{from_entity} cannot transfer {amount}: insufficient balance "
-                f"({self.balance_of(from_entity)})"
+                f"{from_agent} cannot transfer {int_amount}: insufficient balance "
+                f"({self.balance_of(from_agent)})"
             )
-        self.balances[from_entity] = self.balance_of(from_entity) - amount
-        self.balances[to_entity] = self.balance_of(to_entity) + amount
+        self.balances[from_agent] = self.balance_of(from_agent) - int_amount
+        self.balances[to_agent] = self.balance_of(to_agent) + int_amount
+
+    def record_transaction(self, resource: str, price: float, alpha: float = 0.2) -> None:
+        """Update exponential moving average (EMA) transaction price for `resource`.
+
+        Args:
+            resource: Resource identifier (e.g. 'food', 'wood', 'stone').
+            price: Transaction unit price.
+            alpha: Smoothing factor in (0.0, 1.0]. Defaults to 0.2.
+        """
+        if not 0.0 < alpha <= 1.0:
+            raise ValueError(f"alpha must be in (0, 1], got {alpha}")
+        p = float(price)
+        if resource not in self.prices:
+            self.prices[resource] = p
+        else:
+            self.prices[resource] = (1.0 - alpha) * self.prices[resource] + alpha * p
 
     def quote_price(
         self,
@@ -258,19 +298,85 @@ class Market:
             ob.add_ask(order)
         return ob.clear_orders(fee_rate=fee_rate, current_tick=current_tick)
 
-    def create_trade_action(self, settlement: TradeSettlement) -> Action:
+    @overload
+    def create_trade_action(
+        self,
+        seller_id: TradeSettlement,
+        buyer_id: None = None,
+        offer_resource: None = None,
+        offer_qty: None = None,
+        price: None = None,
+        settlement: None = None,
+    ) -> Action: ...
+
+    @overload
+    def create_trade_action(
+        self,
+        seller_id: str,
+        buyer_id: str,
+        offer_resource: str,
+        offer_qty: int,
+        price: int,
+        settlement: None = None,
+    ) -> Action: ...
+
+    @overload
+    def create_trade_action(
+        self,
+        seller_id: None = None,
+        buyer_id: None = None,
+        offer_resource: None = None,
+        offer_qty: None = None,
+        price: None = None,
+        *,
+        settlement: TradeSettlement,
+    ) -> Action: ...
+
+    def create_trade_action(
+        self,
+        seller_id: str | TradeSettlement | None = None,
+        buyer_id: str | None = None,
+        offer_resource: str | None = None,
+        offer_qty: int | None = None,
+        price: int | None = None,
+        settlement: TradeSettlement | None = None,
+    ) -> Action:
         """Construct a typed :class:`Action` conforming to Phase 1.1 `ActionType.TRADE`.
 
+        Accepts either a :class:`TradeSettlement` (positionally or by keyword) or
+        explicit trade parameters (`seller_id`, `buyer_id`, `offer_resource`, `offer_qty`, `price`).
         Enables seamless dispatch through `SocialSandboxEngine.step()`.
         """
+        target_settlement = (
+            settlement
+            if settlement is not None
+            else (seller_id if isinstance(seller_id, TradeSettlement) else None)
+        )
+        if target_settlement is not None:
+            return Action(
+                agent_id=target_settlement.seller_id,
+                action_type=ActionType.TRADE,
+                params={
+                    "counterparty_id": target_settlement.buyer_id,
+                    "offer_resource": target_settlement.resource,
+                    "offer_qty": target_settlement.quantity,
+                    "price": target_settlement.total_price,
+                },
+            )
+
+        if seller_id is None or buyer_id is None or offer_resource is None or offer_qty is None or price is None:
+            raise ValueError(
+                "When not passing a TradeSettlement, seller_id, buyer_id, offer_resource, "
+                "offer_qty, and price must all be provided."
+            )
         return Action(
-            agent_id=settlement.seller_id,
+            agent_id=str(seller_id),
             action_type=ActionType.TRADE,
             params={
-                "counterparty_id": settlement.buyer_id,
-                "offer_resource": settlement.resource,
-                "offer_qty": settlement.quantity,
-                "price": settlement.total_price,
+                "counterparty_id": buyer_id,
+                "offer_resource": offer_resource,
+                "offer_qty": int(offer_qty),
+                "price": int(price),
             },
         )
 

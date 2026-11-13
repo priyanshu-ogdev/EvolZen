@@ -12,6 +12,8 @@ from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from evolzen.schemas.manual import ManualEntry
+
 Unit = Annotated[float, Field(ge=0.0, le=1.0, allow_inf_nan=False)]
 SignedUnit = Annotated[float, Field(ge=-1.0, le=1.0, allow_inf_nan=False)]
 Signal = Annotated[tuple[SignedUnit, ...], Field(min_length=8, max_length=8)]
@@ -162,6 +164,7 @@ class Lesson(Record):
     learner_id: Identifier
     taught_at: Tick
     estimate: SkillEstimate
+    manual_entry: ManualEntry | None = None
 
 
 class EvolutionAssessment(Record):

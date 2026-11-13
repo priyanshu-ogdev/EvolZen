@@ -177,3 +177,221 @@ def test_market_settle_in_world_preserves_conservation() -> None:
     # Invariants must strictly hold
     report = check_invariants(w_start, w_settled)
     assert report.passed is True
+
+
+def test_market_sync_from_world() -> None:
+    """Verify sync_from_world synchronizes agent currency and institution reserves into balances."""
+    engine = SocialSandboxEngine(default_seed=42, num_agents=2, num_locations=1)
+    s0 = engine.reset(seed=42)
+    w0 = WorldState.from_state(s0)
+
+    agents = dict(w0.agents)
+    agents["agent-0"] = agents["agent-0"].model_copy(update={"currency": 45})
+    agents["agent-1"] = agents["agent-1"].model_copy(update={"currency": 15})
+
+    guild = InstitutionRecord(
+        institution_id="guild-central",
+        name="Central Guild",
+        founder_id="agent-0",
+        location_id="plaza",
+        member_ids=("agent-0",),
+        treasury={},
+        currency_reserve=30,
+        contribution_rate=0.1,
+        created_tick=0,
+    )
+    w_updated = w0.model_copy(update={"agents": agents, "institutions": {"guild-central": guild}})
+
+    m = Market()
+    m.sync_from_world(w_updated)
+
+    assert m.balance_of("agent-0") == 45
+    assert m.balance_of("agent-1") == 15
+    assert m.balance_of("guild-central") == 30
+    assert m.balance_of("unknown-entity") == 0
+
+
+def test_market_set_balance() -> None:
+    """Verify set_balance updates balances and rejects negative values."""
+    m = Market()
+    m.set_balance("agent-A", 100)
+    assert m.balance_of("agent-A") == 100
+
+    # Float int-equivalent
+    m.set_balance("agent-B", 50.0)
+    assert m.balance_of("agent-B") == 50
+
+    with pytest.raises(ValueError, match="cannot be negative"):
+        m.set_balance("agent-A", -10)
+
+
+def test_market_transfer_float_backward_compatibility() -> None:
+    """Verify transfer accepts int-equivalent floats and rejects fractional floats."""
+    m = Market(balances={"agent-1": 20, "agent-2": 5})
+
+    # Float int-equivalent
+    m.transfer("agent-1", "agent-2", 10.0)
+    assert m.balance_of("agent-1") == 10
+    assert m.balance_of("agent-2") == 15
+
+    # Non-integer float
+    with pytest.raises(ValueError, match="integer-equivalent"):
+        m.transfer("agent-1", "agent-2", 4.5)
+
+
+def test_create_trade_action_explicit_params() -> None:
+    """Verify create_trade_action constructs typed Action from discrete parameters."""
+    m = Market()
+    act = m.create_trade_action(
+        seller_id="seller-1",
+        buyer_id="buyer-2",
+        offer_resource="food",
+        offer_qty=5,
+        price=15,
+    )
+    assert act.action_type == ActionType.TRADE
+    assert act.agent_id == "seller-1"
+    assert act.params["counterparty_id"] == "buyer-2"
+    assert act.params["offer_resource"] == "food"
+    assert act.params["offer_qty"] == 5
+    assert act.params["price"] == 15
+
+
+def test_record_transaction_ema_prices() -> None:
+    """Verify record_transaction updates exponential moving average prices."""
+    m = Market()
+    assert "food" not in m.prices
+
+    # First transaction initializes price
+    m.record_transaction("food", price=10.0, alpha=0.2)
+    assert m.prices["food"] == 10.0
+
+    # Second transaction updates with EMA: 0.8 * 10.0 + 0.2 * 20.0 = 12.0
+    m.record_transaction("food", price=20.0, alpha=0.2)
+    assert pytest.approx(m.prices["food"], rel=1e-5) == 12.0
+
+    # Custom alpha = 0.5: 0.5 * 12.0 + 0.5 * 16.0 = 14.0
+    m.record_transaction("food", price=16.0, alpha=0.5)
+    assert pytest.approx(m.prices["food"], rel=1e-5) == 14.0
+
+    # Invalid alpha
+    with pytest.raises(ValueError, match="alpha must be in"):
+        m.record_transaction("food", price=10.0, alpha=0.0)
+    with pytest.raises(ValueError, match="alpha must be in"):
+        m.record_transaction("food", price=10.0, alpha=1.5)
+
+
+def test_order_book_side_validation_and_ask_cancel() -> None:
+    """Verify OrderBook validates order side and cancels asks."""
+    ob = OrderBook(resource="food", location_id="plaza")
+
+    ask = Order(agent_id="s1", side=OrderSide.ASK, resource="food", quantity=2, limit_price=5)
+    bid = Order(agent_id="b1", side=OrderSide.BID, resource="food", quantity=2, limit_price=5)
+
+    with pytest.raises(ValueError, match="Cannot add ask order to bids"):
+        ob.add_bid(ask)
+
+    with pytest.raises(ValueError, match="Cannot add bid order to asks"):
+        ob.add_ask(bid)
+
+    ob.add_ask(ask)
+    assert len(ob.asks) == 1
+    assert ob.cancel_order(ask.order_id) is True
+    assert len(ob.asks) == 0
+
+
+def test_market_transfer_type_error() -> None:
+    """Verify transfer raises TypeError on invalid types."""
+    m = Market(balances={"a": 10})
+    with pytest.raises(TypeError, match="Transfer amount must be int or float"):
+        m.transfer("a", "b", "not-a-number")  # type: ignore[arg-type]
+
+
+def test_create_trade_action_missing_params() -> None:
+    """Verify create_trade_action raises ValueError when params are incomplete."""
+    m = Market()
+    with pytest.raises(ValueError, match="When not passing a TradeSettlement"):
+        m.create_trade_action(seller_id="seller-1")  # type: ignore[call-overload]
+
+
+def test_settle_in_world_error_branches() -> None:
+    """Verify settle_in_world raises on invalid agents, insufficient currency, or insufficient inventory."""
+    engine = SocialSandboxEngine(default_seed=10, num_agents=2, num_locations=1)
+    s0 = engine.reset(seed=10)
+    w0 = WorldState.from_state(s0)
+
+    m = Market()
+
+    # Invalid agent
+    bad_settlement = TradeSettlement(
+        buyer_id="unknown-buyer",
+        seller_id="agent-0",
+        resource="food",
+        quantity=1,
+        price_per_unit=5,
+        total_price=5,
+        fee_withheld=0,
+        location_id="loc-0",
+    )
+    with pytest.raises(KeyError, match="Settlement references invalid agents"):
+        m.settle_in_world(bad_settlement, w0)
+
+    # Insufficient buyer currency
+    broke_buyer_settlement = TradeSettlement(
+        buyer_id="agent-1",
+        seller_id="agent-0",
+        resource="food",
+        quantity=1,
+        price_per_unit=1000,
+        total_price=1000,
+        fee_withheld=0,
+        location_id="loc-0",
+    )
+    with pytest.raises(ValueError, match="insufficient currency"):
+        m.settle_in_world(broke_buyer_settlement, w0)
+
+    # Insufficient seller inventory
+    empty_seller_settlement = TradeSettlement(
+        buyer_id="agent-1",
+        seller_id="agent-0",
+        resource="exotic_gem",
+        quantity=10,
+        price_per_unit=1,
+        total_price=10,
+        fee_withheld=0,
+        location_id="loc-0",
+    )
+    with pytest.raises(ValueError, match="insufficient exotic_gem"):
+        m.settle_in_world(empty_seller_settlement, w0)
+
+
+def test_order_book_spread_open_no_clearing() -> None:
+    """Verify OrderBook halts clearing when the highest bid is strictly below lowest ask."""
+    ob = OrderBook(resource="food", location_id="plaza")
+    ob.add_bid(Order(agent_id="b1", side=OrderSide.BID, resource="food", quantity=5, limit_price=10))
+    ob.add_ask(Order(agent_id="s1", side=OrderSide.ASK, resource="food", quantity=5, limit_price=15))
+
+    # Spread is open: bid (10) < ask (15) -> 0 settlements
+    settlements = ob.clear_orders(fee_rate=0.0, current_tick=1)
+    assert len(settlements) == 0
+    assert len(ob.bids) == 1
+    assert len(ob.asks) == 1
+
+
+def test_order_book_partial_fills() -> None:
+    """Verify OrderBook partially fills orders when quantities do not match exactly."""
+    ob = OrderBook(resource="wood", location_id="forest")
+    # Bid wants 10 units @ 20, Ask offers 4 units @ 15
+    ob.add_bid(Order(agent_id="buyer", side=OrderSide.BID, resource="wood", quantity=10, limit_price=20))
+    ob.add_ask(Order(agent_id="seller", side=OrderSide.ASK, resource="wood", quantity=4, limit_price=15))
+
+    settlements = ob.clear_orders(fee_rate=0.0, current_tick=5)
+    assert len(settlements) == 1
+    assert settlements[0].quantity == 4
+    # Ask should be fully consumed, Bid should have 6 remaining
+    assert len(ob.asks) == 0
+    assert len(ob.bids) == 1
+    assert ob.bids[0].quantity == 6
+    assert ob.bids[0].agent_id == "buyer"
+
+

@@ -23,7 +23,10 @@ from evolzen.economy.metrics import (
     compute_gini_coefficient,
     compute_shock_recovery,
     compute_specialization_index,
+    compute_wealth_gini,
     evaluate_economic_health,
+    measure_shock_recovery,
+    verify_currency_conservation,
 )
 
 __all__ = [
@@ -40,7 +43,10 @@ __all__ = [
     # Economic Metrics
     "EconomicHealthReport",
     "compute_gini_coefficient",
-    "compute_specialization_index",
     "compute_shock_recovery",
+    "compute_specialization_index",
+    "compute_wealth_gini",
     "evaluate_economic_health",
+    "measure_shock_recovery",
+    "verify_currency_conservation",
 ]

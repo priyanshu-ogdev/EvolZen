@@ -9,12 +9,14 @@ from __future__ import annotations
 
 from evolzen.agents.development.lifecycle import stage_at
 from evolzen.schemas.development import (
+    ZERO,
     BrainSnapshot,
     Lesson,
     LifeStage,
     Outcome,
     SkillEstimate,
 )
+from evolzen.schemas.manual import ManualEntry, ManualEntryStatus
 
 
 def updated(snapshot: BrainSnapshot, **changes: object) -> BrainSnapshot:
@@ -70,6 +72,7 @@ def teach(
     context_key: str,
     skill_key: str,
     tick: int,
+    manual_entry: ManualEntry | None = None,
 ) -> BrainSnapshot:
     """Transfer one bounded advice item from a living mature parent to its child.
 
@@ -84,19 +87,76 @@ def teach(
         raise ValueError("Teacher must be alive and mature")
     if stage_at(child, tick) == LifeStage.DEAD:
         raise ValueError("Learner must be alive")
+    if manual_entry is not None and manual_entry.status == ManualEntryStatus.FALSIFIED:
+        raise ValueError("Cannot teach a falsified manual entry")
     estimate = next((item for item in parent.knowledge
                      if item.context_key == context_key and item.skill_key == skill_key), None)
     if estimate is None:
         raise ValueError("Teacher lacks grounded experience for that skill and context")
     lesson = Lesson(
         teacher_id=parent.birth.agent_id, learner_id=child.birth.agent_id,
-        taught_at=tick, estimate=estimate,
+        taught_at=tick, estimate=estimate, manual_entry=manual_entry,
     )
     # One latest advice item per parent/context/skill; repeated teaching cannot stack authority.
     lessons = tuple(item for item in child.lessons if not (
         item.teacher_id == lesson.teacher_id
-        and item.estimate.context_key == context_key
-        and item.estimate.skill_key == skill_key
+        and (
+            (manual_entry is not None and item.manual_entry is not None and item.manual_entry.text == manual_entry.text)
+            or (manual_entry is None and item.manual_entry is None and item.estimate.context_key == context_key and item.estimate.skill_key == skill_key)
+            or (manual_entry is not None and item.manual_entry is None and item.estimate.context_key == context_key and item.estimate.skill_key == skill_key)
+        )
+    ))
+    return updated(
+        child, tick=tick, lessons=(lessons + (lesson,))[-child.config.lesson_limit:],
+    )
+
+
+def teach_manual(
+    parent: BrainSnapshot,
+    child: BrainSnapshot,
+    manual_entry: ManualEntry,
+    tick: int,
+) -> BrainSnapshot:
+    """Transfer an active hypothesis from an adult/elder parent to a living child as a Lesson.
+
+    Uses the teacher's top skill estimate (by sum of values and sample count) or a zero
+    estimate placeholder when the parent has no grounded empirical knowledge.
+    """
+    if parent.birth.agent_id not in child.birth.parents:
+        raise ValueError("Teacher must be a recorded parent")
+    if parent.pending is not None or child.pending is not None:
+        raise ValueError("Settle pending actions before teaching")
+    if stage_at(parent, tick) not in (LifeStage.ADULT, LifeStage.ELDER):
+        raise ValueError("Teacher must be alive and mature")
+    if stage_at(child, tick) == LifeStage.DEAD:
+        raise ValueError("Learner must be alive")
+    if manual_entry.status == ManualEntryStatus.FALSIFIED:
+        raise ValueError("Cannot teach a falsified manual entry")
+
+    if parent.knowledge:
+        estimate = max(parent.knowledge, key=lambda item: (sum(item.values), item.samples))
+    else:
+        estimate = SkillEstimate(
+            context_key="manual",
+            skill_key="hypothesis",
+            values=ZERO,
+            samples=1,
+            evidence_id="placeholder:manual",
+        )
+
+    lesson = Lesson(
+        teacher_id=parent.birth.agent_id,
+        learner_id=child.birth.agent_id,
+        taught_at=tick,
+        estimate=estimate,
+        manual_entry=manual_entry,
+    )
+
+    # One latest advice item per parent and manual entry; repeated teaching cannot stack authority.
+    lessons = tuple(item for item in child.lessons if not (
+        item.teacher_id == lesson.teacher_id
+        and item.manual_entry is not None
+        and item.manual_entry.text == manual_entry.text
     ))
     return updated(
         child, tick=tick, lessons=(lessons + (lesson,))[-child.config.lesson_limit:],
