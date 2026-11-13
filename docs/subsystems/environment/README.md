@@ -20,9 +20,15 @@ Implemented Phase 1.1 core:
 - `pettingzoo_env` (`SocialSandboxAECEnv`) wrapping `SocialSandboxEngine` under PettingZoo's `AECEnv` contract (`Discrete(10)` with `action_mask` or typed `Action`);
 - `run_environment_pilot` (`pilot.py`) for local CPU throughput/storage benchmarking with `snapshot_interval` support.
 
+Landed Stage 1 critical fixes:
+- `replay_transitions` passes `current_state` (not `recorded.state`) to `engine.step`, propagating state divergence accurately;
+- `replay_from_store` includes transitions up to `up_to_tick`, preserving `same_tick=True` multi-agent transitions;
+- `apply_intervention` supports sequence indexing (`_set_nested_path`) and reconciles `ResourceAccounting.initial_currency`;
+- `_handle_spawn_offspring` and `_check_bounded_state` evaluate capacity against active living agents rather than historical lineage records.
+
 Open Phase 1.1 hardening backlog (empirical metrics remain untested / unmeasured):
-- **Replay & intervention fixes:** `replay_transitions` must pass `current_state` (not `recorded.state`) into `engine.step` so divergence propagates; `replay_from_store` must include `same_tick=True` transitions at `up_to_tick`; `apply_intervention` needs sequence indexing in `_set_nested_path` and `ResourceAccounting.initial_currency` reconciliation on currency edits; `SocialSandboxAECEnv.step` needs optional `exogenous_input`, `seed`, and `TransitionLogStore` hooks.
-- **Bounded world growth (`FR-2`):** enforce `max_agents` against **living** agents rather than dead+living history, bound `WorldState` collections (`artifacts`, `contracts`, `institutions`, `norms`, `capabilities`, `inventory`) and `WorldAgentState.status`, and wire or clarify `GrowthAttribution.ENDOGENOUS_PROCESS`.
+- **PettingZoo step hooks:** `SocialSandboxAECEnv.step` needs optional `exogenous_input`, `seed`, and `TransitionLogStore` hooks.
+- **Bounded world growth (`FR-2`):** bound `WorldState` collections (`artifacts`, `contracts`, `institutions`, `norms`, `capabilities`, `inventory`) and `WorldAgentState.status`, and wire or clarify `GrowthAttribution.ENDOGENOUS_PROCESS`.
 - **Coverage & partial mechanics:** expand `adapter.legal_candidates` beyond 7/17 `ActionType`s (adding social, economic, norm, offspring, and capability-registration actions) and address partial mechanics (`ContractRecord` cancel/expire, `InstitutionRecord.contribution_rate`/spending, `ArtifactRecord.durability`, `NormRecord` effects, unknown exogenous event handling).
 - **Untested validation & downstream scope:** all 18 failure branches in `invariants.py`, Hypothesis property-based tests, empirical long-horizon Phase 1.1 runs, `SocialSandboxAECEnv` multi-agent learning integrations, LLM population scheduling (`evolzen.agents`, Phase 1.2), full market/manual provenance flows (`evolzen.economy`, Phase 1.3), sandboxed capability synthesis (`evolzen.exploration`, `evolzen.containment`, Phases 1.4/2.2), and target-rig hardware pilot measurements on DGX/AGX Spark.
 See [agent engineering](../agents/engineering.md) for the broader boundaries.
