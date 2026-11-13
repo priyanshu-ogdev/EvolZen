@@ -9,8 +9,9 @@ Full research design: [`docs/phases/1.3-economy.md`](../../../docs/phases/1.3-ec
 
 | File | Purpose |
 |---|---|
-| [`market.py`](market.py) | `Market` — currency, balances, simple supply/demand pricing. |
-| [`manuals.py`](manuals.py) | `ManualStore` — falsifiable, revisable natural-language knowledge transfer with provenance records and a configured provenance-floor check. |
+| [`market.py`](market.py) | `Market`, `OrderBook`, `Order`, `TradeSettlement` — integer balances, Hayekian dynamic scarcity pricing, double auction clearing, and state settlement. |
+| [`manuals.py`](manuals.py) | `ManualStore` — falsifiable, revisable natural-language knowledge transfer with provenance records, real-data floor enforcement, and capability transfer measurement. |
+| [`metrics.py`](metrics.py) | `EconomicHealthReport`, `compute_gini_coefficient`, `compute_specialization_index`, `compute_shock_recovery`, and `evaluate_economic_health`. |
 
 ## How to build this
 

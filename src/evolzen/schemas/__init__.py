@@ -31,7 +31,13 @@ from evolzen.schemas.library import (
     ValidityContext,
     VerificationEvidence,
 )
-from evolzen.schemas.manual import Manual
+from evolzen.schemas.manual import (
+    Manual,
+    ManualEntry,
+    ManualEntryStatus,
+    ProvenanceRecord,
+    ProvenanceSource,
+)
 from evolzen.schemas.transition import Action, Emission, ExogenousInput, State, Transition
 from evolzen.schemas.world import ActionType, WorldAgentState, WorldState
 
@@ -64,6 +70,10 @@ __all__ = [
     "WorldState",
     # manual schemas (Phase 1.3)
     "Manual",
+    "ManualEntry",
+    "ManualEntryStatus",
+    "ProvenanceRecord",
+    "ProvenanceSource",
     # library schemas (Phase 1.5)
     "AuditEvent",
     "AuditEventType",

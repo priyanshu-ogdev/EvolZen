@@ -1,5 +1,46 @@
-"""Phase 1.3 — Economy & Knowledge Layer. See README.md."""
-from evolzen.economy.manuals import ManualStore
-from evolzen.economy.market import Market
+"""Phase 1.3 — Economy & Knowledge Layer.
 
-__all__ = ["Market", "ManualStore"]
+Includes Hayekian scarcity pricing, continuous double auction order books,
+falsifiable natural-language manuals with real-data provenance floors,
+and macroscopic economic health / specialization metrics.
+
+Design authority: `docs/phases/1.3-economy.md`.
+"""
+from evolzen.economy.manuals import (
+    KnowledgeTransferReport,
+    ManualStore,
+    RealDataFloorViolation,
+)
+from evolzen.economy.market import (
+    Market,
+    Order,
+    OrderBook,
+    OrderSide,
+    TradeSettlement,
+)
+from evolzen.economy.metrics import (
+    EconomicHealthReport,
+    compute_gini_coefficient,
+    compute_shock_recovery,
+    compute_specialization_index,
+    evaluate_economic_health,
+)
+
+__all__ = [
+    # Market & Order Book
+    "Market",
+    "Order",
+    "OrderBook",
+    "OrderSide",
+    "TradeSettlement",
+    # Manuals & Provenance
+    "ManualStore",
+    "RealDataFloorViolation",
+    "KnowledgeTransferReport",
+    # Economic Metrics
+    "EconomicHealthReport",
+    "compute_gini_coefficient",
+    "compute_specialization_index",
+    "compute_shock_recovery",
+    "evaluate_economic_health",
+]
