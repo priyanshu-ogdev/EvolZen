@@ -1,5 +1,17 @@
-"""Phase 2.1 — Grounded Predictor. See README.md."""
-from evolzen.predictor.planner import Planner
-from evolzen.predictor.rehearsal_buffer import RehearsalBuffer
+from evolzen.predictor.dynamics import (
+    REWARD_DIMENSIONS,
+    ActionDynamicsStats,
+    WorldDynamicsPredictor,
+)
+from evolzen.predictor.planner import Planner, PredictionResult
+from evolzen.predictor.rehearsal_buffer import ContinualMetricsTracker, RehearsalBuffer
 
-__all__ = ["Planner", "RehearsalBuffer"]
+__all__ = [
+    "ActionDynamicsStats",
+    "ContinualMetricsTracker",
+    "Planner",
+    "PredictionResult",
+    "REWARD_DIMENSIONS",
+    "RehearsalBuffer",
+    "WorldDynamicsPredictor",
+]
