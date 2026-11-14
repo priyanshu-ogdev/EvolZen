@@ -8,7 +8,8 @@ Design authority: docs/phases/1.2-agents.md, docs/ARCHITECTURE.md §3.2, ADR 000
 Citations:
 - Terry et al. (PettingZoo, NeurIPS 2021, arXiv:2009.14471) for round-robin turn-based stepping;
 - Cook et al. (Artificial Generational Intelligence, arXiv:2406.00392) for cultural transfer;
-- Vassiliades et al. (CVT-MAP-Elites, IEEE TEVC 2018) for population diversity archiving.
+- Vassiliades et al. (CVT-MAP-Elites, IEEE TEVC 2018) for population diversity archiving;
+- Agno (Manual-guided agents and cultural transfer, 2026) for living manual transmission.
 
 Multi-generational population dynamics remain empirically untested until Phase 1.2 experiments are run.
 """
@@ -18,7 +19,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from evolzen.agents.agent import Agent
-from evolzen.agents.qd_archive import CVTArchive, QDArchiveEntry
+from evolzen.agents.qd_archive import (
+    CVTArchive,
+    QDArchiveEntry,
+    compute_behavioral_descriptor,
+)
 from evolzen.environment.adapter import (
     execute_decision,
     legal_candidates,
@@ -31,6 +36,7 @@ from evolzen.schemas.transition import State, Transition
 from evolzen.schemas.world import WorldState
 
 if TYPE_CHECKING:
+    from evolzen.economy.manuals import ManualStore
     from evolzen.storage.transition_log import TransitionLogStore
 
 
@@ -59,6 +65,7 @@ class PopulationScheduler:
         config: DevelopmentConfig | None = None,
         archive: CVTArchive | None = None,
         store: TransitionLogStore | None = None,
+        manual_store: ManualStore | None = None,
         run_id: str = "population-run",
         branch_id: str = "main",
     ) -> None:
@@ -67,15 +74,22 @@ class PopulationScheduler:
         self.config = config or DevelopmentConfig()
         self.archive = archive or CVTArchive.uniform_hypercube(num_centroids=32, dimensions=5)
         self.store = store
+        self.manual_store = manual_store
         self.run_id = run_id
         self.branch_id = branch_id
 
         self.agents: dict[str, Agent] = {}
         self._init_agents_from_world()
 
-    def _init_agents_from_world(self) -> None:
+    def _init_agents_from_world(self) -> int:
+        """Instantiate Agent entities for newly born agents in the world.
+
+        Returns:
+            Number of newly registered agents.
+        """
         world = WorldState.from_state(self.state)
-        for agent_id, w_agent in world.agents.items():
+        new_count = 0
+        for agent_id, w_agent in sorted(world.agents.items()):
             if w_agent.alive and agent_id not in self.agents:
                 profile = AgentProfile(
                     agent_id=agent_id,
@@ -86,12 +100,30 @@ class PopulationScheduler:
                     institutional_affiliations=w_agent.institution_ids,
                     adopted_norms=w_agent.adopted_norms,
                 )
-                self.agents[agent_id] = Agent.create(
+                parent_agents = tuple(
+                    self.agents[p_id]
+                    for p_id in w_agent.parents
+                    if p_id in self.agents
+                )
+                init_tick = w_agent.born_at if not parent_agents else world.tick
+                agent = Agent.create(
                     profile=profile,
                     seed=world.seed + len(self.agents),
-                    tick=world.tick,
+                    tick=init_tick,
                     config=self.config,
+                    parents=parent_agents,
                 )
+                desc = compute_behavioral_descriptor(
+                    agent.development.birth.genome,
+                    profile,
+                    dimension=self.archive._dimension,
+                )
+                agent.profile = profile.model_copy(update={"behavioral_descriptor": desc})
+                if world.tick > agent.tick:
+                    agent.advance(world.tick)
+                self.agents[agent_id] = agent
+                new_count += 1
+        return new_count
 
     def step_agent(self, agent_id: str, *, seed: int | None = None) -> tuple[Transition, Outcome] | None:
         """Step one living agent through the observation -> decision -> host-execution loop."""
@@ -107,11 +139,12 @@ class PopulationScheduler:
         features = observe_features(self.state, agent_id)
         candidates = legal_candidates(self.state, agent_id, config=self.config)
 
-        decision = agent.decide(features, candidates, world.tick)
+        decision = agent.decide(features, candidates, world.tick, seed=seed)
         transition, outcome = execute_decision(self.engine, self.state, decision, seed=seed)
 
         agent.observe(outcome)
         self.state = transition.next_state
+        self._init_agents_from_world()
 
         if self.store is not None:
             self.store.append(transition, run_id=self.run_id, branch_id=self.branch_id)
@@ -142,6 +175,10 @@ class PopulationScheduler:
                 if step_res is not None:
                     transitions_count += 1
 
+            # Detect newly born agents
+            new_births = self._init_agents_from_world()
+            births += new_births
+
             # Facilitate living parent-child teaching among colocated agents
             curr_world = WorldState.from_state(self.state)
             for a_id, agent in list(self.agents.items()):
@@ -158,14 +195,25 @@ class PopulationScheduler:
                             and w_child is not None
                             and w_child.alive
                             and w_child.location_id == w_parent.location_id
-                            and bool(agent.development.knowledge)
                         ):
-                            kn = agent.development.knowledge[0]
-                            try:
-                                agent.teach(child, kn.context_key, kn.skill_key, curr_world.tick)
-                                teachings += 1
-                            except ValueError:
-                                pass
+                            # 1. Empirical skill knowledge teaching
+                            if bool(agent.development.knowledge):
+                                kn = agent.development.knowledge[0]
+                                try:
+                                    agent.teach(child, kn.context_key, kn.skill_key, curr_world.tick)
+                                    teachings += 1
+                                except ValueError:
+                                    pass
+
+                            # 2. Living manual hypothesis transmission
+                            if self.manual_store is not None:
+                                active_entries = self.manual_store.active_entries()
+                                if active_entries:
+                                    try:
+                                        agent.teach_manual(child, active_entries[-1], curr_world.tick)
+                                        teachings += 1
+                                    except ValueError:
+                                        pass
 
             # Archive mature/retiring agents into CVTArchive
             for a_id, agent in self.agents.items():

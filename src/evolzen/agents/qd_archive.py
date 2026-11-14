@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from evolzen.schemas.agent_profile import AgentProfile
+from evolzen.schemas.development import BirthGenome
 
 
 @dataclass
@@ -140,3 +141,31 @@ class CVTArchive:
     def entries(self) -> list[QDArchiveEntry]:
         """Return all occupied entries."""
         return list(self._cells.values())
+
+
+def compute_behavioral_descriptor(
+    genome: BirthGenome,
+    profile: AgentProfile,
+    dimension: int = 5,
+) -> tuple[float, ...]:
+    """Compute normalized [0.0, 1.0]^d behavioral descriptor from agent genome and social profile.
+
+    Measures phenotypic behavior across orthogonal dimensions (risk-tolerance, status-drive,
+    social-cooperativeness, norm-adherence, and resource accumulation momentum).
+    """
+    if dimension < 1:
+        raise ValueError("dimension must be at least 1")
+    # Coord 0: Greed/Risk bias (normalized to [0, 1])
+    d0 = max(0.0, min(1.0, round((genome.equations[1].bias + 1.0) / 2.0, 4)))
+    # Coord 1: Pride/Status momentum
+    d1 = max(0.0, min(1.0, round(genome.equations[0].momentum, 4)))
+    # Coord 2: Lust/Social affinity context sensitivity
+    d2 = max(0.0, min(1.0, round(sum(abs(c) for c in genome.equations[2].context) / 8.0, 4)))
+    # Coord 3: Institutional norm cooperativeness
+    d3 = max(0.0, min(1.0, round(min(1.0, len(profile.adopted_norms) * 0.25 + len(profile.institutional_affiliations) * 0.25), 4)))
+    # Coord 4: Gluttony/Resource accumulation momentum
+    d4 = max(0.0, min(1.0, round(genome.equations[4].momentum, 4)))
+    coords = [d0, d1, d2, d3, d4]
+    while len(coords) < dimension:
+        coords.append(0.5)
+    return tuple(coords[:dimension])

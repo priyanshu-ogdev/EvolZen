@@ -83,6 +83,16 @@ class ManualStore:
         """Return all stored manuals in key order."""
         return [self._manuals[k] for k in sorted(self._manuals)]
 
+    def active_entries(self, situation_key: str | None = None) -> list[ManualEntry]:
+        """Return all active (non-falsified) entries across manuals or for a specific key."""
+        if situation_key is not None:
+            m = self.get(situation_key)
+            return m.active_beliefs() if m is not None else []
+        results: list[ManualEntry] = []
+        for m in self._manuals.values():
+            results.extend(m.active_beliefs())
+        return results
+
     def check_real_data_floor(self, real_fraction: float | None = None) -> None:
         """Raise if a generation's corpus doesn't meet the real-data floor.
 

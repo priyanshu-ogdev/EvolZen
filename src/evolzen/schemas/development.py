@@ -83,6 +83,10 @@ class DevelopmentConfig(Record):
     lesson_limit: Annotated[int, Field(ge=1, le=1000, strict=True)] = 32
     max_candidates: Annotated[int, Field(ge=1, le=256, strict=True)] = 32
     advice_weight: Annotated[float, Field(ge=0.0, le=0.25, allow_inf_nan=False)] = 0.1
+    use_tier1_decision: bool = False
+    chebyshev_rho: Annotated[float, Field(ge=0.0, le=1.0, allow_inf_nan=False)] = 0.01
+    exploration_c: Annotated[float, Field(ge=0.0, le=10.0, allow_inf_nan=False)] = 0.5
+    mellowmax_beta: Annotated[float, Field(ge=0.0, le=100.0, allow_inf_nan=False)] = 10.0
 
     @model_validator(mode="after")
     def ordered_stages(self) -> Self:

@@ -106,10 +106,11 @@ class Agent:
         tick: int,
         *,
         world_context: dict[str, Any] | None = None,
+        seed: int | None = None,
     ) -> Decision:
         """Select a candidate action proposal satisfying host-mediated decision invariants."""
-        # Update internal motive dynamics and obtain deterministic decision proposal
-        next_dev = decide(self.development, signal, candidates, tick)
+        # Update internal motive dynamics and obtain decision proposal
+        next_dev = decide(self.development, signal, candidates, tick, seed=seed)
         self.development = next_dev
         pending = self.development.pending
         if pending is None:
