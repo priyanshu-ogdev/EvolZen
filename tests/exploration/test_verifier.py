@@ -213,3 +213,102 @@ def test_verifier_promoted_package_registered_in_engine() -> None:
 
     w_next = WorldState.from_state(trans.next_state)
     assert pkg.package_id in w_next.capabilities
+
+
+def test_verifier_init_without_sandbox_raises(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    monkeypatch.setattr("evolzen.exploration.verifier.is_gvisor_available", lambda: False)
+    import pytest
+    with pytest.raises(RuntimeError, match="No Sandbox instance provided"):
+        Verifier(sandbox=None)
+
+
+def test_verifier_execution_error_and_invalid_json() -> None:
+    t1 = Transition(
+        state=State(data={"tick": 0}),
+        action=Action(agent_id="a1", action_type="wait"),
+        emission=Emission(data={"accepted": True}),
+        next_state=State(data={"tick": 1}),
+    )
+    rule = CandidateRule(rule_id="rule-err", code="pass", explains=[str(t1.transition_id)])
+
+    from evolzen.containment.sandbox import ExecutionResult
+
+    # Subprocess execution error (exit_code != 0)
+    sandbox_err = MockSandbox(
+        custom_result=ExecutionResult(
+            stdout="", stderr="syntax error", exit_code=1, wall_time_seconds=0.01, resource_ceiling_hit=False
+        )
+    )
+    verifier_err = Verifier(sandbox=sandbox_err)
+    rep_err = verifier_err.verify_with_report(rule, [t1])
+    assert rep_err.passed is False
+    assert rep_err.execution_errors == 1
+
+    # Invalid structured output
+    sandbox_invalid = MockSandbox(
+        custom_result=ExecutionResult(
+            stdout="not json at all", stderr="", exit_code=0, wall_time_seconds=0.01, resource_ceiling_hit=False
+        )
+    )
+    verifier_invalid = Verifier(sandbox=sandbox_invalid)
+    rep_invalid = verifier_invalid.verify_with_report(rule, [t1])
+    assert rep_invalid.passed is False
+    assert rep_invalid.execution_errors == 1
+
+
+def test_verifier_check_next_state() -> None:
+    t1 = Transition(
+        state=State(data={"tick": 0}),
+        action=Action(agent_id="a1", action_type="wait"),
+        emission=Emission(data={"accepted": True}),
+        next_state=State(data={"tick": 1}),
+    )
+    code = (
+        "def predict(state, action, ex=None, seed=None):\n"
+        "    return {'emission': {'accepted': True}, 'next_state': {'tick': 1}}\n"
+    )
+    rule = CandidateRule(rule_id="rule-next-state", code=code, explains=[str(t1.transition_id)])
+    sandbox = MockSandbox()
+    verifier = Verifier(sandbox=sandbox, check_next_state=True)
+    report = verifier.verify_with_report(rule, [t1])
+    assert report.passed is True
+    assert report.exact_matches == 1
+
+
+def test_promote_to_capability_package_rejections() -> None:
+    t1 = Transition(
+        state=State(data={"tick": 0}),
+        action=Action(agent_id="a1", action_type="wait"),
+        emission=Emission(data={"accepted": True}),
+        next_state=State(data={"tick": 1}),
+    )
+    # Mismatch rule
+    rule_fail = CandidateRule(
+        rule_id="rule-fail",
+        code="def predict(state, action):\n    return {'emission': {'accepted': False}}\n",
+        explains=[str(t1.transition_id)],
+    )
+    sandbox = MockSandbox()
+    verifier = Verifier(sandbox=sandbox)
+    assert verifier.promote_to_capability_package(rule_fail, [t1]) is None
+
+    # Intervention mismatch rejection
+    engine = SocialSandboxEngine(default_seed=42, num_agents=2)
+    s0 = engine.reset(seed=42, run_id="rejection-test")
+    action = Action(agent_id="agent-0", action_type=ActionType.WAIT)
+    # Rule passes replay on t1, but fails on intervention
+    rule_int_fail = CandidateRule(
+        rule_id="rule-int-fail",
+        code="def predict(state, action):\n    return {'emission': {'accepted': True}}\n",
+        explains=[str(t1.transition_id)],
+    )
+    pkg = verifier.promote_to_capability_package(
+        rule_int_fail,
+        [t1],
+        engine=engine,
+        base_state=s0,
+        intervention_action=action,
+    )
+    # SocialSandboxEngine WAIT produces accepted=True, but with details/rewards, so it fails intervention
+    assert pkg is None
+
