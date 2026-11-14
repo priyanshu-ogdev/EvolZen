@@ -2,8 +2,17 @@
 
 See README.md.
 """
+from evolzen.evaluation.dual_track import DualTrackRunner, FreshTrackResult, PersistentTrackResult
 from evolzen.evaluation.procedural_env_gen import ProceduralEnvironmentGenerator
 from evolzen.evaluation.report import EvaluationReport
-from evolzen.evaluation.rhae_scorer import RHAEScorer
+from evolzen.evaluation.rhae_scorer import RHAEResult, RHAEScorer
 
-__all__ = ["ProceduralEnvironmentGenerator", "RHAEScorer", "EvaluationReport"]
+__all__ = [
+    "DualTrackRunner",
+    "EvaluationReport",
+    "FreshTrackResult",
+    "PersistentTrackResult",
+    "ProceduralEnvironmentGenerator",
+    "RHAEResult",
+    "RHAEScorer",
+]
