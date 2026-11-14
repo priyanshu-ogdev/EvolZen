@@ -3,13 +3,13 @@
 The implemented learning loop ranks declared candidate actions using internal homeostatic drive
 priorities and learned empirical outcome vectors. Features:
 - Tier-0 Baseline: Linear scalarization with greedy argmax selection.
-- Tier-1 Multi-Objective: Augmented Chebyshev scalarization (Hayes et al., AAMAS 2022; Van Moffaert
+- Tier-1 Multi-Objective: Augmented Chebyshev scalarization (Hayes et al., JAAMAS 2022; Van Moffaert
   & Nowé, JMLR 2014) ensuring Pareto optimality on non-convex fronts, UCB1 epistemic uncertainty
   exploration bonus (Auer et al., Machine Learning 2002), and Mellowmax temperature-controlled
   softmax candidate exploration (Asadi & Littman, ICML 2017).
 
 Citations:
-- Hayes et al. (A practical guide to multi-objective reinforcement learning, AAMAS 2022,
+- Hayes et al. (A practical guide to multi-objective reinforcement learning and planning, JAAMAS 2022,
   DOI: 10.1007/s10458-022-09552-y);
 - Van Moffaert & Nowé (Multi-objective reinforcement learning using sets of Pareto dominating policies,
   JMLR 2014);

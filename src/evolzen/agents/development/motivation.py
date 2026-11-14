@@ -1,7 +1,18 @@
 """Phase 1.2 bounded eight-drive dynamics; an untested EvolZen hypothesis.
 
+Implements homeostatic internal drive dynamics over eight coordinates (pride, greed,
+lust, envy, gluttony, wrath, sloth, Null), producing bounded activations and normalized
+priority ratios for multi-objective action evaluation.
+
+Citations:
+- Keramati & Gutkin (eLife 2014, DOI:10.7554/eLife.04811) for homeostatic drive-reduction
+  utility modulating multi-objective priorities;
+- Merrick (IEEE TAMD/TCDS 2010, DOI:10.1109/TAMD.2010.2051435) for comparative intrinsic
+  value-system benchmarking in autonomous developmental agents.
+
 Random coefficients are data, never source code. No eval/exec, global RNG,
 network, model loading, or environment actions occur in this module.
+All drive dynamics remain empirically untested until Phase 1.2 population experiments are run.
 """
 
 from __future__ import annotations

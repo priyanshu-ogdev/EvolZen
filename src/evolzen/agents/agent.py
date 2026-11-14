@@ -6,10 +6,10 @@ neural generation (`InferenceBackend`).
 
 Design authority: docs/phases/1.2-agents.md, docs/ARCHITECTURE.md §3.2, ADR 0006, ADR 0008.
 Citations:
-- Hayes et al. (AAMAS 2022, DOI:10.1007/s10458-022-09552-y) for multi-objective decision scalarization;
+- Hayes et al. (JAAMAS 2022, DOI:10.1007/s10458-022-09552-y) for multi-objective decision scalarization;
 - Keramati & Gutkin (eLife 2014, DOI:10.7554/eLife.04811) for homeostatic drive-reduction utility;
-- Park et al. (Generative Agents, arXiv:2304.03442) for agent memory horizon and social profile;
-- Cook et al. (Artificial Generational Intelligence, arXiv:2406.00392) for cultural transfer.
+- Park et al. (Generative Agents, ACM UIST 2023 / arXiv:2304.03442) for agent memory horizon and social profile;
+- Cook et al. (Artificial Generational Intelligence, arXiv:2406.00392, 2024) for cultural transfer.
 
 All neural inference and population orchestration mechanics remain empirically untested until
 Phase 1.2 experiments are run.

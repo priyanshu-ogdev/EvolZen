@@ -1,7 +1,16 @@
 """Phase 1.2 simulation-age and birth operations; untested developmental policy.
 
+Implements child/adolescent/adult/elder/dead life staging on a monotonic shared
+world clock, and zero-mastery infant birth operations.
+
+Citations:
+- Cook et al. (Artificial Generational Intelligence, arXiv:2406.00392, 2024) for
+  developmental lifetime boundaries, zero birth-time mastery copying, and separating
+  cultural transmission from genetic inheritance.
+
 No biological interpretation, age-dependent neural rank, or competence grant
 is implied. Cultural inheritance is handled separately from birth.
+All lifecycle dynamics remain empirically untested until Phase 1.2 population experiments are run.
 """
 
 from __future__ import annotations

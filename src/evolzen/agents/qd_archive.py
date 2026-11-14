@@ -2,9 +2,13 @@
 
 Replaces plain fitness-based selection, which the diversity-collapse literature identifies as
 a driver of premature convergence in multi-agent populations. Implements:
-1. `QualityDiversityArchive`: Grid-based MAP-Elites (arXiv:2406.03731) keyed on behavioral descriptors;
+1. `QualityDiversityArchive`: Grid-based MAP-Elites (Wang et al., ICML 2024, arXiv:2406.03731) keyed on behavioral descriptors;
 2. `CVTArchive`: Centroidal Voronoi Tessellations MAP-Elites (Vassiliades et al., IEEE TEVC 2018,
    DOI:10.1109/TEVC.2017.2735550) scaling to high-dimensional behavioral spaces.
+
+Conceptual foundations:
+- Pugh, Soros & Stanley (Frontiers in Robotics and AI 2016, DOI:10.3389/frobt.2016.00040)
+  for formally separating behavioral diversity characterization from objective fitness.
 
 Behavioral descriptors measure phenotypic behavior (e.g., risk-tolerance, cooperativeness,
 specialization, exploration rate), separating diversity maintenance from direct fitness.

@@ -1,8 +1,20 @@
 """Phase 1.2 empirical learning and living-parent teaching.
 
-Cook et al. (arXiv:2406.00392) motivates separating cultural transmission
-from inheritance. This contextual outcome estimator is an untested baseline,
-not an LLM fine-tuner or a replication of that paper.
+Implements contextual outcome estimation from verified environment receipts and
+intergenerational cultural transmission (parental skill advice and recipe manual sharing).
+
+Citations:
+- Cook et al. (Artificial Generational Intelligence, arXiv:2406.00392, 2024) for
+  separating cultural transmission from genetic inheritance, living-parent advice without
+  birth-time mastery copying, and bounded intergenerational blending.
+
+Note on continual learning: This runtime module provides a verified contextual EMA
+outcome estimator and living manual transmission. Full neural continual experience replay
+(Rolnick et al., CLEAR, NeurIPS 2019, arXiv:1811.11682) is housed in the predictor subsystem
+(`evolzen.predictor.rehearsal`).
+
+This contextual outcome estimator is an untested baseline, not an LLM fine-tuner or a
+full replication of cited papers.
 """
 
 from __future__ import annotations
