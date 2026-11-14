@@ -1,0 +1,3380 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox">
+      
+      
+      
+      
+        <link rel="prev" href="../PRD/">
+      
+      
+        <link rel="next" href="../PAPER/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Architecture - EvolZen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#evolzen-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="EvolZen" class="md-header__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EvolZen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="EvolZen" class="md-nav__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    EvolZen
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Design principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-subsystem-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Subsystem architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Subsystem architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-evolzenenvironment-phase-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 evolzen.environment — Phase 1.1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-evolzenagents-phase-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 evolzen.agents — Phase 1.2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-evolzeneconomy-phase-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 evolzen.economy — Phase 1.3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-evolzenexploration-phase-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 evolzen.exploration — Phase 1.4
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-evolzenlibrary-phase-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 evolzen.library — Phase 1.5
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-evolzenpredictor-phase-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 evolzen.predictor — Phase 2.1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-evolzencontainment-phase-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 evolzen.containment — Phase 2.2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-evolzenrecognition-phase-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.8 evolzen.recognition — Phase 2.3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#39-evolzenevaluation-phase-24-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.9 evolzen.evaluation — Phase 2.4-2.5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Data architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-hardware-deployment-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Hardware &amp; deployment architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Hardware &amp; deployment architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-hardware-acceptance-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Hardware acceptance gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-security-containment-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Security &amp; containment architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Observability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-testing-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Testing strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-extension-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Extension points
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-non-goals-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Non-goals / constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PAPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Outline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phase-0-foreground/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase 0 (Foreground)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD & Parallel Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Phases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/1.1-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/1.2-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/1.3-economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.3 Economy & Knowledge Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/1.4-exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.4 Directed Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/1.5-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5 Growing Rule Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/2.1-predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1 Grounded Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/2.2-containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.2 Verification Gate & Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/2.3-recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.3 Recognition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phases/2.4-2.5-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.4-2.5 Evaluation & Publication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/literature-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/landscape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparative Landscape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/design-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/design-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/docs-and-codebase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docs & Codebase Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../research/objectives-and-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives & Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subsystem Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Subsystem Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developmental Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developmental Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic Behaviour Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/motivation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motivation Equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle & Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning & Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/agents/evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subsystems/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions (ADRs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0001-single-package-not-workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 One package, not a workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0002-dependency-stack-and-optional-extras/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Dependency stack & optional extras
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0003-nine-subsystems-not-two-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Nine subsystems, not two packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0004-persistent-growing-world/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 Persistent growing world
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0005-transition-semantics-and-dual-track-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 Transition semantics & dual-track evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0006-developmental-eight-drive-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0006 Developmental eight-drive agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0007-library-persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0007 Library persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0008-convergent-learning-and-hierarchical-planning-upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0008 Convergent learning & planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/foundation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-system-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. System overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Design principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-subsystem-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Subsystem architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Subsystem architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-evolzenenvironment-phase-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 evolzen.environment — Phase 1.1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-evolzenagents-phase-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 evolzen.agents — Phase 1.2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-evolzeneconomy-phase-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 evolzen.economy — Phase 1.3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-evolzenexploration-phase-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 evolzen.exploration — Phase 1.4
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-evolzenlibrary-phase-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 evolzen.library — Phase 1.5
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-evolzenpredictor-phase-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 evolzen.predictor — Phase 2.1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-evolzencontainment-phase-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 evolzen.containment — Phase 2.2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-evolzenrecognition-phase-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.8 evolzen.recognition — Phase 2.3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#39-evolzenevaluation-phase-24-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.9 evolzen.evaluation — Phase 2.4-2.5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Data architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-hardware-deployment-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Hardware &amp; deployment architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Hardware &amp; deployment architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-hardware-acceptance-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Hardware acceptance gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-security-containment-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Security &amp; containment architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Observability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-testing-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Testing strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-extension-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Extension points
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-non-goals-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Non-goals / constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="evolzen-architecture">EvolZen — Architecture</h1>
+<p><strong>Companion document:</strong> <a href="../PRD/"><code>PRD.md</code></a> specifies <em>what</em> and <em>why</em>; this document specifies
+<em>how</em>.</p>
+<hr />
+<h2 id="1-system-overview">1. System overview</h2>
+<p>EvolZen is <strong>one Python package</strong> (<code>evolzen</code>) organized into nine subsystems on top of a shared
+foundation. It is a persistent, event-sourced social sandbox plus learning and evaluation
+components; it is not a voxel-physics stack and it is not a two-part “world/observer” product.</p>
+<pre><code>src/evolzen/
+├── config.py, logging.py, tracking.py, schemas/, storage/   # shared foundation
+├── environment/    # Phase 1.1
+├── agents/         # Phase 1.2
+├── economy/        # Phase 1.3
+├── exploration/     # Phase 1.4
+├── library/         # Phase 1.5
+├── predictor/        # Phase 2.1
+├── containment/      # Phase 2.2
+├── recognition/      # Phase 2.3
+└── evaluation/       # Phase 2.4-2.5
+</code></pre>
+<p>The diagram below is a data-flow view, not a package or lifecycle boundary. The nine subsystems
+jointly maintain a persistent world, a heterogeneous population, executable hypotheses, and
+measured learning components:</p>
+<pre><code>[environment] -&gt; [agents] -&gt; [economy] -&gt; [exploration] -&gt; [library]
+                                                                 |
+                              verified transitions + rule library + manuals
+                                                                 |
+                                                                 v
+     [predictor] -&gt; [containment] -&gt; [recognition] -&gt; [evaluation]
+</code></pre>
+<p><code>evolzen.containment</code> is drawn separately because it is a cross-cutting boundary. Every subsystem
+that executes agent-originated or synthesized code (<code>exploration</code> hypotheses, <code>agents</code>
+self-modification proposals, <code>library</code> capability packages, and any code-backed environment rule)
+must route execution through it.</p>
+<h2 id="2-design-principles">2. Design principles</h2>
+<p>Enforced by structure, not convention:</p>
+<ol>
+<li><strong>Verifiability over plausibility.</strong> Every transition is replayable from complete state,
+   action, exogenous input, and seed. Every promoted rule must pass exact replay plus the
+   intervention checks required by its claim. Exact replay is not itself proof of causal
+   identification.</li>
+<li><strong>One package, nine subsystems, shared foundation.</strong> Every subsystem imports the same
+   schemas from <code>evolzen.schemas</code> — there is no package boundary between subsystems to
+   accidentally drift across. See <a href="../adr/0003-nine-subsystems-not-two-packages/">ADR 0003</a> for
+   why this is stated as a principle rather than assumed: it was violated twice by earlier
+   scaffolding revisions.</li>
+<li><strong>CPU-runnable by default, GPU-accelerated by extra.</strong> The base dependency set installs and
+   passes tests on a CPU-only machine. Heavy, platform-specific acceleration (vLLM, DeepSpeed,
+   bitsandbytes, flash-attn, faiss-gpu) is an opt-in extra — see
+   <a href="../adr/0002-dependency-stack-and-optional-extras/">ADR 0002</a>.</li>
+<li><strong>Growth, diversity, and forgetting are measured, not assumed.</strong> World growth, agent-type
+   coverage, lineage diversity, manual provenance, forward/backward transfer, and forgetting each
+   have explicit metrics and stop/rollback conditions.</li>
+<li><strong>Every design choice traces to a citation or an explicit flag.</strong> Citation status is recorded
+   as peer-reviewed, preprint, vendor report, or unverified. See
+   <code>docs/research/references.bib</code>.</li>
+</ol>
+<h2 id="3-subsystem-architecture">3. Subsystem architecture</h2>
+<h3 id="31-evolzenenvironment-phase-11">3.1 <code>evolzen.environment</code> — Phase 1.1</h3>
+<p>A persistent, event-sourced, discrete social sandbox with typed entities for agents, locations,
+resources, artifacts/capabilities, contracts/markets, institutions, norms/beliefs, manuals, and
+exogenous events. The normative transition contract is:</p>
+<pre><code class="language-text">(state_t, action_t, exogenous_input_t, seed) -&gt; (emission_t, state_{t+1})
+</code></pre>
+<p>The transition is deterministic for a fixed complete input record. <code>moore_machine.py</code> remains a
+compatibility-oriented module name from Phase 0, but the formal object is a seeded, typed
+interactive transition system, not a claim that exact replay identifies a causal graph. The world
+supports snapshots, branching, append-only event logs, and a growth ledger attributing durable
+changes to endogenous processes, agent actions, or declared exogenous inputs.</p>
+<p>World growth is bounded and typed. New mechanics arrive as versioned capability packages; they are
+not arbitrary executable mutations of the engine. Packages must pass containment, replay, held-out
+combination, intervention, and resource-bound checks before promotion.</p>
+<p><strong>Implementation status (baseline implemented; hardening &amp; empirical pilots pending):</strong></p>
+<ul>
+<li><strong>Implemented baseline:</strong> <code>SocialSandboxEngine</code> implements <code>Environment</code> and
+  <code>PersistentEnvironment</code> across all 17 <code>ActionType</code> handlers (<code>environment/engine.py</code>), backed
+  by typed <code>WorldState</code>/<code>WorldSnapshot</code> schemas (<code>schemas/world.py</code>), <code>Transition</code> +
+  <code>ExogenousInput</code> (<code>schemas/transition.py</code>), invariant checking (<code>check_invariants</code> in
+  <code>environment/invariants.py</code>), growth-ledger extraction (<code>extract_growth_events</code> /
+  <code>summarize_growth</code> in <code>environment/growth.py</code>), DuckDB hash-chained persistence
+  (<code>TransitionLogStore</code> in <code>storage/transition_log.py</code>), replay &amp; branching (<code>replay_transitions</code>,
+  <code>replay_from_store</code>, <code>branch_from_snapshot</code> in <code>environment/replay.py</code>), controlled
+  interventions (<code>apply_intervention</code> in <code>environment/interventions.py</code>), the agent-facing
+  <code>adapter</code> (<code>observe_features</code>, <code>legal_candidates</code>, <code>action_from_candidate</code>, <code>execute_decision</code>
+  in <code>environment/adapter.py</code>), PettingZoo AEC compatibility (<code>SocialSandboxAECEnv</code> in
+  <code>environment/pettingzoo_env.py</code>), and local CPU smoke benchmarking (<code>run_environment_pilot</code> in
+  <code>environment/pilot.py</code>).</li>
+<li><strong>Open Phase 1.1 hardening items:</strong></li>
+<li><code>replay_transitions</code> must propagate <code>current_state</code> rather than passing <code>recorded.state</code> to
+    <code>engine.step</code>, and <code>replay_from_store</code> must include <code>same_tick=True</code> transitions at
+    <code>tick == up_to_tick</code>.</li>
+<li><code>apply_intervention</code> needs sequence indexing and <code>ResourceAccounting.initial_currency</code>
+    reconciliation, and <code>SocialSandboxAECEnv.step</code> lacks <code>exogenous_input</code>/<code>seed</code> and
+    <code>TransitionLogStore</code> hooks.</li>
+<li>Bounded world growth requires enforcing <code>max_agents</code> on <em>living</em> agents (dead records
+    currently block reproduction permanently at 64), adding capacity bounds on <code>WorldState</code>
+    collections (<code>artifacts</code>, <code>contracts</code>, <code>institutions</code>, <code>norms</code>, <code>capabilities</code>, <code>inventory</code>)
+    and an upper bound on <code>WorldAgentState.status</code>, and wiring partial mechanics
+    (<code>ContractRecord.status="cancelled"</code>, <code>InstitutionRecord.contribution_rate</code>,
+    <code>ArtifactRecord.durability</code>, <code>NormRecord</code> effects, and reachable <code>ENDOGENOUS_PROCESS</code>
+    emissions).</li>
+<li><code>adapter.legal_candidates</code> currently surfaces 7 of 17 <code>ActionType</code>s (and <code>SocialSandboxAECEnv</code>
+    exposes <code>Discrete(10)</code>).</li>
+<li><code>State.data</code>, <code>Action.params</code>, <code>ExogenousInput</code>, and <code>Emission.data</code> remain untyped
+    <code>dict[str, Any]</code> boundaries across subsystem callers.</li>
+<li>Failure-branch, Hypothesis property-based, and long-horizon multi-generation tests, plus
+    empirical long-horizon shock-recovery runs and target-rig hardware pilots, remain <strong>untested</strong>.</li>
+</ul>
+<p><strong>Success metrics (untested empirically):</strong> replay determinism; zero hidden mutable state; durable
+growth across at least three allowed categories (for example artifacts, institutions, and roles);
+and recovery from a declared environmental shock without evaluator-injected milestones.</p>
+<h3 id="32-evolzenagents-phase-12">3.2 <code>evolzen.agents</code> — Phase 1.2</h3>
+<p><strong>Current design authority:</strong> <a href="../subsystems/agents/">developmental agents</a>.
+The implemented <code>agents/development/</code> numerical baseline uses eight birth-time equations
+(seven sins plus Null), age/context/momentum dynamics, bounded outcome learning, living-parent
+teaching and <code>DevelopmentArchive</code>. Existing <code>Agent</code>/<code>DriveVector</code> inference and QD APIs still
+use five coordinates and remain legacy interfaces, not adapters for the new path.
+The richer profile, LLM proposal, neural-update and population-scheduler descriptions below are
+target architecture; they are not implemented by the existing <code>Agent</code> dataclass.</p>
+<p>Each active cognitive agent (<code>agents.drive_vector.Agent</code>) pairs a small quantized local LLM with an
+evolvable <code>DriveVector</code> (<code>evolzen.schemas.drive_vector</code>) and a typed profile: needs, drives,
+skills, roles, affiliations, memory scope, communication channels, norms, capabilities, and
+lineage. These profiles define behavioral diversity; they are not a claim to reproduce real human
+demographics or psychology. A deterministic background-population process may represent aggregate
+residents without allocating an LLM to every resident.</p>
+<p>Drive vectors are evolved on the vector itself, never via literal LoRA weight crossover. Action
+generation goes through <code>agents.inference.InferenceBackend</code> (<code>transformers</code> for CPU/dev,
+<code>vllm</code> for throughput), constrained via <code>outlines</code> to always produce a schema-valid <code>Action</code>.</p>
+<p>Selection runs through a Quality-Diversity archive (<code>agents.qd_archive</code>), not plain fitness. The
+archive is keyed by declared behavioral and social descriptors such as risk, reciprocity,
+coalition formation, exploration, communication, and specialization. Agents may carry a
+Darwin-Gödel-Machine-style validated self-modification mechanism (<code>agents.self_modification</code>),
+but every proposal is evaluated inside containment and retained only when it improves a declared
+held-out objective without violating invariants. Population execution is Ray-orchestrated for the
+10–30-agent pilot; throughput is a hardware acceptance gate, not an assumption.</p>
+<p>Population ablations should compare shared versus diverse base models, sparse versus dense
+communication, and authority structures. These are experimental factors, not guaranteed rules.
+A shared frozen base with private state is a valid efficiency baseline.</p>
+<p><strong>Success metrics (untested):</strong> stable 10–30-agent runs; QD coverage; agent-type occupancy and persistence;
+lineage diversity; specialization; extinction/replacement; and communication-topology statistics
+across at least five generations.</p>
+<h3 id="33-evolzeneconomy-phase-13">3.3 <code>evolzen.economy</code> — Phase 1.3</h3>
+<p><strong>Implementation status:</strong> Phase 0 in-memory prototypes (<code>economy.market.Market</code> uses <code>float</code>
+balances rather than <code>WorldAgentState.currency</code> <code>NonNegInt</code> and does not yet emit
+<code>ActionType.TRADE</code>; <code>economy.manuals.ManualStore</code> enforces <code>real_data_floor</code>, while
+<code>ProvenanceRecord</code> and <code>Manual</code> persistence on <code>WorldState</code> / <code>TransitionLogStore</code> remain
+pending).</p>
+<p>Currency, resource flows, contracts, specialization, and institution formation (<code>economy.market</code>)
+are scoped to the persistent world. Knowledge transfer happens through falsifiable, actively
+revised manuals (<code>economy.manuals</code>, <code>evolzen.schemas.manual</code>). Each manual records provenance,
+scope, author, evidence, falsifications, and revision history. The provenance floor distinguishes
+human-authored/external material, human demonstrations, independently generated simulator traces,
+and model-generated material; no category is silently relabeled as another.</p>
+<p><strong>Success metrics (untested):</strong> specialization and at least one durable institution or norm emerge; manual
+claims are falsified and revised when contradicted; the configured provenance floor is maintained;
+and population/world diversity does not collapse across at least five generations.</p>
+<h3 id="34-evolzenexploration-phase-14">3.4 <code>evolzen.exploration</code> — Phase 1.4</h3>
+<p><strong>Implementation status:</strong> Phase 0 stubs (<code>actor.py</code>, <code>synthesizer.py</code>, <code>verifier.py</code>;
+<code>Verifier.verify()</code> raises <code>NotImplementedError</code>, and <code>CandidateRule.code</code> signature alignment with
+<code>(State, Action, ExogenousInput, seed)</code> plus <code>Sandbox</code>/<code>replay_transitions</code>/<code>apply_intervention</code>
+wiring remain pending).</p>
+<p>An actor (<code>exploration.actor</code>) probes the environment, prioritized by a measured explanation gap
+over agent types, mechanics, and world-growth categories. A synthesizer
+(<code>exploration.synthesizer</code>) proposes typed executable hypotheses; an off-the-shelf coding-agent
+harness may be used, but only through <code>evolzen.containment</code> and never as an implicit trust
+boundary. A verifier (<code>exploration.verifier</code>) checks exact replay on recorded transitions, held-out
+transition combinations, at least one controlled intervention, and declared resource bounds.</p>
+<p><strong>Success metrics (untested):</strong> the verified-rule library beats a no-exploration-strategy baseline on held-out
+transitions and interventions; false promotion rate is measured; and no candidate can mutate the
+world engine outside the versioned capability-package interface.</p>
+<h3 id="35-evolzenlibrary-phase-15">3.5 <code>evolzen.library</code> — Phase 1.5</h3>
+<p><strong>Implementation status:</strong> Phase 1.5 baseline implemented (<code>library.rule_library.RuleLibrary</code>,
+<code>library.validity</code>, <code>library.audit.AuditLog</code>, <code>library.persistence.LibraryStore</code> on DuckDB, and
+<code>library.regression_bank.RegressionBank</code>, backed by <code>schemas.library</code> and unit/3-round integration
+tests); live wiring to Phase 1.4 <code>Verifier</code> and <code>CapabilityPackage</code> promotion awaits Phases 1.4
+and 2.2.</p>
+<p>Verified rules become immutable historical entries (<code>library.rule_library</code>) with validity context,
+provenance, evidence links, and supersession metadata. A new entry spawns when no existing entry
+adequately explains the observation in the current context; a changed rule creates a new version
+instead of overwriting the old one. The Dirichlet-process analogy is a routing heuristic, not a
+claim that the implementation is a Bayesian nonparametric model.</p>
+<p><strong>Success metrics (empirically untested at world scale):</strong> historical replay remains readable across
+at least three rounds of additions; promotion and supersession decisions are auditable; and newly
+added rules improve held-out transition/intervention performance without increasing false promotions.</p>
+<h3 id="36-evolzenpredictor-phase-21">3.6 <code>evolzen.predictor</code> — Phase 2.1</h3>
+<p><strong>Implementation status:</strong> Phase 0 stubs (<code>Planner.predict()</code> / <code>Planner.train_step()</code> raise
+<code>NotImplementedError</code>; <code>PredictionResult</code> alignment with <code>Emission</code> + <code>next_state: State</code> and
+<code>TransitionLogStore</code> batching remain pending).</p>
+<p>A planner (<code>predictor.planner</code>) may use policy-gradient training, but the first baseline is a
+supervised/action-prediction predictor so that the contribution of RL is measurable. Rewards and
+labels are grounded in replayable world outcomes, not inferred from another model's approval. A
+rehearsal buffer (<code>predictor.rehearsal_buffer</code>) mixes old and new transitions under a declared
+budget. Updates are evaluated for forward transfer, backward transfer, forgetting, adaptation
+latency, and compute/data cost; task-free or replay-free continual training is an ablation, not a
+default assumption.</p>
+<p><strong>Success metrics (untested):</strong> held-out prediction and intervention performance; longitudinal adaptation
+latency; forgetting and transfer curves; and cost per retained capability.</p>
+<h3 id="37-evolzencontainment-phase-22">3.7 <code>evolzen.containment</code> — Phase 2.2</h3>
+<p><strong>Implementation status:</strong> <code>containment.sandbox.Sandbox</code> is a <code>Protocol</code>-only interface (no concrete
+Firecracker or gVisor backend deployed yet) and <code>containment.governance.CapabilityGovernor</code> is an
+in-memory bookkeeping prototype not yet wired to <code>CapabilityPackage</code> or <code>SocialSandboxEngine</code>.</p>
+<p>Any promoted capability package passes the replay/intervention gate from Phase 1.4. All
+agent-generated or self-modified code executes inside a hardware-isolated sandbox
+(<code>containment.sandbox</code> is an interface only; Firecracker microVMs or gVisor are infrastructure
+backends, not pip dependencies). Governance is fail-closed: static default-deny controls remain
+authoritative, while behavior-sensitive policy may tighten permissions but may not grant a
+capability that the static policy forbids. Every policy decision, denial, resource event, and kill
+switch action is logged.</p>
+<p><strong>Acceptance layers (untested):</strong> interface tests; backend deployment tests; and target-host threat-model
+tests. The phase is not complete until the selected backend demonstrates bounded resources,
+egress control, evaluator separation, kill-switch latency, recovery, and tamper-evident logging on
+the actual host.</p>
+<h3 id="38-evolzenrecognition-phase-23">3.8 <code>evolzen.recognition</code> — Phase 2.3</h3>
+<p><strong>Implementation status:</strong> Phase 0 stubs/interface prototypes (<code>jepa.py</code>, <code>wake_sleep.py</code>,
+<code>moe_library.py</code>, <code>embedding_router.py</code>); <code>JEPAEncoder</code>, <code>WakeSleepLearner</code>, and the ablation
+matrix runner await Phase 1.1–2.1 transition streams and typed world bindings.</p>
+<p>This is the project's proposed architectural variant and least-de-risked component, not a
+validated contribution. A JEPA-style encoder (<code>recognition.jepa</code>, following LeJEPA's objective,
+arXiv:2511.08544) learns continuous representations of partially observed world states. A
+DreamCoder-style wake-sleep learner (<code>recognition.wake_sleep</code>, PLDI 2021) proposes and refactors
+typed operators over those states. The combination is tested as a hypothesis: it may help, do
+nothing, or interfere. It must first beat simpler baselines on the actual world representation;
+JEPA is not justified merely because the domain is called social.</p>
+<p>The verified-rule library is exposed through a sparse router
+(<code>recognition.moe_library</code>, <code>recognition.embedding_router</code>), but routing confidence is not
+treated as proof of rule validity. A manual layer, carried over from <code>evolzen.economy</code>, is a
+fast, cheap memory tier whose provenance and revision history remain visible. Its output is
+subject to the same held-out and intervention checks as any other hypothesis.</p>
+<p><strong>Evaluation:</strong> an explicit ablation matrix — with/without recognition model x with/without
+manual layer x JEPA-only / wake-sleep-only / combined.</p>
+<p><strong>Success metrics (untested):</strong> the recognition condition improves adaptation latency or success on at least
+one pre-registered track without unacceptable regression on the other; every ablation cell is
+reported; and a negative or null result is reportable, not hidden.</p>
+<h3 id="39-evolzenevaluation-phase-24-25">3.9 <code>evolzen.evaluation</code> — Phase 2.4-2.5</h3>
+<p><strong>Implementation status:</strong> Phase 0 stubs/prototypes (<code>procedural_env_gen.py</code> raises
+<code>NotImplementedError</code>; dual-track runner, <code>PersistentEnvironment</code> integration, and <code>EAE</code> reporting
+remain pending).</p>
+<p>A procedural generator (<code>evaluation.procedural_env_gen</code>) produces held-out world seeds and
+held-out combinations of mechanics. Evaluation is split into two non-interchangeable tracks:</p>
+<ol>
+<li><strong>Persistent-world track:</strong> measures durable growth, world health, type diversity, lineage
+   persistence, adaptation after shocks, and recovery/extinction outcomes over long runs.</li>
+<li><strong>Fresh-world track:</strong> measures action-efficient adaptation with <strong>EvolZen Action Efficiency
+   (EAE)</strong>, inspired by the motivation of RHAE but not presented as an ARC-AGI-3 score unless the
+   official task and protocol are actually used.</li>
+</ol>
+<p>The existing <code>evaluation.rhae_scorer</code> may remain as a compatibility implementation name while its
+public documentation is corrected to distinguish EAE from official RHAE. A structured report
+(<code>evaluation.report.EvaluationReport</code>) has no free-text headline-claim field: every number traces
+to a phase metric, and exposure history, reused-vs-fresh performance, world-growth provenance, and
+failure/extinction events are required fields.</p>
+<p><strong>Success metrics (untested):</strong> both tracks produce reproducible, seed-stratified results; all ablation cells
+are reported; and any human/frontier reference uses matched observations, action space, and time
+budget.</p>
+<h2 id="4-data-architecture">4. Data architecture</h2>
+<p>All cross-subsystem data contracts belong in <code>evolzen.schemas</code>. The map below distinguishes
+currently implemented schema classes from still-planned contracts. Note that
+<code>evolzen.schemas.__init__</code> currently re-exports <code>transition</code>, <code>library</code>, <code>DriveVector</code>, and
+<code>Manual</code>, while <code>schemas.world</code> and <code>schemas.development</code> are currently imported from their
+respective submodules (top-level re-export is an open hardening item).</p>
+<table>
+<thead>
+<tr>
+<th>Schema / Module</th>
+<th>Status</th>
+<th>Introduced</th>
+<th>Consumed by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Transition</code> (<code>State</code>, <code>Action</code>, <code>ExogenousInput</code>, <code>Emission</code>) (<code>schemas/transition.py</code>)</td>
+<td>Implemented (<code>State.data</code> / <code>Emission.data</code> remain untyped <code>dict[str, Any]</code>)</td>
+<td><code>environment</code></td>
+<td><code>exploration</code>, <code>library</code>, <code>predictor</code>, <code>containment</code>, <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>WorldState</code>, <code>WorldSnapshot</code>, <code>GrowthEvent</code>, <code>WorldInvariant</code>, <code>InvariantReport</code>, <code>BranchRecord</code>, <code>InterventionSpec</code>, <code>CapabilityPackage</code>, <code>ActionType</code> (<code>schemas/world.py</code>)</td>
+<td>Implemented (Phase 1.1; not yet re-exported in <code>schemas/__init__.py</code>)</td>
+<td><code>environment</code></td>
+<td><code>economy</code>, <code>exploration</code>, <code>library</code>, <code>containment</code>, <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>RuleEntry</code>, <code>VerificationEvidence</code>, <code>ValidityContext</code>, <code>SupersessionLink</code>, <code>AuditEvent</code>, <code>RegressionResult</code> (<code>schemas/library.py</code>)</td>
+<td>Implemented (Phase 1.5; <code>CapabilityPackage.evidence_id</code> linkage pending Phase 1.4)</td>
+<td><code>library</code></td>
+<td><code>exploration</code>, <code>recognition</code>, <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>BirthGenome</code>, <code>BirthRecord</code>, <code>BrainSnapshot</code>, <code>Candidate</code>, <code>Decision</code>, <code>Outcome</code>, <code>Lesson</code>, <code>SkillEstimate</code>, <code>EvolutionAssessment</code> (<code>schemas/development.py</code>)</td>
+<td>Implemented (Phase 1.2 numerical core; not yet re-exported in <code>schemas/__init__.py</code>)</td>
+<td><code>agents</code></td>
+<td><code>environment</code> (<code>adapter</code>), <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>DriveVector</code>, <code>AgentLineage</code> (<code>schemas/drive_vector.py</code>)</td>
+<td>Implemented (Phase 0 / legacy 5-coordinate path; reconciliation with 8-coordinate <code>development.py</code> pending)</td>
+<td><code>agents</code></td>
+<td><code>economy</code>, <code>predictor</code>, <code>recognition</code>, <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>Manual</code> (<code>schemas/manual.py</code>)</td>
+<td>Implemented schema (<code>ManualEntry</code> also defined in <code>schemas/manual.py</code>, not re-exported in <code>schemas/__init__.py</code>; world-state &amp; store attachment pending Phase 1.3)</td>
+<td><code>economy</code></td>
+<td><code>recognition</code>, <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>AgentProfile</code></td>
+<td><strong>Planned</strong> (not yet defined in <code>evolzen.schemas</code>)</td>
+<td><code>agents</code></td>
+<td><code>environment</code>, <code>economy</code>, <code>predictor</code>, <code>recognition</code>, <code>evaluation</code></td>
+</tr>
+<tr>
+<td><code>ProvenanceRecord</code> (plus <code>ManualEntry</code> provenance/world integration)</td>
+<td><strong>Planned</strong> (<code>ProvenanceRecord</code> not yet defined; <code>ManualEntry</code> exists in <code>schemas/manual.py</code> but lacks provenance/world wiring)</td>
+<td><code>economy</code></td>
+<td><code>recognition</code>, <code>evaluation</code></td>
+</tr>
+</tbody>
+</table>
+<p>Changing any of these is, by construction, a type error everywhere it's used — see
+<a href="../adr/0003-nine-subsystems-not-two-packages/">ADR 0003</a>.</p>
+<h2 id="5-hardware-deployment-architecture">5. Hardware &amp; deployment architecture</h2>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Role</th>
+<th>Subsystems</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AGX Spark</td>
+<td>Agent population inference (Ray-orchestrated, <code>outlines</code>-constrained, optionally <code>vllm</code>-served)</td>
+<td><code>agents</code></td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Persistent environment state/logging, rule library, routing, and sandbox coordinator</td>
+<td><code>environment</code>, <code>economy</code>, <code>exploration</code>, <code>library</code>, <code>containment</code>, <code>recognition</code></td>
+</tr>
+<tr>
+<td>A6000</td>
+<td>Baseline predictor training, recognition experiments, replay maintenance, and hardware pilot measurements</td>
+<td><code>predictor</code>, <code>recognition</code>, <code>evaluation</code></td>
+</tr>
+</tbody>
+</table>
+<p>Nothing in the codebase hard-codes device placement — <code>evolzen.config</code>'s per-subsystem settings
+groups each expose a <code>device</code> field, so the same code runs on a laptop for development and on
+the actual rig for real runs. See <a href="../dependency-stack/"><code>docs/dependency-stack.md</code></a> for base vs.
+<code>gpu</code>-extra dependencies.</p>
+<h3 id="51-hardware-acceptance-gates">5.1 Hardware acceptance gates</h3>
+<p>The topology is a hypothesis until measured on the actual devices. Before population-scale claims,
+record at least:</p>
+<ul>
+<li>model size, quantization, context length, memory use, and tokens/sec per active agent;</li>
+<li>action latency, world ticks/sec, event-log write rate, snapshot size, and replay throughput;</li>
+<li>maximum concurrent sandboxes, startup/teardown latency, resource ceilings, and kill-switch
+  latency;</li>
+<li>predictor/recognition training throughput, replay-buffer size, checkpoint time, and recovery
+  time; and</li>
+<li>storage growth and network bandwidth for a representative persistent-world run.</li>
+</ul>
+<p>The pilot must produce a capacity envelope (agents, ticks, sandboxes, and training cadence) before
+the timeline is treated as a feasibility estimate. “10–30 agents” is an initial research range,
+not a guaranteed throughput target.</p>
+<h2 id="6-security-containment-architecture">6. Security &amp; containment architecture</h2>
+<p>Three binding constraints, enforced structurally:</p>
+<ol>
+<li>No agent-generated code (<code>exploration</code>'s synthesizer output, <code>library</code>'s candidate rules,
+   <code>agents</code>'s self-modification proposals) executes outside <code>evolzen.containment.Sandbox</code> — even
+   during early development with toy code.</li>
+<li>Network egress, filesystem writes, self-modification, and subprocess spawning are each a
+   distinct, individually-grantable <code>Capability</code> (<code>containment.governance</code>), not a single
+   coarse flag.</li>
+<li>Every governance event, capability-package promotion, world-growth event, and kill-switch
+   action is logged and retained. The containment backend is not considered secure merely because
+   it is named Firecracker or gVisor; deployment and threat-model acceptance are required.</li>
+</ol>
+<p>The threat model includes untrusted generated code, network and filesystem access, subprocess and
+syscall abuse, resource exhaustion, log tampering, evaluator contamination, credential exposure,
+sandbox escape, and recovery after a killed or corrupted run. Default-deny static policy is the
+authority; learned or behavior-sensitive governance can only reduce access unless an explicitly
+reviewed policy update grants more.</p>
+<h2 id="7-observability">7. Observability</h2>
+<p><code>evolzen.logging</code> provides one consistently-formatted logger across every subsystem, taggable
+by phase. <code>evolzen.tracking.ExperimentTracker</code> is a pluggable metrics-logging protocol —
+<code>NoOpTracker</code> by default, <code>WandbTracker</code> behind the <code>tracking</code> extra. No subsystem hard-codes a
+specific tracking vendor.</p>
+<h2 id="8-testing-strategy">8. Testing strategy</h2>
+<p><code>tests/</code> mirrors <code>src/evolzen/</code> exactly, subsystem for subsystem. Every stub past
+<code>NotImplementedError</code> needs a real test. Phase 1.1 (<code>tests/environment/</code>,
+<code>tests/schemas/test_world.py</code>, <code>tests/storage/</code>), the Phase 1.2 numerical core
+(<code>tests/agents/development/</code>, <code>tests/schemas/test_development.py</code>), and Phase 1.5 (<code>tests/library/</code>)
+now carry active subsystem unit/integration suites; remaining subsystems hold stub and interface
+tests. Tests touching a <code>gpu</code>-extra-adjacent dependency guard with <code>pytest.importorskip</code> (see
+<code>tests/recognition/test_embedding_router.py</code>) so the base test suite never fails due to an
+optional extra not being installed.</p>
+<h2 id="9-timeline">9. Timeline</h2>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Phase</th>
+<th>Estimate</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>environment</code></td>
+<td>1.1</td>
+<td>5-8 weeks</td>
+<td>Persistent-world contract, replay, growth ledger, snapshots, and hardware pilot.</td>
+</tr>
+<tr>
+<td><code>agents</code></td>
+<td>1.2</td>
+<td>4-6 weeks</td>
+<td>Ontology, QD descriptors, lineage, and population capacity measurements.</td>
+</tr>
+<tr>
+<td><code>economy</code></td>
+<td>1.3</td>
+<td>4-6 weeks</td>
+<td>Markets, institutions, manuals, provenance, and world-health checks.</td>
+</tr>
+<tr>
+<td><code>exploration</code></td>
+<td>1.4</td>
+<td>4-7 weeks</td>
+<td>Sandboxed synthesis plus replay/intervention verification; no unvalidated compression claim.</td>
+</tr>
+<tr>
+<td><code>library</code></td>
+<td>1.5</td>
+<td>3-4 weeks</td>
+<td>Immutable versions, validity context, supersession, and regression bank.</td>
+</tr>
+<tr>
+<td><code>predictor</code></td>
+<td>2.1</td>
+<td>4-6 weeks</td>
+<td>Baseline predictor first, then optional policy-gradient and continual-learning ablations.</td>
+</tr>
+<tr>
+<td><code>containment</code></td>
+<td>2.2</td>
+<td>4-8 weeks</td>
+<td>Interface, backend, and target-host threat-model acceptance; can start early.</td>
+</tr>
+<tr>
+<td><code>recognition</code></td>
+<td>2.3</td>
+<td>8-12 weeks</td>
+<td>JEPA/wake-sleep is a hypothesis; simpler representation baselines are mandatory.</td>
+</tr>
+<tr>
+<td><code>evaluation</code></td>
+<td>2.4-2.5</td>
+<td>6-9 weeks</td>
+<td>Persistent-world and fresh-world tracks, EAE scorer, reports, and reproducibility.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Planning range: ~9-14 months for a tested research prototype; the range is not a claim that the
+full design will fit the lower bound.</strong></p>
+<h2 id="10-extension-points">10. Extension points</h2>
+<ul>
+<li>New world scenarios: implement the <code>Environment</code> protocol and the versioned world-growth
+  contracts; evaluation must declare whether a scenario is persistent-world or fresh-world.</li>
+<li>New <code>evolzen.agents</code> inference backends: implement <code>InferenceBackend</code>.</li>
+<li>New <code>evolzen.containment</code> backends: implement <code>Sandbox</code>.</li>
+<li>New <code>evolzen.recognition</code> routing strategies: implement <code>ExpertRouter</code> — <code>EmbeddingRouter</code> is
+  the reference implementation.</li>
+<li>New experiment-tracking vendors: implement <code>ExperimentTracker</code> (<code>evolzen.tracking</code>).</li>
+</ul>
+<h2 id="11-non-goals-constraints">11. Non-goals / constraints</h2>
+<p>Restated from <a href="../PRD/"><code>PRD.md</code></a> §4 because they bound the architecture as much as any
+functional requirement: no claim of AGI proximity, emotional intelligence, or real-human
+simulation; no scaling beyond the stated three-device hardware; no unrestricted open-ended world
+invention; no attempt to solve, as a project deliverable, the field's open problems this design
+depends on; and no re-fragmentation into multiple packages without a new ADR.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,4553 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox">
+      
+      
+      
+      
+        <link rel="prev" href="../economy/">
+      
+      
+        <link rel="next" href="../library/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>exploration - EvolZen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference-evolzenexploration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="EvolZen" class="md-header__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EvolZen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              exploration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="EvolZen" class="md-nav__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    EvolZen
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Outline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-0-foreground/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase 0 (Foreground)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD & Parallel Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Phases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.1-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.2-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.3-economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.3 Economy & Knowledge Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.4-exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.4 Directed Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.5-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5 Growing Rule Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.1-predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1 Grounded Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.2-containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.2 Verification Gate & Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.3-recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.3 Recognition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.4-2.5-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.4-2.5 Evaluation & Publication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/literature-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/landscape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparative Landscape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/design-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/design-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/docs-and-codebase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docs & Codebase Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/objectives-and-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives & Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subsystem Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Subsystem Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developmental Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developmental Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic Behaviour Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/motivation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motivation Equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle & Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning & Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions (ADRs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0001-single-package-not-workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 One package, not a workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0002-dependency-stack-and-optional-extras/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Dependency stack & optional extras
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0003-nine-subsystems-not-two-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Nine subsystems, not two packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0004-persistent-growing-world/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 Persistent growing world
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0005-transition-semantics-and-dual-track-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 Transition semantics & dual-track evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0006-developmental-eight-drive-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0006 Developmental eight-drive agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0007-library-persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0007 Library persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0008 Convergent learning & planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../foundation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.actor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        actor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.actor.Actor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Actor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Actor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.actor.Actor.choose_probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        choose_probe
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synthesizer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.CandidateRule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CandidateRule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.Synthesizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Synthesizer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Synthesizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.Synthesizer.propose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        propose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.TemplateRuleSynthesizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TemplateRuleSynthesizer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TemplateRuleSynthesizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.TemplateRuleSynthesizer.propose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        propose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verifier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.VerificationReport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VerificationReport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verifier
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verifier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.promote_to_capability_package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        promote_to_capability_package
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.verify_intervention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify_intervention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.verify_with_report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify_with_report
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.build_runner_code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_runner_code
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.actor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        actor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.actor.Actor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Actor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Actor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.actor.Actor.choose_probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        choose_probe
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synthesizer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.CandidateRule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CandidateRule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.Synthesizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Synthesizer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Synthesizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.Synthesizer.propose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        propose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.TemplateRuleSynthesizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TemplateRuleSynthesizer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TemplateRuleSynthesizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.synthesizer.TemplateRuleSynthesizer.propose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        propose
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verifier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.VerificationReport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VerificationReport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verifier
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verifier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.promote_to_capability_package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        promote_to_capability_package
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.verify_intervention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify_intervention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.Verifier.verify_with_report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify_with_report
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzen.exploration.verifier.build_runner_code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_runner_code
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="api-reference-evolzenexploration">API Reference — evolzen.exploration</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="evolzen.exploration.actor"></a>
+    <div class="doc doc-contents first">
+
+        <p>The actor half of the actor/synthesizer/verifier loop (Phase 1.4).</p>
+<p>Steers exploration by <em>ontology error</em> — actively probing whichever agent-type or mechanic the
+current rule library explains worst, rather than passively waiting for the population to
+stumble onto something interesting.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="evolzen.exploration.actor.Actor" class="doc doc-heading">
+            <code>Actor</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Chooses what to probe next, prioritizing high ontology-error regions of the environment.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/evolzen/exploration/actor.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Actor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Chooses what to probe next, prioritizing high ontology-error regions of the environment."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ontology_error_fn</span><span class="p">:</span> <span class="n">OntologyErrorFn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ontology_error_fn</span> <span class="o">=</span> <span class="n">ontology_error_fn</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">choose_probe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">State</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">State</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Pick the candidate state the current rule library explains worst."""</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidate_states</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ontology_error_fn</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.actor.Actor.choose_probe" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">choose_probe</span><span class="p">(</span><span class="n">candidate_states</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Pick the candidate state the current rule library explains worst.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/actor.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">choose_probe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">State</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">State</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Pick the candidate state the current rule library explains worst."""</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidate_states</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ontology_error_fn</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="evolzen.exploration.synthesizer"></a>
+    <div class="doc doc-contents first">
+
+        <p>The synthesizer half of the actor/synthesizer/verifier loop (Phase 1.4).</p>
+<p>Deliberately a thin interface. arXiv:2605.05138 (Executable World Models for ARC-AGI-3 in the
+Era of Coding Agents) shows an off-the-shelf coding-agent harness — wired directly to an
+environment's transition-log API, with a scratch directory to write and test hypothesis code
+in, and the exact-match verifier as its acceptance gate — reaches 58% mean RHAE on public
+ARC-AGI-3 games with zero domain-specific hand-coding. The intended implementation path is to
+satisfy this <code>Synthesizer</code> protocol with a wrapper around such a harness, not to build program
+synthesis from scratch.</p>
+<p>Citations:
+- Romera-Paredes et al. (FunSearch, Nature 2024, DOI: 10.1038/s41586-023-06924-6) for evaluator-gated
+  LLM evolutionary program search;
+- Executable World Models for ARC-AGI-3 (arXiv:2605.05138) for coding-agent hypothesis synthesis;
+- Wang et al. (Voyager, TMLR 2023) for self-verifying code synthesis.</p>
+<p>All synthesized program behaviors remain untested until Phase 1.4 exploration experiments are run.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="evolzen.exploration.synthesizer.CandidateRule" class="doc doc-heading">
+            <code>CandidateRule</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>A synthesizer's hypothesis about how the environment behaves.</p>
+<p><code>code</code> is executable Python implementing a <code>(State, Action, ExogenousInput, seed) -&gt; Emission</code> prediction —
+exactly what <code>evolzen.exploration.verifier.Verifier</code> checks by exact replay under Sandbox isolation.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/evolzen/exploration/synthesizer.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CandidateRule</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A synthesizer's hypothesis about how the environment behaves.</span>
+
+<span class="sd">    `code` is executable Python implementing a `(State, Action, ExogenousInput, seed) -&gt; Emission` prediction —</span>
+<span class="sd">    exactly what `evolzen.exploration.verifier.Verifier` checks by exact replay under Sandbox isolation.</span>
+<span class="sd">    """</span>
+
+    <span class="n">rule_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">explains</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># transition_ids this rule was synthesized to explain</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="evolzen.exploration.synthesizer.Synthesizer" class="doc doc-heading">
+            <code>Synthesizer</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
+
+
+
+        <p>Protocol satisfied by either a bespoke synthesizer or a coding-agent-harness wrapper.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/evolzen/exploration/synthesizer.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Synthesizer</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Protocol satisfied by either a bespoke synthesizer or a coding-agent-harness wrapper."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">propose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observed_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CandidateRule</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Propose a candidate rule explaining the given transitions."""</span>
+        <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.synthesizer.Synthesizer.propose" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">propose</span><span class="p">(</span><span class="n">observed_transitions</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Propose a candidate rule explaining the given transitions.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/synthesizer.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">propose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observed_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CandidateRule</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Propose a candidate rule explaining the given transitions."""</span>
+    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="evolzen.exploration.synthesizer.TemplateRuleSynthesizer" class="doc doc-heading">
+            <code>TemplateRuleSynthesizer</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Deterministic rule synthesizer generating executable Python prediction functions from observed transitions.</p>
+<p>Analyzes observed transitions and synthesizes Python code predicting action emissions,
+designed to be verified under Sandbox isolation before promotion to RuleLibrary.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/evolzen/exploration/synthesizer.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TemplateRuleSynthesizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Deterministic rule synthesizer generating executable Python prediction functions from observed transitions.</span>
+
+<span class="sd">    Analyzes observed transitions and synthesizes Python code predicting action emissions,</span>
+<span class="sd">    designed to be verified under Sandbox isolation before promotion to RuleLibrary.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"rule"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rule_prefix</span> <span class="o">=</span> <span class="n">rule_prefix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">propose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observed_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CandidateRule</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Propose an executable CandidateRule explaining the given transitions."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">observed_transitions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Cannot synthesize rule from empty transitions"</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">rule_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rule_prefix</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_counter</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">t_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">transition_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">observed_transitions</span><span class="p">]</span>
+
+        <span class="n">first_emission</span> <span class="o">=</span> <span class="n">observed_transitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">all_same</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">first_emission</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">observed_transitions</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">all_same</span><span class="p">:</span>
+            <span class="n">emission_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">first_emission</span><span class="p">)</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"def predict(state, action, ex_input=None, seed=None):</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"    return </span><span class="se">{{\"</span><span class="s2">emission</span><span class="se">\"</span><span class="s2">: </span><span class="si">{</span><span class="n">emission_json</span><span class="si">}</span><span class="se">}}\n</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">observed_transitions</span><span class="p">:</span>
+                <span class="n">mapping</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">action_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">mapping_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"def predict(state, action, ex_input=None, seed=None):</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"    action_type = action.get('action_type', '')</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"    mapping = </span><span class="si">{</span><span class="n">mapping_json</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"    if action_type in mapping:</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"        return </span><span class="se">{{\"</span><span class="s2">emission</span><span class="se">\"</span><span class="s2">: mapping[action_type]</span><span class="se">}}\n</span><span class="s2">"</span>
+                <span class="sa">f</span><span class="s2">"    return </span><span class="se">{{\"</span><span class="s2">emission</span><span class="se">\"</span><span class="s2">: </span><span class="se">{{}}}}\n</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">CandidateRule</span><span class="p">(</span><span class="n">rule_id</span><span class="o">=</span><span class="n">rule_id</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">explains</span><span class="o">=</span><span class="n">t_ids</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.synthesizer.TemplateRuleSynthesizer.propose" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">propose</span><span class="p">(</span><span class="n">observed_transitions</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Propose an executable CandidateRule explaining the given transitions.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/synthesizer.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">propose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observed_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CandidateRule</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Propose an executable CandidateRule explaining the given transitions."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">observed_transitions</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Cannot synthesize rule from empty transitions"</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">rule_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rule_prefix</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_counter</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">t_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">transition_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">observed_transitions</span><span class="p">]</span>
+
+    <span class="n">first_emission</span> <span class="o">=</span> <span class="n">observed_transitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">all_same</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="n">first_emission</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">observed_transitions</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">all_same</span><span class="p">:</span>
+        <span class="n">emission_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">first_emission</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"def predict(state, action, ex_input=None, seed=None):</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"    return </span><span class="se">{{\"</span><span class="s2">emission</span><span class="se">\"</span><span class="s2">: </span><span class="si">{</span><span class="n">emission_json</span><span class="si">}</span><span class="se">}}\n</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">observed_transitions</span><span class="p">:</span>
+            <span class="n">mapping</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">action_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">mapping_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"def predict(state, action, ex_input=None, seed=None):</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"    action_type = action.get('action_type', '')</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"    mapping = </span><span class="si">{</span><span class="n">mapping_json</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"    if action_type in mapping:</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"        return </span><span class="se">{{\"</span><span class="s2">emission</span><span class="se">\"</span><span class="s2">: mapping[action_type]</span><span class="se">}}\n</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"    return </span><span class="se">{{\"</span><span class="s2">emission</span><span class="se">\"</span><span class="s2">: </span><span class="se">{{}}}}\n</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">CandidateRule</span><span class="p">(</span><span class="n">rule_id</span><span class="o">=</span><span class="n">rule_id</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">explains</span><span class="o">=</span><span class="n">t_ids</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="evolzen.exploration.verifier"></a>
+    <div class="doc doc-contents first">
+
+        <p>The verifier half of the actor/synthesizer/verifier loop (Phase 1.4).</p>
+<p>Adopts the exact-match falsifiability standard: a candidate rule is promoted only if it
+reproduces recorded transitions exactly, passes counterfactual intervention checks, and executes
+within declared resource bounds strictly inside <code>evolzen.containment.Sandbox</code>.</p>
+<p>Citations:
+- Romera-Paredes et al. (FunSearch, Nature 2024, DOI: 10.1038/s41586-023-06924-6)
+  for evaluator-gated evolutionary program verification;
+- Executable World Models for ARC-AGI-3 (arXiv:2605.05138) for exact replay verification;
+- Agache et al. (Firecracker, USENIX NSDI 2020) and Sidik &amp; Rokach (arXiv:2604.11839)
+  for fail-closed sandbox containment.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="evolzen.exploration.verifier.VerificationReport" class="doc doc-heading">
+            <code>VerificationReport</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Detailed summary of candidate rule verification results.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">VerificationReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Detailed summary of candidate rule verification results."""</span>
+
+    <span class="n">rule_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">passed</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">transitions_tested</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">exact_matches</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">mismatches</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">timeouts</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">resource_ceiling_hits</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">execution_errors</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">verified_replay</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">verified_intervention</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">verified_containment</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">details</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="evolzen.exploration.verifier.Verifier" class="doc doc-heading">
+            <code>Verifier</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Checks CandidateRule hypotheses against recorded transitions and interventions under Sandbox isolation.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Verifier</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Checks CandidateRule hypotheses against recorded transitions and interventions under Sandbox isolation."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sandbox</span><span class="p">:</span> <span class="n">Sandbox</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">timeout_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">resource_ceiling_mb</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">check_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sandbox</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sandbox</span> <span class="o">=</span> <span class="n">sandbox</span>
+        <span class="k">elif</span> <span class="n">is_gvisor_available</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sandbox</span> <span class="o">=</span> <span class="n">GVisorSandbox</span><span class="p">(</span>
+                <span class="n">default_timeout_seconds</span><span class="o">=</span><span class="n">timeout_seconds</span><span class="p">,</span>
+                <span class="n">default_resource_ceiling_mb</span><span class="o">=</span><span class="n">resource_ceiling_mb</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">"No Sandbox instance provided and gVisor (runsc) is not available on this host. "</span>
+                <span class="s2">"Per AGENTS.md safety constraint #1, untrusted code cannot execute outside a Sandbox. "</span>
+                <span class="s2">"Provide an explicit Sandbox implementation (e.g. MockSandbox in tests)."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span> <span class="o">=</span> <span class="n">timeout_seconds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resource_ceiling_mb</span> <span class="o">=</span> <span class="n">resource_ceiling_mb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_next_state</span> <span class="o">=</span> <span class="n">check_next_state</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return True only if `rule` exactly reproduces every transition in held_out_transitions."""</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_with_report</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_with_report</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span>
+        <span class="n">held_out_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationReport</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Run sandboxed replay against held_out_transitions and produce a detailed report."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">held_out_transitions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">VerificationReport</span><span class="p">(</span>
+                <span class="n">rule_id</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="p">,</span>
+                <span class="n">passed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">transitions_tested</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">exact_matches</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">mismatches</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">timeouts</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">resource_ceiling_hits</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">execution_errors</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">verified_replay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">verified_intervention</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">verified_containment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">(</span><span class="s2">"Empty transition set cannot satisfy exact-match verification"</span><span class="p">,),</span>
+            <span class="p">)</span>
+
+        <span class="n">runner_code</span> <span class="o">=</span> <span class="n">build_runner_code</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+        <span class="n">exact_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mismatches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">timeouts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">resource_hits</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">execution_errors</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">details</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">trans</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">held_out_transitions</span><span class="p">):</span>
+            <span class="n">input_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"state"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"agent_id"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">agent_id</span><span class="p">,</span>
+                    <span class="s2">"action_type"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">action_type</span><span class="p">,</span>
+                    <span class="s2">"params"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">"exogenous_input"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"tick"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">exogenous_input</span><span class="o">.</span><span class="n">tick</span><span class="p">,</span>
+                    <span class="s2">"events"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">exogenous_input</span><span class="o">.</span><span class="n">events</span><span class="p">),</span>
+                    <span class="s2">"metadata"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">exogenous_input</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">"seed"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="p">}</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sandbox</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="n">runner_code</span><span class="p">,</span>
+                <span class="n">timeout_seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span><span class="p">,</span>
+                <span class="n">resource_ceiling_mb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resource_ceiling_mb</span><span class="p">,</span>
+                <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">resource_ceiling_hit</span><span class="p">:</span>
+                <span class="n">resource_hits</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): resource ceiling hit"</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">==</span> <span class="mi">124</span> <span class="ow">or</span> <span class="s2">"timed out"</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">timeouts</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): timed out"</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">is_success</span><span class="p">:</span>
+                <span class="n">execution_errors</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): exit </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">exit_code</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">strip</span><span class="p">()[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">pred_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_json_output</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">pred_output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">execution_errors</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): failed to parse structured JSON output"</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">pred_emission</span> <span class="o">=</span> <span class="n">pred_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"emission"</span><span class="p">,</span> <span class="n">pred_output</span><span class="p">)</span>
+            <span class="n">emission_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_emission</span> <span class="o">==</span> <span class="n">trans</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="n">state_match</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_next_state</span><span class="p">:</span>
+                <span class="n">pred_next_state</span> <span class="o">=</span> <span class="n">pred_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"next_state"</span><span class="p">)</span>
+                <span class="n">state_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_next_state</span> <span class="o">==</span> <span class="n">trans</span><span class="o">.</span><span class="n">next_state</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">emission_match</span> <span class="ow">and</span> <span class="n">state_match</span><span class="p">:</span>
+                <span class="n">exact_matches</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">diff_reason</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"emission mismatch (pred=</span><span class="si">{</span><span class="n">pred_emission</span><span class="si">}</span><span class="s2">, actual=</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s2">)"</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">emission_match</span>
+                    <span class="k">else</span> <span class="s2">"next_state mismatch"</span>
+                <span class="p">)</span>
+                <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">diff_reason</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="n">all_matched</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">exact_matches</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">held_out_transitions</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">mismatches</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="n">timeouts</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="n">resource_hits</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="n">execution_errors</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">VerificationReport</span><span class="p">(</span>
+            <span class="n">rule_id</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="p">,</span>
+            <span class="n">passed</span><span class="o">=</span><span class="n">all_matched</span><span class="p">,</span>
+            <span class="n">transitions_tested</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">held_out_transitions</span><span class="p">),</span>
+            <span class="n">exact_matches</span><span class="o">=</span><span class="n">exact_matches</span><span class="p">,</span>
+            <span class="n">mismatches</span><span class="o">=</span><span class="n">mismatches</span><span class="p">,</span>
+            <span class="n">timeouts</span><span class="o">=</span><span class="n">timeouts</span><span class="p">,</span>
+            <span class="n">resource_ceiling_hits</span><span class="o">=</span><span class="n">resource_hits</span><span class="p">,</span>
+            <span class="n">execution_errors</span><span class="o">=</span><span class="n">execution_errors</span><span class="p">,</span>
+            <span class="n">verified_replay</span><span class="o">=</span><span class="n">all_matched</span><span class="p">,</span>
+            <span class="n">verified_intervention</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">verified_containment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">details</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_intervention</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span>
+        <span class="n">engine</span><span class="p">:</span> <span class="n">SocialSandboxEngine</span><span class="p">,</span>
+        <span class="n">base_state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span>
+        <span class="n">intervention_action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">exogenous_input</span><span class="p">:</span> <span class="n">ExogenousInput</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Verify that rule accurately predicts counterfactual outcome of a controlled intervention."""</span>
+        <span class="n">counterfactual_trans</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+            <span class="n">base_state</span><span class="p">,</span>
+            <span class="n">intervention_action</span><span class="p">,</span>
+            <span class="n">exogenous_input</span><span class="o">=</span><span class="n">exogenous_input</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">[</span><span class="n">counterfactual_trans</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">promote_to_capability_package</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span>
+        <span class="n">held_out_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">engine</span><span class="p">:</span> <span class="n">SocialSandboxEngine</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">base_state</span><span class="p">:</span> <span class="n">State</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">intervention_action</span><span class="p">:</span> <span class="n">Action</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"verified_rule"</span><span class="p">,</span>
+        <span class="n">action_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ActionType</span><span class="o">.</span><span class="n">CRAFT</span><span class="p">,</span>
+        <span class="n">required_resources</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">min_age</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">evidence_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CapabilityPackage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Promote a candidate rule to a verified CapabilityPackage if all verification gates pass."""</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_with_report</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">verified_intervention</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">base_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">intervention_action</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">verified_intervention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_intervention</span><span class="p">(</span>
+                <span class="n">rule</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">base_state</span><span class="p">,</span> <span class="n">intervention_action</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">verified_intervention</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">verified_intervention</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">resolved_evidence</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">evidence_id</span>
+            <span class="k">if</span> <span class="n">evidence_id</span>
+            <span class="k">else</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">code</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">CapabilityPackage</span><span class="p">(</span>
+            <span class="n">package_id</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="s2">"1.0.0"</span><span class="p">,</span>
+            <span class="n">action_type</span><span class="o">=</span><span class="n">action_type</span><span class="p">,</span>
+            <span class="n">required_resources</span><span class="o">=</span><span class="n">required_resources</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="n">output_kind</span><span class="o">=</span><span class="n">output_kind</span><span class="p">,</span>
+            <span class="n">min_age</span><span class="o">=</span><span class="n">min_age</span><span class="p">,</span>
+            <span class="n">evidence_id</span><span class="o">=</span><span class="n">resolved_evidence</span><span class="p">,</span>
+            <span class="n">verified_replay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">verified_intervention</span><span class="o">=</span><span class="n">verified_intervention</span><span class="p">,</span>
+            <span class="n">verified_containment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.verifier.Verifier.promote_to_capability_package" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">promote_to_capability_package</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">base_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intervention_action</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_kind</span><span class="o">=</span><span class="s1">'verified_rule'</span><span class="p">,</span> <span class="n">action_type</span><span class="o">=</span><span class="n">ActionType</span><span class="o">.</span><span class="n">CRAFT</span><span class="p">,</span> <span class="n">required_resources</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_age</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">evidence_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Promote a candidate rule to a verified CapabilityPackage if all verification gates pass.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">promote_to_capability_package</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span>
+    <span class="n">held_out_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">SocialSandboxEngine</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">base_state</span><span class="p">:</span> <span class="n">State</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">intervention_action</span><span class="p">:</span> <span class="n">Action</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"verified_rule"</span><span class="p">,</span>
+    <span class="n">action_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ActionType</span><span class="o">.</span><span class="n">CRAFT</span><span class="p">,</span>
+    <span class="n">required_resources</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_age</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">evidence_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CapabilityPackage</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Promote a candidate rule to a verified CapabilityPackage if all verification gates pass."""</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_with_report</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">verified_intervention</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">base_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">intervention_action</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">verified_intervention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_intervention</span><span class="p">(</span>
+            <span class="n">rule</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">base_state</span><span class="p">,</span> <span class="n">intervention_action</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verified_intervention</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verified_intervention</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">resolved_evidence</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evidence_id</span>
+        <span class="k">if</span> <span class="n">evidence_id</span>
+        <span class="k">else</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">rule</span><span class="o">.</span><span class="n">code</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">CapabilityPackage</span><span class="p">(</span>
+        <span class="n">package_id</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="s2">"1.0.0"</span><span class="p">,</span>
+        <span class="n">action_type</span><span class="o">=</span><span class="n">action_type</span><span class="p">,</span>
+        <span class="n">required_resources</span><span class="o">=</span><span class="n">required_resources</span> <span class="ow">or</span> <span class="p">{},</span>
+        <span class="n">output_kind</span><span class="o">=</span><span class="n">output_kind</span><span class="p">,</span>
+        <span class="n">min_age</span><span class="o">=</span><span class="n">min_age</span><span class="p">,</span>
+        <span class="n">evidence_id</span><span class="o">=</span><span class="n">resolved_evidence</span><span class="p">,</span>
+        <span class="n">verified_replay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">verified_intervention</span><span class="o">=</span><span class="n">verified_intervention</span><span class="p">,</span>
+        <span class="n">verified_containment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.verifier.Verifier.verify" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">verify</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return True only if <code>rule</code> exactly reproduces every transition in held_out_transitions.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return True only if `rule` exactly reproduces every transition in held_out_transitions."""</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_with_report</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">report</span><span class="o">.</span><span class="n">passed</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.verifier.Verifier.verify_intervention" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">verify_intervention</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">base_state</span><span class="p">,</span> <span class="n">intervention_action</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">exogenous_input</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Verify that rule accurately predicts counterfactual outcome of a controlled intervention.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">verify_intervention</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">SocialSandboxEngine</span><span class="p">,</span>
+    <span class="n">base_state</span><span class="p">:</span> <span class="n">State</span><span class="p">,</span>
+    <span class="n">intervention_action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">exogenous_input</span><span class="p">:</span> <span class="n">ExogenousInput</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Verify that rule accurately predicts counterfactual outcome of a controlled intervention."""</span>
+    <span class="n">counterfactual_trans</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+        <span class="n">base_state</span><span class="p">,</span>
+        <span class="n">intervention_action</span><span class="p">,</span>
+        <span class="n">exogenous_input</span><span class="o">=</span><span class="n">exogenous_input</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="p">[</span><span class="n">counterfactual_trans</span><span class="p">])</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="evolzen.exploration.verifier.Verifier.verify_with_report" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">verify_with_report</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">held_out_transitions</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run sandboxed replay against held_out_transitions and produce a detailed report.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">verify_with_report</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">rule</span><span class="p">:</span> <span class="n">CandidateRule</span><span class="p">,</span>
+    <span class="n">held_out_transitions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transition</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Run sandboxed replay against held_out_transitions and produce a detailed report."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">held_out_transitions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">VerificationReport</span><span class="p">(</span>
+            <span class="n">rule_id</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="p">,</span>
+            <span class="n">passed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">transitions_tested</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">exact_matches</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">mismatches</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">timeouts</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">resource_ceiling_hits</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">execution_errors</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">verified_replay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">verified_intervention</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">verified_containment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">(</span><span class="s2">"Empty transition set cannot satisfy exact-match verification"</span><span class="p">,),</span>
+        <span class="p">)</span>
+
+    <span class="n">runner_code</span> <span class="o">=</span> <span class="n">build_runner_code</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">exact_matches</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">mismatches</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">timeouts</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">resource_hits</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">execution_errors</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">details</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">trans</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">held_out_transitions</span><span class="p">):</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"state"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="s2">"action"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"agent_id"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">agent_id</span><span class="p">,</span>
+                <span class="s2">"action_type"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">action_type</span><span class="p">,</span>
+                <span class="s2">"params"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"exogenous_input"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"tick"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">exogenous_input</span><span class="o">.</span><span class="n">tick</span><span class="p">,</span>
+                <span class="s2">"events"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">trans</span><span class="o">.</span><span class="n">exogenous_input</span><span class="o">.</span><span class="n">events</span><span class="p">),</span>
+                <span class="s2">"metadata"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">exogenous_input</span><span class="o">.</span><span class="n">metadata</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"seed"</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sandbox</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">runner_code</span><span class="p">,</span>
+            <span class="n">timeout_seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_seconds</span><span class="p">,</span>
+            <span class="n">resource_ceiling_mb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resource_ceiling_mb</span><span class="p">,</span>
+            <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">resource_ceiling_hit</span><span class="p">:</span>
+            <span class="n">resource_hits</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): resource ceiling hit"</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">exit_code</span> <span class="o">==</span> <span class="mi">124</span> <span class="ow">or</span> <span class="s2">"timed out"</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">timeouts</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): timed out"</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">is_success</span><span class="p">:</span>
+            <span class="n">execution_errors</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): exit </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">exit_code</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">strip</span><span class="p">()[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">pred_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_json_output</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pred_output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">execution_errors</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): failed to parse structured JSON output"</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">pred_emission</span> <span class="o">=</span> <span class="n">pred_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"emission"</span><span class="p">,</span> <span class="n">pred_output</span><span class="p">)</span>
+        <span class="n">emission_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_emission</span> <span class="o">==</span> <span class="n">trans</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">state_match</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_next_state</span><span class="p">:</span>
+            <span class="n">pred_next_state</span> <span class="o">=</span> <span class="n">pred_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"next_state"</span><span class="p">)</span>
+            <span class="n">state_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_next_state</span> <span class="o">==</span> <span class="n">trans</span><span class="o">.</span><span class="n">next_state</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">emission_match</span> <span class="ow">and</span> <span class="n">state_match</span><span class="p">:</span>
+            <span class="n">exact_matches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mismatches</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">diff_reason</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"emission mismatch (pred=</span><span class="si">{</span><span class="n">pred_emission</span><span class="si">}</span><span class="s2">, actual=</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">emission_match</span>
+                <span class="k">else</span> <span class="s2">"next_state mismatch"</span>
+            <span class="p">)</span>
+            <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transition </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">transition_id</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">diff_reason</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="n">all_matched</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">exact_matches</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">held_out_transitions</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">mismatches</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="ow">and</span> <span class="n">timeouts</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="ow">and</span> <span class="n">resource_hits</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="ow">and</span> <span class="n">execution_errors</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">VerificationReport</span><span class="p">(</span>
+        <span class="n">rule_id</span><span class="o">=</span><span class="n">rule</span><span class="o">.</span><span class="n">rule_id</span><span class="p">,</span>
+        <span class="n">passed</span><span class="o">=</span><span class="n">all_matched</span><span class="p">,</span>
+        <span class="n">transitions_tested</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">held_out_transitions</span><span class="p">),</span>
+        <span class="n">exact_matches</span><span class="o">=</span><span class="n">exact_matches</span><span class="p">,</span>
+        <span class="n">mismatches</span><span class="o">=</span><span class="n">mismatches</span><span class="p">,</span>
+        <span class="n">timeouts</span><span class="o">=</span><span class="n">timeouts</span><span class="p">,</span>
+        <span class="n">resource_ceiling_hits</span><span class="o">=</span><span class="n">resource_hits</span><span class="p">,</span>
+        <span class="n">execution_errors</span><span class="o">=</span><span class="n">execution_errors</span><span class="p">,</span>
+        <span class="n">verified_replay</span><span class="o">=</span><span class="n">all_matched</span><span class="p">,</span>
+        <span class="n">verified_intervention</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">verified_containment</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">details</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">details</span><span class="p">),</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="evolzen.exploration.verifier.build_runner_code" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_runner_code</span><span class="p">(</span><span class="n">rule_code</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Wrap candidate rule code with a JSON I/O execution harness for Sandbox execution.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/evolzen/exploration/verifier.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">build_runner_code</span><span class="p">(</span><span class="n">rule_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Wrap candidate rule code with a JSON I/O execution harness for Sandbox execution."""</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"""import json</span>
+
+<span class="si">{</span><span class="n">rule_code</span><span class="si">}</span>
+
+<span class="s2">raw_state = input_data.get("state", </span><span class="se">{{}}</span><span class="s2">)</span>
+<span class="s2">raw_action = input_data.get("action", </span><span class="se">{{}}</span><span class="s2">)</span>
+<span class="s2">raw_exog = input_data.get("exogenous_input", </span><span class="se">{{}}</span><span class="s2">)</span>
+<span class="s2">raw_seed = input_data.get("seed", 0)</span>
+
+<span class="s2">if "predict" in globals() and callable(globals()["predict"]):</span>
+<span class="s2">    try:</span>
+<span class="s2">        res = predict(raw_state, raw_action, raw_exog, raw_seed)</span>
+<span class="s2">    except TypeError:</span>
+<span class="s2">        res = predict(raw_state, raw_action)</span>
+<span class="s2">else:</span>
+<span class="s2">    res = globals().get("output", </span><span class="se">{{}}</span><span class="s2">)</span>
+
+<span class="s2">print(json.dumps(res))</span>
+<span class="s2">"""</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

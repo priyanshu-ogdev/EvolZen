@@ -1,0 +1,2768 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox">
+      
+      
+      
+      
+        <link rel="prev" href="../../ci-cd/">
+      
+      
+        <link rel="next" href="../1.2-agents/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>1.1 Environment Engine - EvolZen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#phase-11-environment-engine" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="EvolZen" class="md-header__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EvolZen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              1.1 Environment Engine
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="EvolZen" class="md-nav__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    EvolZen
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Outline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-0-foreground/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase 0 (Foreground)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD & Parallel Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Phases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Citations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#programmatic-world-models-verifiable-state-transitions-20252026-sota" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Programmatic World Models &amp; Verifiable State Transitions (2025–2026 SOTA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formal-transition-systems-discrete-event-simulation-verification-peer-reviewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formal Transition Systems, Discrete-Event Simulation &amp; Verification (Peer-Reviewed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-agent-interaction-sequential-social-dilemmas-social-sandboxes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Agent Interaction, Sequential Social Dilemmas &amp; Social Sandboxes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedural-stratification-contrastive-safety-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedural Stratification &amp; Contrastive Safety Boundaries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-foundations-19842010s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Foundations (1984–2010s)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase-progress-match-hardening-backlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase progress match &amp; hardening backlog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.2-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.3-economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.3 Economy & Knowledge Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.4-exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.4 Directed Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.5-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5 Growing Rule Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.1-predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1 Grounded Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.2-containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.2 Verification Gate & Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.3-recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.3 Recognition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.4-2.5-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.4-2.5 Evaluation & Publication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/literature-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/landscape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparative Landscape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/design-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/design-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/docs-and-codebase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docs & Codebase Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/objectives-and-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives & Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subsystem Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Subsystem Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developmental Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developmental Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic Behaviour Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/motivation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motivation Equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle & Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning & Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions (ADRs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0001-single-package-not-workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 One package, not a workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0002-dependency-stack-and-optional-extras/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Dependency stack & optional extras
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0003-nine-subsystems-not-two-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Nine subsystems, not two packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0004-persistent-growing-world/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 Persistent growing world
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0005-transition-semantics-and-dual-track-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 Transition semantics & dual-track evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0006-developmental-eight-drive-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0006 Developmental eight-drive agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0007-library-persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0007 Library persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0008 Convergent learning & planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/foundation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Citations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#programmatic-world-models-verifiable-state-transitions-20252026-sota" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Programmatic World Models &amp; Verifiable State Transitions (2025–2026 SOTA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#formal-transition-systems-discrete-event-simulation-verification-peer-reviewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formal Transition Systems, Discrete-Event Simulation &amp; Verification (Peer-Reviewed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-agent-interaction-sequential-social-dilemmas-social-sandboxes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Agent Interaction, Sequential Social Dilemmas &amp; Social Sandboxes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procedural-stratification-contrastive-safety-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedural Stratification &amp; Contrastive Safety Boundaries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-foundations-19842010s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy Foundations (1984–2010s)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase-progress-match-hardening-backlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase progress match &amp; hardening backlog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="phase-11-environment-engine">Phase 1.1 — Environment Engine</h1>
+<p><strong>Subsystem:</strong> <code>evolzen.environment</code>
+<strong>Code:</strong> <code>src/evolzen/environment/</code></p>
+<h2 id="goal">Goal</h2>
+<p>Build the first persistent, event-sourced, discrete social sandbox for EvolZen. The world must
+support agents, locations/resources, artifacts/capabilities, contracts/markets, institutions,
+norms/beliefs/manuals, and exogenous events. Its normative transition contract is:</p>
+<pre><code class="language-text">(state_t, action_t, exogenous_input_t, seed) -&gt; (emission_t, state_{t+1})
+</code></pre>
+<p>For a fixed complete input record, transitions are deterministic and replayable. The Phase 0
+module name <code>moore_machine.py</code> is retained for compatibility, but the project uses the more precise
+term <strong>seeded, typed interactive transition system</strong>. Exact replay is a mechanistic verification
+property, not proof that a causal graph or human intent has been identified.</p>
+<p>The first world is deliberately smaller than the original voxel proposal: a persistent graph/grid
+of locations, resources, agents, contracts, institutions, norms, and typed capability packages.
+Negotiation, markets, and code-with-tests are mechanisms or evaluation slices inside this world,
+not alternative definitions of the world.</p>
+<h2 id="what-you-build">What you build</h2>
+<ul>
+<li>versioned <code>WorldSnapshot</code> records and append-only event logs;</li>
+<li>explicit exogenous-input records and seeded randomness;</li>
+<li>a growth ledger attributing each durable change to an endogenous process, agent action, or
+  declared exogenous input;</li>
+<li>snapshot, branch, restore, and replay operations;</li>
+<li>world invariants for conservation, bounded resources, valid ownership, and action legality; and</li>
+<li>a minimal intervention interface for changing one declared variable or withholding one action.</li>
+</ul>
+<h2 id="success-metric">Success metric</h2>
+<p>Replay reproduces every emission and next state from the complete logged input. A long run produces
+durable growth in at least three allowed categories (for example artifacts, institutions, and
+roles), survives a declared environmental shock, and does not require evaluator-injected milestone
+events. Hidden mutable state is a failure.</p>
+<h2 id="citations">Citations</h2>
+<h3 id="programmatic-world-models-verifiable-state-transitions-20252026-sota">Programmatic World Models &amp; Verifiable State Transitions (2025–2026 SOTA)</h3>
+<ul>
+<li><strong>Tycho</strong> (<code>arXiv:2607.28287</code>, <code>tycho2026</code>, Lehmann, Aioanei &amp; Vahdati, 2026): active abstraction and deterministic replay verification for discrete interactive transition systems formulated as parameterized Moore machines $\mathcal{M}<em>\theta^\ell = (S, A, s_0^\ell, \delta</em>\theta, q_\theta, \varepsilon_\theta)$.</li>
+<li><strong>OPINE-World</strong> (<code>arXiv:2607.01531</code>, <code>opineworld2026</code>, Courtis, Li &amp; Sanner, Univ of Toronto, 2026): programmatic world modeling with ontology-error-prioritized interactive exploration over typed, object-centric entity representations.</li>
+<li><strong>Executable World Models</strong> (<code>arXiv:2605.05138</code>, <code>executableworldmodels2026</code>, Rodionov, 2026): executable code world-model representations evaluated by exact replay against recorded transitions and verified with minimal description length (MDL) refactoring.</li>
+</ul>
+<h3 id="formal-transition-systems-discrete-event-simulation-verification-peer-reviewed">Formal Transition Systems, Discrete-Event Simulation &amp; Verification (Peer-Reviewed)</h3>
+<ul>
+<li><strong>MCMAS Verification</strong> (<code>lomuscio2017mcmas</code>, Lomuscio, Qu &amp; Raimondi, Springer STTT 2017, <code>10.1007/s10009-015-0378-x</code>): formal model checking and invariant verification over discrete multi-agent state transition systems.</li>
+<li><strong>Environment as First-Class Abstraction</strong> (<code>weyns2007environment</code>, Weyns, Omicini &amp; Odell, Springer JAAMAS 2007, <code>10.1007/s10458-006-0012-0</code>): establishes the environment as the authoritative programmatic arbiter of perception, action legality, and physical/conservation laws.</li>
+<li><strong>DEVS Discrete Event Formalism</strong> (<code>zeigler2000simulation</code>, Zeigler, Praehofer &amp; Kim, Academic Press / Elsevier 2000): Discrete Event System Specification formal contract for discrete state transitions $\delta$ and output emissions $\lambda = e_t$.</li>
+<li><strong>Trustworthy Provenance &amp; Audit Trails</strong> (<code>li2022trustworthy</code>, Li et al., ACM Computing Surveys 2022, <code>10.1145/3555803</code>): cryptographic provenance, audit trails, and reproducible simulation logs for verifiable agent claims.</li>
+</ul>
+<h3 id="multi-agent-interaction-sequential-social-dilemmas-social-sandboxes">Multi-Agent Interaction, Sequential Social Dilemmas &amp; Social Sandboxes</h3>
+<ul>
+<li><strong>Concordia</strong> (<code>arXiv:2312.03664</code>, <code>vezhnevets2023concordia</code>, Vezhnevets et al., Google DeepMind, 2023): generative agent-based modeling grounded by Game Master spatial and social mediation, establishing the precedent for typed social sandboxes.</li>
+<li><strong>Melting Pot 2.0</strong> (<code>arXiv:2211.13746</code>, <code>agapiou2023meltingpot</code>, Agapiou et al., NeurIPS 2023): multi-agent social dilemma evaluation suite measuring cooperation, free-riding, and resource sustainability across mixed populations.</li>
+<li><strong>Sequential Social Dilemmas</strong> (<code>arXiv:1702.03037</code>, <code>leibo2017ssd</code>, Leibo, Zambaldi, Lanctot, Marecki &amp; Graepel, AAMAS 2017): temporally and spatially extended Markov games with non-linear resource renewal dynamics, moving beyond static normal-form matrix games.</li>
+<li><strong>The AI Economist</strong> (<code>arXiv:2108.02755</code>, <code>zheng2022aieconomist</code>, Zheng, Trott, Srinivasa, Parkes &amp; Socher, Science Advances 2022, <code>10.1126/sciadv.abk2607</code>): two-level reinforcement learning in dynamic economic sandboxes with taxation, property rights, and public goods.</li>
+<li><strong>Stratego Multi-Agent Equilibrium</strong> (<code>perolat2022stratego</code>, Pérolat et al., Science 2022, <code>10.1126/science.add4679</code>): deep Nash equilibrium convergence under imperfect information and private state.</li>
+<li><strong>Diplomacy &amp; Contractual Reasoning</strong> (<code>brown2022diplomacy</code>, Meta FAIR Diplomacy Team, Science 2022, <code>10.1126/science.ade9064</code>): natural language communication coordinated with formal game transition engines and binding contracts.</li>
+<li><strong>PettingZoo</strong> (<code>arXiv:2009.14471</code>, <code>pettingzoo2021</code>, Terry et al., NeurIPS 2021): standard Agent Environment Cycle (AEC) multi-agent interaction API wrapped by <code>SocialSandboxAECEnv</code>.</li>
+</ul>
+<h3 id="procedural-stratification-contrastive-safety-boundaries">Procedural Stratification &amp; Contrastive Safety Boundaries</h3>
+<ul>
+<li><strong>Procgen</strong> (<code>arXiv:1912.01588</code>, <code>procgen2020</code>, Cobbe et al., ICML 2020): seed-stratified procedural generation measuring generalisation across held-out seeds rather than environment memorization.</li>
+<li><strong>OMNI-EPIC</strong> (<code>arXiv:2405.15568</code>, <code>omniepic2024</code>, Faldor, Zhang, Cully &amp; Clune, ICLR 2025): <strong>contrastive boundary</strong> — unlike OMNI-EPIC's unconstrained foundation-model code generation of new game environments, EvolZen explicitly <strong>rejects</strong> unconstrained engine mutation in favor of bounded, versioned <code>CapabilityPackage</code> records gated by replay, intervention, and containment checks.</li>
+</ul>
+<h3 id="legacy-foundations-19842010s">Legacy Foundations (1984–2010s)</h3>
+<ul>
+<li><strong>Sugarscape</strong> (<code>epstein1996sugarscape</code>, Epstein &amp; Axtell, Brookings / MIT Press, 1996): foundational agent-based computational economics baseline (resource gathering, metabolic consumption, reproduction, and bilateral trading rules).</li>
+<li><strong>The Evolution of Cooperation</strong> (<code>axelrod1984evolution</code>, Axelrod, Basic Books, 1984): classical iterated game-theoretic cooperation, reciprocity, and norm emergence in multi-agent populations.</li>
+<li><strong>Causal Intervention &amp; Structural Invariants</strong> (<code>pearl2009causality</code>, Pearl, Cambridge University Press, 2009): formal $\text{do}(X=x)$ counterfactual intervention semantics backing <code>evolzen.environment.interventions</code> and counterfactual branch restoration.</li>
+</ul>
+<p>The persistent social-sandbox contract, <code>SocialSandboxAECEnv</code> integration, and transfer of these precedents to EvolZen's multi-agent setting are EvolZen design choices and remain <strong>untested</strong> empirically until Phase 1.1 long-horizon and target-rig experiments are run.</p>
+<h2 id="codebase-progress-match-hardening-backlog">Codebase progress match &amp; hardening backlog</h2>
+<ul>
+<li><strong>Implemented Phase 1.1 baseline (<code>src/evolzen/environment/</code>, <code>src/evolzen/schemas/world.py</code>, <code>src/evolzen/storage/transition_log.py</code>):</strong></li>
+<li><code>SocialSandboxEngine</code> (<code>engine.py</code>) implements <code>Environment</code> and <code>PersistentEnvironment</code> over <code>(state_t, action_t, exogenous_input_t, seed) -&gt; (emission_t, state_{t+1})</code> with zero hidden mutable state on <code>self</code>, deterministic RNG via <code>derive_rng</code> (<code>world_state.py</code>), deterministic <code>uuid5</code> <code>transition_id</code>/timestamps, and all <strong>17 <code>ActionType</code> handlers</strong> (<code>wait</code>, <code>gather</code>, <code>move</code>, <code>consume</code>, <code>craft</code>, <code>trade</code>, <code>propose_contract</code>, <code>fulfill_contract</code>, <code>found_institution</code>, <code>join_institution</code>, <code>contribute_institution</code>, <code>propose_norm</code>, <code>adopt_norm</code>, <code>assign_role</code>, <code>spawn_offspring</code>, <code>improve_location</code>, <code>register_capability</code>) gated by <code>CapabilityPackage</code> verification flags and <code>world.adulthood_age</code>.</li>
+<li>Closed frozen schemas (<code>extra="forbid"</code>) in <code>schemas/world.py</code> cover all six entity families (<code>LocationNode</code>, <code>WorldAgentState</code>, <code>ArtifactRecord</code>, <code>CapabilityPackage</code>, <code>ContractRecord</code>, <code>InstitutionRecord</code>, <code>NormRecord</code>), <code>ResourceAccounting</code>, <code>WorldState</code>, <code>WorldSnapshot</code>, <code>GrowthEvent</code>, <code>WorldInvariant</code>, <code>InvariantReport</code>, <code>BranchRecord</code>, and <code>InterventionSpec</code>; <code>Transition</code> (<code>schemas/transition.py</code>) includes <code>ExogenousInput</code> and <code>seed</code>.</li>
+<li><code>check_invariants</code> (<code>invariants.py</code>), <code>extract_growth_events</code> / <code>summarize_growth</code> (<code>growth.py</code>) across all five <code>GrowthCategory</code> buckets, <code>TransitionLogStore</code> (<code>storage/transition_log.py</code>, <code>SCHEMA_VERSION = 1</code> DuckDB JSON-only persistence with SHA-256 hash chaining and atomic <code>save_snapshot_and_branch</code>), <code>replay_transitions</code> / <code>replay_from_store</code> / <code>branch_from_snapshot</code> (<code>replay.py</code>), <code>apply_intervention</code> (<code>interventions.py</code>), <code>adapter</code> (<code>observe_features</code>, <code>legal_candidates</code>, <code>action_from_candidate</code>, <code>execute_decision</code>), <code>SocialSandboxAECEnv</code> (<code>pettingzoo_env.py</code>), and <code>run_environment_pilot</code> (<code>pilot.py</code>) are implemented.</li>
+<li><strong>Landed Stage 1 critical fixes (<code>src/evolzen/environment/{replay,interventions,engine,invariants}.py</code>):</strong></li>
+<li><code>replay_transitions</code> passes <code>current_state</code> (not <code>recorded.state</code>) to <code>engine.step</code> so trajectory state divergence cascades and is detected.</li>
+<li><code>replay_from_store</code> queries <code>to_tick=up_to_tick</code> and admits transitions with <code>state.tick &lt;= up_to_tick</code>, preserving <code>same_tick=True</code> multi-agent transitions at <code>up_to_tick</code>.</li>
+<li><code>apply_intervention</code> supports sequence (<code>list</code>/<code>tuple</code>) indexing in <code>_set_nested_path</code> and reconciles <code>ResourceAccounting.initial_currency</code> on financial state edits.</li>
+<li><code>_handle_spawn_offspring</code> and <code>_check_bounded_state</code> count active living agents (<code>sum(1 for a in world.agents.values() if a.alive)</code>) against <code>world.max_agents</code>, eliminating the lineage extinction trap while retaining deceased agent records for immutable lineage auditability.</li>
+<li><strong>Landed Stage 2 host adapter full 17-action coverage (<code>src/evolzen/environment/adapter.py</code>):</strong></li>
+<li><code>adapter.legal_candidates</code> and <code>adapter.action_from_candidate</code> cover all 17 <code>ActionType</code>s (<code>wait</code>, <code>gather</code>, <code>move</code>, <code>consume</code>, <code>craft</code>, <code>trade</code>, <code>propose_contract</code>, <code>fulfill_contract</code>, <code>found_institution</code>, <code>join_institution</code>, <code>contribute_institution</code>, <code>propose_norm</code>, <code>adopt_norm</code>, <code>assign_role</code>, <code>spawn_offspring</code>, <code>improve_location</code>, <code>register_capability</code>), with dynamic candidate generation and validation in <code>execute_decision</code>.</li>
+<li>Added <code>cancel_contract:{cid}</code> candidate generation and translation for proposers of open contracts.</li>
+<li><strong>Landed Stage 3 operational mechanics (<code>src/evolzen/environment/{engine,invariants}.py</code>, <code>src/evolzen/schemas/world.py</code>):</strong></li>
+<li><strong>Tool Durability &amp; Fatigue Mitigation:</strong> Handlers <code>_handle_gather</code> and <code>_handle_improve_location</code> consume tool durability on work actions while halving physical fatigue accumulation.</li>
+<li><strong>Norm Compliance &amp; Social Friction:</strong> <code>_handle_gather</code> checks conservation norms; common-pool depletion below 20% capacity triggers hypocrisy penalties (-0.1 status/social reward) for adopters and community friction (-0.05 status/social reward) for co-located non-adopters, while sustainable harvesting yields compliance bonuses (+0.02).</li>
+<li><strong>Institutional Trade Fee Withholding &amp; Reserves:</strong> <code>_handle_trade</code> withholds institution <code>contribution_rate</code> fees directly into <code>local_inst.currency_reserve</code> while maintaining exact currency conservation; <code>_handle_contribute_institution</code> supports direct currency contributions.</li>
+<li><strong>Contract Cancellation &amp; Expiration Sweep:</strong> Handlers support voluntary cancellation (<code>cancel=True</code> in <code>_handle_fulfill_contract</code>) and automatic expiration sweep (<code>_expire_contracts</code>) for stale open contracts exceeding TTL (100 ticks) or with deceased parties.</li>
+<li><strong>FR-2 Bounded Collections &amp; Status:</strong> Enforced upper bounds on <code>WorldAgentState.status</code> (<code>[0.0, 1.0]</code>) across schemas, invariants, and engine handlers. Enforced capacity bounds (<code>artifacts &lt;= 512</code>, <code>contracts &lt;= 256</code>, <code>institutions &lt;= 64</code>, <code>norms &lt;= 64</code>, <code>capabilities &lt;= 64</code>) in <code>invariants.py</code> and action rejection.</li>
+<li><strong>Exogenous Provenance:</strong> <code>_apply_exogenous</code> records unhandled exogenous event types (<code>unhandled:&lt;kind&gt;</code>) in <code>exogenous_applied</code> transition emissions.</li>
+<li><strong>Landed Stage 4 PettingZoo AECEnv upgrades &amp; endogenous process attribution (<code>src/evolzen/environment/{pettingzoo_env,engine}.py</code>):</strong></li>
+<li><strong>PettingZoo Macro-Shocks &amp; Seeding:</strong> <code>SocialSandboxAECEnv.step()</code> accepts <code>exogenous_input</code> and deterministic <code>seed</code> kwargs, allowing RL and AEC callers to simulate macroeconomic shocks and seed schedules.</li>
+<li><strong>TransitionLogStore Hook:</strong> <code>SocialSandboxAECEnv.__init__</code> accepts optional <code>store: TransitionLogStore | None = None</code> and automatically appends every executed transition with DuckDB hash-chain linkage; surfaces <code>env.last_transition</code> and <code>env.store</code>.</li>
+<li><strong>Expanded 16-Action Discrete Space:</strong> Expanded <code>_act_space</code> to <code>Discrete(16)</code> with full typed translation and action masks for trade, institution joining, contributions, norm proposals, norm adoptions, and reproduction alongside physical foraging/crafting.</li>
+<li><strong>Endogenous Process Growth Attribution:</strong> Added <code>_expand_endogenous_ecology</code> in <code>engine.py</code>, passively expanding carrying capacity by 1 for undisturbed flourishing ecosystems (<code>shock_factor == 1.0</code>, full resource capacity, <code>next_tick % 50 == 0</code>), activating the previously dormant <code>GrowthAttribution.ENDOGENOUS_PROCESS</code> emitter in <code>growth.py</code>.</li>
+<li><strong>Open Phase 1.1 production-hardening backlog (empirical success metrics remain unmeasured):</strong></li>
+<li><strong>Untested verification &amp; pilot gates:</strong> All 18 failure branches in <code>invariants.py</code>, Hypothesis property-based tests for engine/invariants/replay, and long-horizon multi-generation and target-rig hardware pilots remain <strong>untested</strong>; Phase 1.1 empirical success metrics are <strong>not met</strong>.</li>
+</ul>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="../../ARCHITECTURE/"><code>ARCHITECTURE.md</code></a> for how this subsystem fits the whole system.</li>
+<li><a href="../../subsystems/environment/"><code>environment subsystem docs</code></a> for the code-level
+  map and build order.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

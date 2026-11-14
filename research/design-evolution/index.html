@@ -1,0 +1,2868 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox">
+      
+      
+      
+      
+        <link rel="prev" href="../landscape/">
+      
+      
+        <link rel="next" href="../design-audit/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Design Evolution - EvolZen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#design-evolution-what-changed-why-and-how-it-got-better" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="EvolZen" class="md-header__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EvolZen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Design Evolution
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="EvolZen" class="md-nav__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    EvolZen
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Outline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-0-foreground/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase 0 (Foreground)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD & Parallel Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Phases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.1-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.2-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.3-economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.3 Economy & Knowledge Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.4-exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.4 Directed Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.5-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5 Growing Rule Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.1-predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1 Grounded Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.2-containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.2 Verification Gate & Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.3-recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.3 Recognition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.4-2.5-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.4-2.5 Evaluation & Publication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../landscape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparative Landscape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenenvironment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzeneconomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.economy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenexploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.exploration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenlibrary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenpredictor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.predictor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzencontainment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.containment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenrecognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.recognition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenevaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-level-no-single-subsystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project-level (no single subsystem)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-the-ceiling-holds-regardless-of-any-upgrade-above" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the ceiling holds regardless of any upgrade above
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs-and-codebase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docs & Codebase Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives-and-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives & Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subsystem Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Subsystem Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_3" id="__nav_10_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developmental Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developmental Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic Behaviour Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/motivation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motivation Equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle & Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning & Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions (ADRs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0001-single-package-not-workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 One package, not a workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0002-dependency-stack-and-optional-extras/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Dependency stack & optional extras
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0003-nine-subsystems-not-two-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Nine subsystems, not two packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0004-persistent-growing-world/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 Persistent growing world
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0005-transition-semantics-and-dual-track-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 Transition semantics & dual-track evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0006-developmental-eight-drive-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0006 Developmental eight-drive agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0007-library-persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0007 Library persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0008 Convergent learning & planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/foundation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenenvironment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzeneconomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.economy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenexploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.exploration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenlibrary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenpredictor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.predictor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzencontainment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.containment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenrecognition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.recognition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evolzenevaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evolzen.evaluation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-level-no-single-subsystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project-level (no single subsystem)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-the-ceiling-holds-regardless-of-any-upgrade-above" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the ceiling holds regardless of any upgrade above
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="design-evolution-what-changed-why-and-how-it-got-better">Design Evolution — What Changed, Why, and How It Got Better</h1>
+<p>Every mechanism that changed across this project's revisions, in one place: what it was, what
+it became, why it changed, what got better, and where that improvement is documented. This is
+the record worth keeping for a paper or a grant application — it shows the reasoning survived,
+not just the final design. Organized by the subsystem each change now lives in.</p>
+<p>Three structural revisions preceded the current baseline:</p>
+<ul>
+<li><strong>v0 — the original blueprint</strong> ("EvolZen" / "Building the Universe, Building the God"): an
+  ambitious, physically-simulated voxel civilization observed by a central "AGI," targeting AGI
+  directly on a 24-36 month timeline.</li>
+<li><strong>v1 — the PRD rescoping</strong>: every mechanism below was traced to its root failure and replaced
+  with a scoped, citable, buildable equivalent.</li>
+<li><strong>v2 — the SOTA integration pass</strong>: every phase was checked against the cited 2026 literature
+  and upgraded where relevant; actor/synthesizer/verifier systems became a design precedent, not
+  a guarantee of transfer.</li>
+</ul>
+<p>This baseline is the integrated result of all three passes, restructured around nine named
+subsystems instead of the original two-segment framing (see <a href="../../adr/0003-nine-subsystems-not-two-packages/">ADR 0003</a>).
+The October 2026 audit adds a second correction: the target is now a persistent growing world,
+not merely a growing rule library observed by a central “god” component.</p>
+<h2 id="evolzenenvironment"><code>evolzen.environment</code></h2>
+<p><strong>Was:</strong> a real-time, physically-simulated voxel civilization — a custom C++/CUDA engine, a
+5-layer per-voxel state API, a Discrete Element Method structural solver, at a population/city
+scale requiring datacenter-class compute.
+<strong>Became:</strong> a persistent, event-sourced, discrete social sandbox with a seeded typed transition
+contract, snapshots, a growth ledger, and bounded versioned capability packages.
+<strong>Why:</strong> estimated compute for even the agent population alone exceeded the stated
+three-workstation rig (AGX Spark, DGX Spark, A6000) by several orders of magnitude, and — more
+importantly — physical realism was never actually the requirement. Verifiability was, and a
+much smaller domain can be just as verifiable.
+<strong>How it got better:</strong> buildable on the actual hardware, while the explicit persistence and growth
+contract makes the revised research goal measurable. “Moore machine” is retained only as a legacy
+module name; exact replay is not treated as causal identification.</p>
+<p><strong>Phase 1.1 baseline implementation (2026-11-12, <code>env</code> @ <code>81ee6eb</code>):</strong> upgraded from <code>Protocol</code>
+and <code>NotImplementedError</code> stubs to a working Python/DuckDB baseline: <code>SocialSandboxEngine</code> (17
+<code>ActionType</code> handlers, <code>CapabilityPackage</code> verification gates), <code>schemas/world.py</code> (<code>WorldState</code>,
+<code>WorldSnapshot</code>, <code>GrowthEvent</code>, <code>InvariantReport</code>, <code>BranchRecord</code>, <code>InterventionSpec</code>),
+<code>TransitionLogStore</code> (schema-versioned JSON DuckDB persistence, SHA-256 hash chain, atomic
+snapshots/branches), <code>check_invariants</code>, <code>extract_growth_events</code> / <code>summarize_growth</code>,
+<code>replay_transitions</code> / <code>replay_from_store</code> / <code>branch_from_snapshot</code>, <code>apply_intervention</code>,
+<code>adapter</code> (independent host-side legality/age re-validation for <code>agents/development/</code>),
+<code>SocialSandboxAECEnv</code> (PettingZoo <code>AECEnv</code> wrapper), and <code>run_environment_pilot</code>. An open
+Phase 1.1 hardening backlog remains (<code>ENV-01</code>–<code>ENV-08</code> replay/intervention/boundedness fixes,
+partial mechanics such as <code>ContractRecord</code> cancellation and <code>NormRecord</code> enforcement, expanding
+<code>adapter.legal_candidates</code> beyond 7 of 17 <code>ActionType</code>s, <code>invariants.py</code> failure-branch and
+Hypothesis property tests), and long-horizon as well as target-rig hardware pilots remain
+<strong>untested</strong>.
+<strong>Citations:</strong> OPINE-World (<code>arXiv:2607.01531</code>), Tycho (<code>arXiv:2607.28287</code>), Executable World
+Models (<code>arXiv:2605.05138</code>), PettingZoo (<code>arXiv:2009.14471</code>), OMNI-EPIC (<code>arXiv:2405.15568</code>,
+contrastive boundary), Procgen (<code>arXiv:1912.01588</code>).</p>
+<h2 id="evolzenagents"><code>evolzen.agents</code></h2>
+<p><strong>Neuroplasticity mechanism. Was:</strong> a rank-expanding LoRA "aging ODE"
+(<code>plasticity(t) = plasticity_0 · e^(-λt)</code>, rank 4→16→64 tied to age) with no mechanism for why
+rank should track age rather than task complexity. <strong>Became:</strong> a fixed drive-vector evolved via
+a Quality-Diversity archive, plus Darwin-Gödel-Machine-style validated self-modification of an
+agent's own policy code. <strong>Why:</strong> the original was an invented metaphor with no established
+continual-learning precedent — unfalsifiable, not buildable-and-testable. <strong>How it got better:</strong>
+QD and DGM provide relevant empirical design precedents with validation gates; they do not establish
+that EvolZen's specific population ontology or self-modification loop will work.</p>
+<p><strong>Reproduction / inheritance mechanism. Was:</strong> literal genetic crossover of parents' LoRA weight
+matrices plus Gaussian mutation. <strong>Became:</strong> an evolved, low-dimensional drive-vector (never
+literal weight crossover), with weight-inheritance and data-inheritance kept as separate,
+explicit tracks. <strong>Why:</strong> independently trained neural networks don't share an aligned parameter
+space — the "competing conventions" problem in neuroevolution means naive weight crossover
+typically breaks both parents' behavior rather than blending it. <strong>How it got better:</strong> the new
+mechanism avoids the failure mode entirely, and now has a real open-ended-evolution precedent
+(DGM's growing archive of self-modified variants) instead of being a purely defensive fix.</p>
+<p><strong>Diversity maintenance. Was:</strong> implicit and unmonitored — diversity was assumed to emerge from
+evolution with no tracking mechanism. <strong>Became:</strong> a tracked diversity metric as an explicit
+collapse gate, upgraded to a QD/MAP-Elites archive plus three specific, evidence-based design
+rules (avoid over-aligned clone populations, avoid dense communication topology, avoid
+authority-driven hierarchy). <strong>Why:</strong> diversity collapse in multi-agent LLM populations is now a
+documented, empirically characterized phenomenon with identified causal factors. <strong>How it got
+better:</strong> the design rules are specific and falsifiable, not a vague aspiration.
+<strong>Citations:</strong> Darwin Gödel Machine (arXiv:2505.22954), Quality-Diversity (arXiv:2406.03731),
+Diversity Collapse study (ACL 2026 Findings).</p>
+<h2 id="evolzeneconomy"><code>evolzen.economy</code></h2>
+<p><strong>Was:</strong> agents write "books" (serialized policy-weight embeddings deposited to a vector
+database); other agents read them to warm-start training; no floor on how much of any
+generation's training data must be real, non-agent-generated material.
+<strong>Became:</strong> a mandatory provenance floor plus a tracked diversity metric as an explicit collapse
+warning and generation-halting circuit breaker; further upgraded to falsifiable, revisable
+natural-language manuals. A vendor-reported cross-model transfer result is retained as a case
+study, not as a guaranteed EvolZen effect.
+<strong>Why:</strong> training purely on prior generations' own output is the literature's own reference
+setup for demonstrating model collapse.
+<strong>How it got better:</strong> adopts provenance tracking and a collapse circuit breaker, while treating
+manual transfer as a faster, cheaper, more inspectable channel to measure. The mechanism is matched
+to the project's compute asymmetry but remains untested here.
+<strong>Citations:</strong> Shumailov et al. (Nature, 2024), Agno manual-transfer result (2026), Economy of
+Minds (arXiv:2606.02859).</p>
+<h2 id="evolzenexploration"><code>evolzen.exploration</code></h2>
+<p><strong>Was:</strong> agents independently discover the arch, the water wheel, and the SR latch through
+unassisted trial-and-error RL within a fixed simulated timeframe — "give it a reward function"
+standing in for open-ended discovery.
+<strong>Became:</strong> an actor (probes) / synthesizer (writes executable hypothesis code) / verifier
+(exact-match against replay) loop, exploration steered by ontology error; further upgraded to
+wiring an off-the-shelf coding-agent harness directly to the environment as the synthesizer.
+<strong>Why:</strong> no existing RL research demonstrates open-ended discovery of compositional engineering
+artifacts even at toy scale — this was the single largest unsupported claim in the original
+document.
+<strong>How it got better:</strong> recent papers provide relevant actor/synthesizer/verifier precedents, so
+an existing coding-agent harness can be evaluated as a candidate synthesizer rather than rebuilt
+from scratch. Their benchmark scores are source- and task-specific; transfer to this persistent
+social sandbox remains untested.
+<strong>Citations:</strong> OPINE-World, Tycho, Executable World Models for ARC-AGI-3 (arXiv:2605.05138).</p>
+<p><strong>Causal-understanding layer (verification standard, shared with <code>evolzen.containment</code>). Was:</strong>
+a differentiable Structural Causal Model "Causal Gate" with a stated but uncomputed gradient
+ formula (<code>∇_actual = Gate(causal_score) × ∇_raw</code>). <strong>Became:</strong> exact-match
+ transition reproduction plus held-out combinations and controlled intervention checks, applied
+ wherever a candidate rule or capability package is promoted. <strong>Why:</strong> real counterfactual inference requires an identifiable causal
+graph that cannot generically be discovered from raw multi-agent trajectories; the original
+formula was notation, not a specified, computable procedure. <strong>How it got better:</strong> the
+counterfactual-testing intuition survives in an implementable form, using the same falsifiability
+ bar used by relevant programmatic-modeling systems, strengthened for EvolZen with interventions
+ and validity context instead of treating replay as proof of a causal graph.</p>
+<h2 id="evolzenlibrary"><code>evolzen.library</code></h2>
+<p><strong>Was:</strong> a "Slow Weights" base model silently overwritten at the end of each simulated century,
+plus real-time "Fast Weights" — no forgetting safeguard, no measurement of forgetting.
+<strong>Became:</strong> a frozen, growing, verified-rule library, spawn-triggered like a Dirichlet process,
+protected by a replay buffer and periodic held-out regression tests.
+<strong>Why:</strong> silent overwriting is exactly the mechanism catastrophic-forgetting research warns
+against, and the assumption that this wouldn't be a problem was never tested.
+<strong>How it got better:</strong> forgetting is now a measured, tracked, actively-mitigated quantity,
+calibrated against real 2026 frontier-scale evidence instead of an assumed non-issue.
+<strong>Citations:</strong> Ferguson (1973) on Dirichlet process mixture models.</p>
+<h2 id="evolzenpredictor"><code>evolzen.predictor</code></h2>
+<p><strong>Prediction-accuracy target. Was:</strong> an inverse-RL reward function with an arbitrary,
+pre-committed "&gt;90% accuracy 10 time-steps into the future" target. <strong>Became:</strong> policy-gradient
+(PPO/GRPO) training against a real, verifiable environment signal, with accuracy reported
+plainly rather than targeted in advance, protected by deployment-experience rehearsal against
+forgetting. <strong>Why:</strong> multi-agent systems with learning components are close to chaotic — small
+model updates change everyone's policy simultaneously, which tends to hurt long-horizon
+predictability rather than help it. <strong>How it got better:</strong> honest, un-gamed reporting, layered
+with a specific, validated continual-learning mitigation (CLaaS-style rehearsal) instead of an
+assumption that RL "converges toward" ever-more-general understanding.
+<strong>Citations:</strong> CLaaS (arXiv:2606.05559), TFGN (arXiv:2605.15053).</p>
+<h2 id="evolzencontainment"><code>evolzen.containment</code></h2>
+<p><strong>Was:</strong> "complete freedom, complete internet access, agents may bypass the sandbox" — presented
+as a feature of the system.
+<strong>Became:</strong> an explicit containment layer (network egress allow-list, hard resource ceilings,
+full logging, kill switch); further upgraded to hardware-isolated microVM/gVisor sandboxing plus
+dynamic capability governance.
+<strong>Why:</strong> unrestricted access combined with a reward structure that incentivizes boundary-testing
+is a real operational risk independent of the system's actual capability level — the same
+structural situation the AI-boxing/containment literature describes, regardless of framing.
+<strong>How it got better:</strong> specifies hardware isolation, default-deny policy, and target-host
+acceptance instead of treating a backend name as proof of security. Behavior-sensitive governance
+can tighten access but cannot bypass the static policy.
+<strong>Citations:</strong> Bostrom (2014), Yudkowsky (2002), CORAL (arXiv:2604.01658), Sidik &amp; Rokach
+(arXiv:2604.11839), Safety Must Precede the Deployment of Open-Ended AI (arXiv:2502.04512).</p>
+<p><strong>Ethical/alignment framing. Was:</strong> a hard-coded "Constitutional Filter" of "mathematically
+verifiable ethical constraints," with no account of how conflicts between them get resolved.
+<strong>Became:</strong> explicit, testable behavioral rules checked against logged behavior, embedded in a
+containment-first framing. <strong>Why:</strong> formally verifying open-ended, potentially-conflicting value
+constraints is an active, unsolved research area — not buildable in a few months.</p>
+<h2 id="evolzenrecognition"><code>evolzen.recognition</code></h2>
+<p><strong>Knowledge integration ("Oracle API"). Was:</strong> query a real-world knowledge base and seed the
+answer into the simulation when agents plateau technologically — the system doesn't discover,
+it's told. <strong>Became:</strong> a growing verified-rule library, then a JEPA + wake-sleep recognition
+model whose generalization is measured via explicit ablation, plus a natural-language manual
+layer for fast transfer. <strong>Why:</strong> querying and injecting an answer isn't grounded generalization
+— it never tests whether the system can generalize on its own. <strong>How it got better:</strong> the
+recognition model's contribution is measured (with/without ablation), not assumed, and the
+manual layer gives a real, measured transfer-efficiency number instead of a hoped-for one.</p>
+<p><strong>The recognition architecture itself.</strong> Proposed as an explicit JEPA + wake-sleep hybrid, not
+declared a contribution in advance. A JEPA-style component learns candidate state
+representations; a DreamCoder-style component learns typed operators. Both must be compared with
+simpler baselines and evaluated with the ablation matrix: recognition on/off, manual on/off,
+JEPA-only, wake-sleep-only, and combined. <strong>Citations:</strong> LeJEPA (arXiv:2511.08544) and
+DreamCoder (PLDI 2021) are component precedents; the fusion and its transfer to this world are
+untested.</p>
+<h2 id="evolzenevaluation"><code>evolzen.evaluation</code></h2>
+<p><strong>Scale-to-generality claim. Was:</strong> vectorize to 1,000 parallel city instances and use MAML to
+extract "universal laws of civilizational development" — generality proven by raw scale of
+exposure. <strong>Became:</strong> two separate tracks: persistent-world longitudinal growth and held-out
+world-seed/mechanic adaptation scored with EvolZen Action Efficiency (EAE), inspired by but not
+interchangeable with ARC-AGI-3 RHAE. <strong>Why:</strong> raw exposure does not establish transfer, and the
+hardware plan does not justify 1,000 full worlds. <strong>How it got better:</strong> world growth and fresh
+adaptation are now measured without conflating their claims.</p>
+<p><strong>The benchmark question itself. Was:</strong> no operational definition at all — success was
+self-referential ("the system understands humanity," "the system passes real-world benchmarks
+at human-expert level"). <strong>Became:</strong> explicit persistent-world and fresh-world metrics, with
+ARC-AGI-3 used only as a dated methodological reference when the protocol is comparable. <strong>Why:</strong>
+a custom social sandbox cannot inherit another benchmark's score semantics automatically. <strong>How it
+got better:</strong> the project now reports what it actually measures and preserves exposure history as a
+first-class variable. <strong>Citations:</strong> ARC Prize Foundation; third-party public-set reports are
+case studies, not universal baselines.</p>
+<h2 id="project-level-no-single-subsystem">Project-level (no single subsystem)</h2>
+<p><strong>Real-world transfer / "graduation" claim. Was:</strong> fine-tune the system's learned weights on
+real bridges, real code, and real human social conflict, and claim the result demonstrates
+cross-domain general intelligence and empathetic reasoning. <strong>Became:</strong> dropped entirely,
+replaced by an explicit statement (see <code>docs/PRD.md</code> §4, Non-Goals) of what would and would not
+count as evidence of progress, scoped to a specific, falsifiable claim about generalization
+efficiency within a defined task family. <strong>Why:</strong> there is no demonstrated relationship between
+"empathy" learned from watching synthetic agent simulations and understanding real human
+suffering, culture, or context — the single largest unjustified leap in the original document,
+and no development since has changed that. <strong>How it got better:</strong> the project can now produce a
+genuine, publishable result — including a negative one — instead of a claim the evidence was
+never going to support.</p>
+<h2 id="why-the-ceiling-holds-regardless-of-any-upgrade-above">Why the ceiling holds regardless of any upgrade above</h2>
+<p>None of the changes above, individually or stacked together, closes two structural gaps this
+project's own PRD names honestly (<code>docs/PRD.md</code> §4):</p>
+<ul>
+<li><strong>Generality is bounded by task diversity, not by how well one task is learned.</strong> A system
+  that becomes excellent at this project's environment family has learned one narrow
+  competency, however well — even the impressive 2026 manual-transfer result is a data point
+  about transfer <em>within</em> a family of related games, not evidence against this ceiling.</li>
+<li><strong>A system cannot distill past its teacher without an external reward.</strong> Every component in
+  this design — JEPA, wake-sleep, the manuals, the DGM-style self-modification — is bounded by
+  the base models it starts with, plus whatever real, verifiable signal the environment
+  provides. This is exactly why <code>evolzen.environment</code>'s insistence on a genuinely checkable
+  outcome, not a merely plausible one, remains the single most important design decision in the
+  entire plan, upgrades or not.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>
