@@ -461,6 +461,10 @@ class RuleLibrary:
         """
         return self._store.get_active()
 
+    def active_entries(self) -> list[RuleEntry]:
+        """Alias for :meth:`get_active` returning all active entries."""
+        return self.get_active()
+
     def get_all(self) -> list[RuleEntry]:
         """Return the latest state of every entry in the store (all statuses).
 
