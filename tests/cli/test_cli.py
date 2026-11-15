@@ -22,6 +22,7 @@ def test_cli_help() -> None:
     assert "inspect" in result.stdout
     assert "ablate" in result.stdout
     assert "cluster" in result.stdout
+    assert "daemon" in result.stdout
 
 
 def test_cli_run(tmp_path: Path) -> None:
@@ -304,4 +305,59 @@ def test_cli_cluster_diagnostics() -> None:
     # 4. Invalid role validation
     res_invalid = runner.invoke(app, ["cluster", "--role", "supercomputer_9000"])
     assert res_invalid.exit_code != 0
+
+
+def test_cli_daemon_once(tmp_path: Path) -> None:
+    db_path = tmp_path / "daemon_once.duckdb"
+    with TransitionLogStore(db_path) as store:
+        engine = SocialSandboxEngine(num_locations=2, num_agents=2, max_ticks=20)
+        state = engine.reset(seed=42)
+        cur = state
+        for i in range(12):
+            action = Action(agent_id="agent_0", action_type="wait" if i % 2 == 0 else "gather")
+            t = engine.step(cur, action)
+            store.append(t)
+            cur = t.next_state
+
+    result = runner.invoke(app, ["daemon", "--once", "--db-path", str(db_path), "--batch-size", "8"])
+    assert result.exit_code == 0
+    assert "Online training daemon step completed:" in result.stdout
+    assert "Batch size processed: 8" in result.stdout
+    assert "Total updates executed: 1" in result.stdout
+    assert "JEPA representation variance:" in result.stdout
+    assert "JEPA dimension health:" in result.stdout
+
+
+def test_cli_daemon_once_empty(tmp_path: Path) -> None:
+    db_path = tmp_path / "nonexistent_daemon.duckdb"
+    result = runner.invoke(app, ["daemon", "--once", "--db-path", str(db_path)])
+    assert result.exit_code == 0
+    assert "No transitions available to process" in result.stdout
+
+
+def test_cli_run_online_train(tmp_path: Path) -> None:
+    db_path = tmp_path / "run_online.duckdb"
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "--generations",
+            "2",
+            "--ticks-per-gen",
+            "5",
+            "--online-train",
+            "--seed",
+            "42",
+            "--db-path",
+            str(db_path),
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Simulation completed successfully:" in result.stdout
+    assert "Online training telemetry:" in result.stdout
+    assert "Online training daemon updates:" in result.stdout
+    assert "Online training last seq_no:" in result.stdout
+    assert "Online training JEPA representation variance:" in result.stdout
+    assert "Online training rehearsal buffer size:" in result.stdout
+    assert db_path.exists()
 

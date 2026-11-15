@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 from pathlib import Path
 from typing import Annotated
 
@@ -26,6 +27,7 @@ from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.evaluation.dual_track import DualTrackRunner
 from evolzen.evaluation.procedural_env_gen import MULTI_TIER_CAPABILITIES
 from evolzen.logging import configure_logging, logger
+from evolzen.predictor.daemon import OnlineTrainingDaemon
 from evolzen.predictor.dynamics import WorldDynamicsPredictor
 from evolzen.predictor.planner import Planner
 from evolzen.predictor.rehearsal_buffer import RehearsalBuffer
@@ -53,11 +55,12 @@ def run(
     db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
     drought_interval: Annotated[int, typer.Option(help="Period (in ticks) between exogenous resource scarcity droughts. 0 disables.")] = 0,
     drought_severity: Annotated[float, typer.Option(help="Fractional severity [0.0, 1.0] of resource scarcity during drought.")] = 0.5,
+    online_train: Annotated[bool, typer.Option(help="Enable concurrent background online training during simulation.")] = False,
 ) -> None:
     """Run the environment + agent-population loop (Phases 1.1-1.5)."""
     configure_logging(phase="1.x")
     logger.info(
-        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={}",
+        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={} online_train={}",
         generations,
         ticks_per_gen,
         seed,
@@ -65,6 +68,7 @@ def run(
         db_path,
         drought_interval,
         drought_severity,
+        online_train,
     )
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -91,58 +95,75 @@ def run(
         written_by="human_expert",
     )
 
+    daemon_inst: OnlineTrainingDaemon | None = None
     with TransitionLogStore(db_path) as store:
-        engine = SocialSandboxEngine(
-            default_seed=seed,
-            num_locations=4,
-            num_agents=4,
-            max_ticks=max(2000, (generations * ticks_per_gen * 16) + 1000),
-            adulthood_age=dev_config.adulthood,
-            lifespan=dev_config.lifespan,
-        )
-        init_state = engine.reset(
-            seed=seed,
-            run_id=run_id,
-            adulthood_age=dev_config.adulthood,
-            lifespan=dev_config.lifespan,
-        )
-        scheduler = PopulationScheduler(
-            engine=engine,
-            initial_state=init_state,
-            config=dev_config,
-            manual_store=manual_store,
-            run_id=run_id,
-            store=store,
-        )
+        if online_train:
+            daemon_inst = OnlineTrainingDaemon(
+                db_path=db_path,
+                batch_size=8,
+                replay_ratio=0.5,
+                poll_interval=0.1,
+                seed=seed,
+            )
+            daemon_inst.start()
 
-        total_transitions = 0
-        total_births = 0
-        total_deaths = 0
-        total_teachings = 0
-        all_metrics = []
-        for gen in range(generations):
-            metrics = scheduler.run_generation(
-                steps=ticks_per_gen,
-                seed=seed + gen,
-                drought_interval=drought_interval,
-                drought_severity=drought_severity,
+        try:
+            engine = SocialSandboxEngine(
+                default_seed=seed,
+                num_locations=4,
+                num_agents=4,
+                max_ticks=max(2000, (generations * ticks_per_gen * 16) + 1000),
+                adulthood_age=dev_config.adulthood,
+                lifespan=dev_config.lifespan,
             )
-            all_metrics.append(metrics)
-            total_transitions += metrics.total_transitions
-            total_births += metrics.births
-            total_deaths += metrics.deaths
-            total_teachings += metrics.teachings
-            logger.info(
-                "Generation {} complete: world_tick={} transitions={} births={} deaths={} teachings={} living_agents={} drought_periods={}",
-                gen + 1,
-                metrics.ticks_elapsed,
-                metrics.total_transitions,
-                metrics.births,
-                metrics.deaths,
-                metrics.teachings,
-                metrics.active_population,
-                metrics.metadata.get("drought_periods", 0),
+            init_state = engine.reset(
+                seed=seed,
+                run_id=run_id,
+                adulthood_age=dev_config.adulthood,
+                lifespan=dev_config.lifespan,
             )
+            scheduler = PopulationScheduler(
+                engine=engine,
+                initial_state=init_state,
+                config=dev_config,
+                manual_store=manual_store,
+                run_id=run_id,
+                store=store,
+            )
+
+            total_transitions = 0
+            total_births = 0
+            total_deaths = 0
+            total_teachings = 0
+            all_metrics = []
+            for gen in range(generations):
+                metrics = scheduler.run_generation(
+                    steps=ticks_per_gen,
+                    seed=seed + gen,
+                    drought_interval=drought_interval,
+                    drought_severity=drought_severity,
+                )
+                all_metrics.append(metrics)
+                total_transitions += metrics.total_transitions
+                total_births += metrics.births
+                total_deaths += metrics.deaths
+                total_teachings += metrics.teachings
+                logger.info(
+                    "Generation {} complete: world_tick={} transitions={} births={} deaths={} teachings={} living_agents={} drought_periods={}",
+                    gen + 1,
+                    metrics.ticks_elapsed,
+                    metrics.total_transitions,
+                    metrics.births,
+                    metrics.deaths,
+                    metrics.teachings,
+                    metrics.active_population,
+                    metrics.metadata.get("drought_periods", 0),
+                )
+        finally:
+            if daemon_inst is not None:
+                time.sleep(0.15)
+                daemon_inst.step_once(allow_partial=True)
+                daemon_inst.stop()
 
         final_world = WorldState.from_state(scheduler.state)
         living_agents = [
@@ -191,6 +212,17 @@ def run(
             f"  Cultural retention (recipe adoptions in ManualStore): {recipe_adoptions}\n"
             f"  Gini stability under drought: {gini_stability:.4f}"
         )
+
+        if daemon_inst is not None:
+            typer.echo(
+                f"Online training telemetry:\n"
+                f"  Online training daemon updates: {daemon_inst.update_count}\n"
+                f"  Online training last seq_no: {daemon_inst.last_seq_no}\n"
+                f"  Online training policy entropy: {daemon_inst.policy_entropy:.4f}\n"
+                f"  Online training JEPA representation variance: {daemon_inst.jepa_variance:.6f}\n"
+                f"  Online training JEPA active dimensions: {daemon_inst.active_dimensions}/{daemon_inst.jepa.embedding_dim}\n"
+                f"  Online training rehearsal buffer size: {len(daemon_inst.rehearsal_buffer)}"
+            )
 
 
 @app.command()
@@ -276,6 +308,83 @@ def train(
         f"  JEPA representation variance: {jepa_rep_var:.6f}\n"
         f"  JEPA dimension health: {active_dims}/{jepa.embedding_dim} active dimensions\n"
         f"  Rehearsal buffer size: {len(rehearsal_buffer)}"
+    )
+
+
+@app.command()
+def daemon(
+    db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
+    batch_size: Annotated[int, typer.Option(help="Batch size per online training step.")] = 8,
+    replay_ratio: Annotated[float, typer.Option(help="CLEAR replay ratio.")] = 0.5,
+    poll_interval: Annotated[float, typer.Option(help="Polling interval in seconds.")] = 1.0,
+    max_steps: Annotated[int | None, typer.Option(help="Maximum training steps before stopping.")] = None,
+    once: Annotated[bool, typer.Option(help="Perform one ingestion/update step and exit.")] = False,
+    seed: Annotated[int, typer.Option(help="PRNG seed for daemon models.")] = 42,
+) -> None:
+    """Run autonomous background training daemon over logged transitions (Phase 2.1)."""
+    configure_logging(phase="2.1")
+    logger.info(
+        "Daemon requested: db_path={} batch_size={} replay_ratio={} poll_interval={} max_steps={} once={} seed={}",
+        db_path,
+        batch_size,
+        replay_ratio,
+        poll_interval,
+        max_steps,
+        once,
+        seed,
+    )
+    d = OnlineTrainingDaemon(
+        db_path=db_path,
+        batch_size=batch_size,
+        replay_ratio=replay_ratio,
+        poll_interval=poll_interval,
+        seed=seed,
+        max_steps=max_steps,
+    )
+
+    if once:
+        summary = d.step_once(allow_partial=True)
+        if summary is None:
+            typer.echo(
+                f"Online training daemon (once):\n"
+                f"  Database: {db_path}\n"
+                f"  Status: No transitions available to process\n"
+                f"  Updates executed: 0"
+            )
+        else:
+            typer.echo(
+                f"Online training daemon step completed:\n"
+                f"  Database: {db_path}\n"
+                f"  Batch size processed: {summary['batch_size']}\n"
+                f"  Latest seq_no: {summary['last_seq_no']}\n"
+                f"  Total updates executed: {summary['update_count']}\n"
+                f"  Step loss: {summary['loss']:.4f}\n"
+                f"  Policy entropy: {summary['policy_entropy']:.4f}\n"
+                f"  JEPA representation variance: {summary['jepa_rep_variance']:.6f}\n"
+                f"  JEPA dimension health: {summary['active_dimensions']}/{summary['total_dimensions']} active dimensions\n"
+                f"  Rehearsal buffer size: {summary['rehearsal_buffer_size']}"
+            )
+        d.stop()
+        return
+
+    typer.echo(f"Starting online training daemon on {db_path} (polling every {poll_interval}s)...")
+    try:
+        with d:
+            while d.is_running:
+                time.sleep(0.1)
+                if max_steps is not None and d.update_count >= max_steps:
+                    break
+    except KeyboardInterrupt:
+        typer.echo("\nStopping online training daemon...")
+
+    typer.echo(
+        f"Online training daemon finished:\n"
+        f"  Total updates executed: {d.update_count}\n"
+        f"  Last processed seq_no: {d.last_seq_no}\n"
+        f"  Policy entropy: {d.policy_entropy:.4f}\n"
+        f"  JEPA representation variance: {d.jepa_variance:.6f}\n"
+        f"  JEPA dimension health: {d.active_dimensions}/{d.jepa.embedding_dim} active dimensions\n"
+        f"  Rehearsal buffer size: {len(d.rehearsal_buffer)}"
     )
 
 
