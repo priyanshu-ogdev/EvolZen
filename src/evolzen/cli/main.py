@@ -6,6 +6,7 @@ via [project.scripts] in pyproject.toml.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Annotated
 
@@ -49,16 +50,20 @@ def run(
     seed: Annotated[int, typer.Option(help="Simulation PRNG seed.")] = 42,
     run_id: Annotated[str, typer.Option(help="Unique run identifier.")] = "cli-run",
     db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
+    drought_interval: Annotated[int, typer.Option(help="Period (in ticks) between exogenous resource scarcity droughts. 0 disables.")] = 0,
+    drought_severity: Annotated[float, typer.Option(help="Fractional severity [0.0, 1.0] of resource scarcity during drought.")] = 0.5,
 ) -> None:
     """Run the environment + agent-population loop (Phases 1.1-1.5)."""
     configure_logging(phase="1.x")
     logger.info(
-        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={}",
+        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={}",
         generations,
         ticks_per_gen,
         seed,
         run_id,
         db_path,
+        drought_interval,
+        drought_severity,
     )
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -113,14 +118,21 @@ def run(
         total_births = 0
         total_deaths = 0
         total_teachings = 0
+        all_metrics = []
         for gen in range(generations):
-            metrics = scheduler.run_generation(steps=ticks_per_gen, seed=seed + gen)
+            metrics = scheduler.run_generation(
+                steps=ticks_per_gen,
+                seed=seed + gen,
+                drought_interval=drought_interval,
+                drought_severity=drought_severity,
+            )
+            all_metrics.append(metrics)
             total_transitions += metrics.total_transitions
             total_births += metrics.births
             total_deaths += metrics.deaths
             total_teachings += metrics.teachings
             logger.info(
-                "Generation {} complete: world_tick={} transitions={} births={} deaths={} teachings={} living_agents={}",
+                "Generation {} complete: world_tick={} transitions={} births={} deaths={} teachings={} living_agents={} drought_periods={}",
                 gen + 1,
                 metrics.ticks_elapsed,
                 metrics.total_transitions,
@@ -128,6 +140,7 @@ def run(
                 metrics.deaths,
                 metrics.teachings,
                 metrics.active_population,
+                metrics.metadata.get("drought_periods", 0),
             )
 
         final_world = WorldState.from_state(scheduler.state)
@@ -145,6 +158,20 @@ def run(
         total_ticks = final_world.tick
         archive_cov = scheduler.archive.coverage()
 
+        recipe_adoptions = sum(
+            1 for a in scheduler.agents.values() for lesson in a.development.lessons if lesson.manual_entry is not None
+        )
+
+        gen_ginis = [float(m.metadata.get("final_gini", gini)) for m in all_metrics]
+        gen_volatilities = [float(m.metadata.get("gini_volatility", 0.0)) for m in all_metrics]
+        if len(gen_ginis) > 1:
+            mean_gg = sum(gen_ginis) / len(gen_ginis)
+            std_g = math.sqrt(sum((g - mean_gg) ** 2 for g in gen_ginis) / len(gen_ginis))
+            gini_stability = max(0.0, round(1.0 - std_g, 4))
+        else:
+            mean_vol = sum(gen_volatilities) / len(gen_volatilities) if gen_volatilities else 0.0
+            gini_stability = max(0.0, round(1.0 - mean_vol, 4))
+
         typer.echo(
             f"Simulation completed successfully:\n"
             f"  Total generations: {generations}\n"
@@ -157,7 +184,11 @@ def run(
             f"  Wealth Gini coefficient: {gini:.4f}\n"
             f"  Active lineages: {active_lineages}\n"
             f"  Max generation reached: {max_gen}\n"
-            f"  CVTArchive coverage: {archive_cov}"
+            f"  CVTArchive coverage: {archive_cov}\n"
+            f"  Drought interval: {drought_interval}\n"
+            f"  Drought severity: {drought_severity:.2f}\n"
+            f"  Cultural retention (recipe adoptions in ManualStore): {recipe_adoptions}\n"
+            f"  Gini stability under drought: {gini_stability:.4f}"
         )
 
 

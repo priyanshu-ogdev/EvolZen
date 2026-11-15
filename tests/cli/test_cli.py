@@ -40,6 +40,34 @@ def test_cli_run(tmp_path: Path) -> None:
     assert db_path.exists()
 
 
+def test_cli_run_with_drought(tmp_path: Path) -> None:
+    db_path = tmp_path / "test_run_drought.duckdb"
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "--generations",
+            "2",
+            "--ticks-per-gen",
+            "10",
+            "--drought-interval",
+            "5",
+            "--seed",
+            "42",
+            "--db-path",
+            str(db_path),
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Simulation completed successfully" in result.stdout
+    assert "Total generations: 2" in result.stdout
+    assert "Drought interval: 5" in result.stdout
+    assert "Cultural retention (recipe adoptions in ManualStore):" in result.stdout
+    assert "Gini stability under drought:" in result.stdout
+    assert "Active lineages:" in result.stdout
+    assert db_path.exists()
+
+
 def test_cli_train() -> None:
     result = runner.invoke(app, ["train", "--steps", "2", "--batch-size", "2", "--seed", "42"])
     assert result.exit_code == 0

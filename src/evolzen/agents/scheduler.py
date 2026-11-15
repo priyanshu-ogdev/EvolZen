@@ -9,12 +9,15 @@ Citations:
 - Terry et al. (PettingZoo, NeurIPS 2021, arXiv:2009.14471) for round-robin turn-based stepping;
 - Cook et al. (Artificial Generational Intelligence, arXiv:2406.00392) for cultural transfer;
 - Vassiliades et al. (CVT-MAP-Elites, IEEE TEVC 2018) for population diversity archiving;
-- Agno (Manual-guided agents and cultural transfer, 2026) for living manual transmission.
+- Agno (Manual-guided agents and cultural transfer, 2026) for living manual transmission;
+- Henrich & Boyd (J. Theor. Biol. 2002) for norm retention and cultural diffusion under environmental scarcity;
+- Zheng et al. (Science Advances 2022, doi:10.1126/sciadv.abk2607) for wealth Gini dynamics under resource shocks.
 
 Multi-generational population dynamics remain empirically untested until Phase 1.2 experiments are run.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -25,6 +28,7 @@ from evolzen.agents.qd_archive import (
     QDArchiveEntry,
     compute_behavioral_descriptor,
 )
+from evolzen.economy.metrics import compute_gini_coefficient
 from evolzen.environment.adapter import (
     execute_decision,
     legal_candidates,
@@ -33,7 +37,7 @@ from evolzen.environment.adapter import (
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.schemas.agent_profile import AgentProfile
 from evolzen.schemas.development import DevelopmentConfig, LifeStage, Outcome
-from evolzen.schemas.transition import State, Transition
+from evolzen.schemas.transition import ExogenousInput, State, Transition
 from evolzen.schemas.world import WorldState
 
 if TYPE_CHECKING:
@@ -126,7 +130,13 @@ class PopulationScheduler:
                 new_count += 1
         return new_count
 
-    def step_agent(self, agent_id: str, *, seed: int | None = None) -> tuple[Transition, Outcome] | None:
+    def step_agent(
+        self,
+        agent_id: str,
+        *,
+        seed: int | None = None,
+        exogenous_input: ExogenousInput | None = None,
+    ) -> tuple[Transition, Outcome] | None:
         """Step one living agent through the observation -> decision -> host-execution loop."""
         agent = self.agents.get(agent_id)
         if agent is None:
@@ -146,7 +156,13 @@ class PopulationScheduler:
         candidates = legal_candidates(self.state, agent_id, config=self.config)
 
         decision = agent.decide(features, candidates, world.tick, seed=seed)
-        transition, outcome = execute_decision(self.engine, self.state, decision, seed=seed)
+        transition, outcome = execute_decision(
+            self.engine,
+            self.state,
+            decision,
+            exogenous_input=exogenous_input,
+            seed=seed,
+        )
 
         if stage_at(agent.development, outcome.tick) == LifeStage.DEAD:
             agent.advance(outcome.tick)
@@ -165,12 +181,27 @@ class PopulationScheduler:
         steps: int = 10,
         *,
         seed: int = 42,
+        drought_interval: int = 0,
+        drought_severity: float = 0.5,
     ) -> PopulationSchedulerMetrics:
-        """Execute `steps` world cycles across living agents with teaching and reproduction."""
+        """Execute `steps` world cycles across living agents with teaching and reproduction.
+
+        Args:
+            steps: Number of world cycles across living agents.
+            seed: Simulation PRNG seed for deterministic stepping.
+            drought_interval: Period (in ticks) between exogenous resource scarcity droughts. 0 disables.
+            drought_severity: Fractional severity [0.0, 1.0] of resource scarcity during drought.
+        """
         transitions_count = 0
         initial_agent_count = len(self.agents)
         deaths = 0
         teachings = 0
+        drought_periods = 0
+        drought_ticks = 0
+        was_in_drought = False
+        gini_values: list[float] = []
+
+        drought_severity = max(0.0, min(1.0, float(drought_severity)))
 
         for step_idx in range(steps):
             world = WorldState.from_state(self.state)
@@ -182,12 +213,52 @@ class PopulationScheduler:
             ]
 
             for a_id in living_ids:
-                step_res = self.step_agent(a_id, seed=seed + step_idx)
+                curr_world = WorldState.from_state(self.state)
+                in_drought = (
+                    drought_interval > 0
+                    and (curr_world.tick % drought_interval) < max(1, drought_interval // 4)
+                )
+                exog: ExogenousInput | None = None
+                if in_drought:
+                    drought_ticks += 1
+                    if not was_in_drought:
+                        drought_periods += 1
+                    was_in_drought = True
+                    exog = ExogenousInput(
+                        tick=curr_world.tick + 1,
+                        events=(
+                            {
+                                "type": "shock",
+                                "deplete_fraction": drought_severity,
+                                "shock_factor": round(max(0.0, min(1.0, 1.0 - drought_severity)), 4),
+                            },
+                        ),
+                    )
+                else:
+                    was_in_drought = False
+
+                step_res = self.step_agent(
+                    a_id,
+                    seed=seed + step_idx,
+                    exogenous_input=exog,
+                )
                 if step_res is not None:
                     transitions_count += 1
 
             # Detect newly born agents
             self._init_agents_from_world()
+
+            # Record macroeconomic state for Gini tracking
+            post_step_world = WorldState.from_state(self.state)
+            living_agents_now = [
+                w_a for a_id, a in self.agents.items()
+                if stage_at(a.development, post_step_world.tick) != LifeStage.DEAD
+                and (w_a := post_step_world.agents.get(a_id)) is not None
+                and w_a.alive
+            ]
+            if living_agents_now:
+                wealths = [float(a.currency + sum(a.inventory.values())) for a in living_agents_now]
+                gini_values.append(compute_gini_coefficient(wealths))
 
             # Facilitate living parent-child teaching among colocated agents
             curr_world = WorldState.from_state(self.state)
@@ -247,10 +318,32 @@ class PopulationScheduler:
                     deaths += 1
 
         final_world = WorldState.from_state(self.state)
-        active_pop = sum(
-            1 for a_id, a in self.agents.items()
-            if stage_at(a.development, final_world.tick) != LifeStage.DEAD and (w_a := final_world.agents.get(a_id)) is not None and w_a.alive
-        )
+        final_living = [
+            w_a for a_id, a in self.agents.items()
+            if stage_at(a.development, final_world.tick) != LifeStage.DEAD
+            and (w_a := final_world.agents.get(a_id)) is not None
+            and w_a.alive
+        ]
+        active_pop = len(final_living)
+        active_lineages = len({a.lineage_id for a in final_living})
+
+        if len(gini_values) > 1:
+            mean_g = sum(gini_values) / len(gini_values)
+            var_g = sum((g - mean_g) ** 2 for g in gini_values) / len(gini_values)
+            gini_volatility = round(math.sqrt(var_g), 4)
+        else:
+            gini_volatility = 0.0
+
+        metadata: dict[str, Any] = {
+            "drought_periods": drought_periods,
+            "drought_ticks": drought_ticks,
+            "drought_interval": drought_interval,
+            "drought_severity": drought_severity,
+            "gini_volatility": gini_volatility,
+            "active_lineage_count": active_lineages,
+            "mean_gini": round(sum(gini_values) / len(gini_values), 4) if gini_values else 0.0,
+            "final_gini": gini_values[-1] if gini_values else 0.0,
+        }
 
         return PopulationSchedulerMetrics(
             ticks_elapsed=final_world.tick,
@@ -260,4 +353,5 @@ class PopulationScheduler:
             teachings=teachings,
             archive_coverage=self.archive.coverage(),
             active_population=active_pop,
+            metadata=metadata,
         )
