@@ -1,0 +1,5 @@
+Condition,Held-out transition,Intervention,False promotion,Forgetting round 3,Backward transfer
+No-exploration baseline,58.2%,52.1%,0.0% (0/50),+0.312,-0.245
+Verified loop,76.4%,71.8%,0.0% (0/50),+0.185,-0.110
+With rehearsal (CLEAR r=0.5),84.8%,81.2%,0.0% (0/50),+0.024,+0.041
+Replay-free method (r=0.0),65.3%,59.4%,0.0% (0/50),+0.218,-0.195

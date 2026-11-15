@@ -1,0 +1,10 @@
+Parameter,Planned setting,Final value
+Active population,"4 agents for integration, then 10 to 30","4 agents (bootstrap), 10 to 30 (scheduled population); observed range [4, 40]"
+Base models,Shared frozen base versus a mixed set,"Qwen/Qwen2.5-0.5B-Instruct (492M params, FP32 / AWQ 4-bit, Outlines guided JSON decoding)"
+Generations per run,At least five,5 to 50 generations (demonstrated depth up to Generation 16)
+Independent population seeds,10 for the pilot (proposed),"10 population seeds (42..51), 5 development seeds (101..105), 10 held-out fresh seeds (201..210)"
+Action budget B (fresh-world track),"A fixed integer, at least 1",B = 10 actions per episode (max 15 steps per procedural environment)
+Provenance floor and sampling budget,Fixed before the first generation,"real_data_floor = 0.20, human recipe sample budget K = 5 recipes"
+Archive descriptors,Two measured behavioral dimensions at first,"5D descriptor: (energy, wealth, status, roles_diversity, lineage_depth) projected to 32 CVT niches"
+Communication graph,Sparse; degree limit set in advance,Sparse local co-location graph; degree limit d_max = 2 peers
+"Age, spawn and promotion thresholds",Age as in Table 4.3; spawn and promotion set on development seeds only,"A_adol=15, A_adult=25, A_elder=200, A_life=350; spawn_cost=0.02 (curr>=5); promotion=3/3 verified replications"

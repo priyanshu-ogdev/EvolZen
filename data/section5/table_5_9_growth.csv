@@ -1,0 +1,6 @@
+Category,Scripted baseline,Endogenous world,Persisting after window
+Resources and locations,"0 (Static replenishment cycles, no growth)","4 locations improved, 1,376 ticks, communal silos active, drought buffered","Yes (100% locations intact, grain reserves active)"
+Artifacts and capabilities,0 (Pre-defined static action sets),"3 capability packages (tool_handle, stone_blade, stone_axe) verified and registered",Yes (DuckDB capability table persisted)
+"Contracts, markets and institutions",0 (No bilateral exchange or guilds),"Continuous double-auction clearing, guilds founded, communal treasuries maintained",Yes (Gini stability 0.8750 under 60% drought)
+"Norms, beliefs and manuals",0 (No social learning or manuals),"37/37 (100%) human crafting recipe adoptions, living manuals persisted in ManualStore",Yes (100% cultural retention across 10 generations)
+Agent roles and lineages,"1 static role, 0 lineage transmission","37 births, 41 deaths, 1,556 teachings, 4 distinct roles, depth-10 lineages",Yes (Generational pedigree DAG intact)

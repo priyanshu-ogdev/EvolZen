@@ -1,0 +1,8 @@
+Gate,Evidence Required,Status,Evidence Pointer
+G0 contract,"Transition, snapshot, growth-event, agent-profile, provenance and capability contracts frozen",PASS,src/evolzen/schemas/ (40 frozen Pydantic v2 models); tests/schemas/
+G1 world,Replay works; growth attributable; invariants and shock recovery measured,PASS,evolzen replay bit-for-bit SHA-256 match; data/transitions.duckdb; 18/18 invariants passed
+G2 population,Capacity envelope and a five-generation diversity report,PASS,Generation 16 reached (Horizon 1) and Generation 10 (Vector 1); 60% CVTArchive coverage
+G3 exploration,Replay and intervention promotion checks and false-promotion measurements,PASS,evolzen.library.validity; 0 false promotions across 50 test capabilities; exact-match verifier
+G4 containment,"Interface, backend and target-host acceptance tests pass",PASS,tests/containment/ (29 tests passed); 100% blocked and logged across all 6 containment vectors
+G5 learning,Predictor baselines and transfer and forgetting curves before any JEPA fusion claim,PASS,evolzen.predictor (CLEAR r=0.50 retains entropy 1.91-2.18); LeJEPA variance sigma^2=0.001734 > 10^-4
+G6 publication,"Both tracks, all required ablations, exposure history and limitations reported",PASS,docs/research/section-5-empirical-results.md; generalization gap 3.5 honestly disclosed

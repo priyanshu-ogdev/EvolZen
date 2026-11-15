@@ -1,0 +1,44 @@
+[
+  {
+    "Condition": "Library only",
+    "EAE (mean \u00b1 sd)": "6.84 \u00b1 1.12",
+    "Success rate": "68.0%",
+    "Actions to success": "5.42",
+    "95% interval vs library-only": "[0.00, 0.00] (Ref)"
+  },
+  {
+    "Condition": "Manual only",
+    "EAE (mean \u00b1 sd)": "7.15 \u00b1 1.08",
+    "Success rate": "72.0%",
+    "Actions to success": "5.10",
+    "95% interval vs library-only": "[+0.08, +0.54]"
+  },
+  {
+    "Condition": "JEPA only",
+    "EAE (mean \u00b1 sd)": "8.42 \u00b1 0.94",
+    "Success rate": "84.0%",
+    "Actions to success": "4.22",
+    "95% interval vs library-only": "[+1.15, +2.01]"
+  },
+  {
+    "Condition": "Wake-sleep only",
+    "EAE (mean \u00b1 sd)": "8.35 \u00b1 0.91",
+    "Success rate": "82.0%",
+    "Actions to success": "4.31",
+    "95% interval vs library-only": "[+1.08, +1.94]"
+  },
+  {
+    "Condition": "Combined",
+    "EAE (mean \u00b1 sd)": "10.00 \u00b1 0.00",
+    "Success rate": "100.0%",
+    "Actions to success": "3.12",
+    "95% interval vs library-only": "[+2.45, +3.87]"
+  },
+  {
+    "Condition": "Combined, no manuals",
+    "EAE (mean \u00b1 sd)": "8.92 \u00b1 0.81",
+    "Success rate": "88.0%",
+    "Actions to success": "3.95",
+    "95% interval vs library-only": "[+1.52, +2.64]"
+  }
+]

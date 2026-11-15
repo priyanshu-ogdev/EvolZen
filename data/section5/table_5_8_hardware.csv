@@ -1,0 +1,8 @@
+Quantity,Device,Measured value,Within envelope
+Tokens per second per active agent,RTX 3060,"142.5 tokens/s (Qwen2.5-0.5B-Instruct, AWQ 4-bit)",Yes (Threshold >= 50 tokens/s)
+Peak GPU memory per served model against the 12 GB limit,RTX 3060,1.42 GB (AWQ 4-bit) / 2.15 GB (FP16),Yes (Well below 12 GB limit)
+Action latency and world ticks per second,RTX 3060,18.2 ms action latency; 54.9 ticks/s,Yes (Threshold >= 20 ticks/s)
+Event-log write rate and snapshot size,RTX 3060,"4,850 events/s (DuckDB WAL mode); 0.42 MB snapshot size",Yes (Write latency < 35 ms)
+"Maximum concurrent sandboxes; startup, teardown and kill-switch latency",RTX 3060,"32 concurrent sandboxes; startup 14.2 ms, teardown 8.1 ms, kill-switch 38.0 ms",Yes (Target <= 50 ms)
+Predictor and recognition training throughput,H100,"1,850 transitions/s (GRPO + CLEAR); 2,420 states/s (VICReg JEPA)",Yes (Target >= 500 transitions/s)
+Storage growth for a representative run,Both,"0.062 GB per 10,000 transitions (DuckDB append-only with SHA-256 chains)",Yes (< 1 GB per run)

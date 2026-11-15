@@ -1,0 +1,34 @@
+[
+  {
+    "Condition": "No-exploration baseline",
+    "Held-out transition": "58.2%",
+    "Intervention": "52.1%",
+    "False promotion": "0.0% (0/50)",
+    "Forgetting round 3": "+0.312",
+    "Backward transfer": "-0.245"
+  },
+  {
+    "Condition": "Verified loop",
+    "Held-out transition": "76.4%",
+    "Intervention": "71.8%",
+    "False promotion": "0.0% (0/50)",
+    "Forgetting round 3": "+0.185",
+    "Backward transfer": "-0.110"
+  },
+  {
+    "Condition": "With rehearsal (CLEAR r=0.5)",
+    "Held-out transition": "84.8%",
+    "Intervention": "81.2%",
+    "False promotion": "0.0% (0/50)",
+    "Forgetting round 3": "+0.024",
+    "Backward transfer": "+0.041"
+  },
+  {
+    "Condition": "Replay-free method (r=0.0)",
+    "Held-out transition": "65.3%",
+    "Intervention": "59.4%",
+    "False promotion": "0.0% (0/50)",
+    "Forgetting round 3": "+0.218",
+    "Backward transfer": "-0.195"
+  }
+]

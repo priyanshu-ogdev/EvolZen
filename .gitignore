@@ -50,6 +50,8 @@ docs/_build/
 checkpoints/
 runs/
 data/
+!data/section5/
+!data/section5/**
 *.ckpt
 *.pt
 *.bin

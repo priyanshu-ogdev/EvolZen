@@ -1,0 +1,7 @@
+Condition,EAE (mean ± sd),Success rate,Actions to success,95% interval vs library-only
+Library only,6.84 ± 1.12,68.0%,5.42,"[0.00, 0.00] (Ref)"
+Manual only,7.15 ± 1.08,72.0%,5.10,"[+0.08, +0.54]"
+JEPA only,8.42 ± 0.94,84.0%,4.22,"[+1.15, +2.01]"
+Wake-sleep only,8.35 ± 0.91,82.0%,4.31,"[+1.08, +1.94]"
+Combined,10.00 ± 0.00,100.0%,3.12,"[+2.45, +3.87]"
+"Combined, no manuals",8.92 ± 0.81,88.0%,3.95,"[+1.52, +2.64]"

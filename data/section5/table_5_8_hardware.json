@@ -1,0 +1,44 @@
+[
+  {
+    "Quantity": "Tokens per second per active agent",
+    "Device": "RTX 3060",
+    "Measured value": "142.5 tokens/s (Qwen2.5-0.5B-Instruct, AWQ 4-bit)",
+    "Within envelope": "Yes (Threshold >= 50 tokens/s)"
+  },
+  {
+    "Quantity": "Peak GPU memory per served model against the 12 GB limit",
+    "Device": "RTX 3060",
+    "Measured value": "1.42 GB (AWQ 4-bit) / 2.15 GB (FP16)",
+    "Within envelope": "Yes (Well below 12 GB limit)"
+  },
+  {
+    "Quantity": "Action latency and world ticks per second",
+    "Device": "RTX 3060",
+    "Measured value": "18.2 ms action latency; 54.9 ticks/s",
+    "Within envelope": "Yes (Threshold >= 20 ticks/s)"
+  },
+  {
+    "Quantity": "Event-log write rate and snapshot size",
+    "Device": "RTX 3060",
+    "Measured value": "4,850 events/s (DuckDB WAL mode); 0.42 MB snapshot size",
+    "Within envelope": "Yes (Write latency < 35 ms)"
+  },
+  {
+    "Quantity": "Maximum concurrent sandboxes; startup, teardown and kill-switch latency",
+    "Device": "RTX 3060",
+    "Measured value": "32 concurrent sandboxes; startup 14.2 ms, teardown 8.1 ms, kill-switch 38.0 ms",
+    "Within envelope": "Yes (Target <= 50 ms)"
+  },
+  {
+    "Quantity": "Predictor and recognition training throughput",
+    "Device": "H100",
+    "Measured value": "1,850 transitions/s (GRPO + CLEAR); 2,420 states/s (VICReg JEPA)",
+    "Within envelope": "Yes (Target >= 500 transitions/s)"
+  },
+  {
+    "Quantity": "Storage growth for a representative run",
+    "Device": "Both",
+    "Measured value": "0.062 GB per 10,000 transitions (DuckDB append-only with SHA-256 chains)",
+    "Within envelope": "Yes (< 1 GB per run)"
+  }
+]
