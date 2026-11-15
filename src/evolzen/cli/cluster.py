@@ -14,9 +14,11 @@ Citations:
 """
 from __future__ import annotations
 
+import contextlib
 import os
 import platform
 import shutil
+import socket
 import subprocess
 import tempfile
 import time
@@ -31,6 +33,7 @@ __all__ = [
     "TargetNodeRole",
     "diagnose_host_node",
     "format_cluster_report",
+    "verify_cluster_connectivity",
 ]
 
 
@@ -195,6 +198,214 @@ def _probe_ray() -> dict[str, Any]:
         "cluster_running": cluster_running,
         "status_summary": status_summary,
     }
+
+
+def _parse_host_port(address: str) -> tuple[str, int] | None:
+    """Parse host and port from address string if formatted as host:port or ray://host:port."""
+    raw = address.strip()
+    if raw.startswith("ray://"):
+        raw = raw[len("ray://") :]
+    if "/" in raw:
+        raw = raw.split("/")[0]
+    if ":" in raw:
+        parts = raw.split(":")
+        if len(parts) == 2 and parts[1].isdigit():
+            return parts[0], int(parts[1])
+    return None
+
+
+def verify_cluster_connectivity(
+    address: str | None = None,
+    timeout: float = 3.0,
+    disconnect: bool = True,
+) -> dict[str, Any]:
+    """Verify Ray cluster connectivity, cluster topology, and execute a remote healthcheck.
+
+    Checks Ray cluster connectivity (head address, active nodes, total cluster CPUs/GPUs,
+    object store memory, custom resources), tests execution of a remote healthcheck task,
+    and handles graceful connection/disconnection.
+
+    Args:
+        address: Ray cluster head node address (e.g. 'auto', '127.0.0.1:6379',
+            'ray://10.0.0.1:10001', or None for local daemon).
+        timeout: Timeout in seconds for remote task execution and socket connection.
+        disconnect: Whether to disconnect (ray.shutdown) if this call initiated the connection.
+
+    Returns:
+        Structured dictionary containing connectivity status, head address,
+        active nodes list, resource totals, remote healthcheck metrics, or error details.
+    """
+    try:
+        import ray
+    except ImportError:
+        return {
+            "connected": False,
+            "address": address or "auto",
+            "nodes_count": 0,
+            "active_nodes": [],
+            "total_cpus": 0.0,
+            "total_gpus": 0.0,
+            "object_store_memory_gb": 0.0,
+            "custom_resources": {},
+            "remote_healthcheck": {
+                "status": "FAIL",
+                "latency_ms": 0.0,
+                "worker_node": None,
+                "detail": "Ray package not installed in environment",
+            },
+            "error": "Ray is not installed. Install ray[default]>=2.38.",
+        }
+
+    target_addr = address if address is not None else "auto"
+    host_port = _parse_host_port(target_addr)
+    if host_port is not None:
+        try:
+            sock = socket.create_connection(host_port, timeout=timeout)
+            sock.close()
+        except Exception as sock_err:
+            return {
+                "connected": False,
+                "address": target_addr,
+                "nodes_count": 0,
+                "active_nodes": [],
+                "total_cpus": 0.0,
+                "total_gpus": 0.0,
+                "object_store_memory_gb": 0.0,
+                "custom_resources": {},
+                "remote_healthcheck": {
+                    "status": "FAIL",
+                    "latency_ms": 0.0,
+                    "worker_node": None,
+                    "detail": f"Socket pre-check failed: {sock_err}",
+                },
+                "error": f"Failed to connect to Ray address '{target_addr}': {sock_err}",
+            }
+
+    was_initialized = bool(ray.is_initialized())
+    connected = False
+    os.environ.setdefault("RAY_ENABLE_UV_RUN_RUNTIME_ENV", "0")
+
+    try:
+        if not was_initialized:
+            ray.init(
+                address=target_addr,
+                ignore_reinit_error=True,
+                configure_logging=False,
+            )
+            connected = True
+        else:
+            connected = True
+
+        try:
+            ctx = ray.get_runtime_context()
+            resolved_address = getattr(ctx, "gcs_address", str(target_addr))
+        except Exception:
+            resolved_address = str(target_addr)
+
+        all_nodes = ray.nodes()  # type: ignore[no-untyped-call]
+        active_nodes_raw = [
+            n for n in all_nodes
+            if bool(n.get("Alive", n.get("alive", False)))
+        ]
+
+        active_nodes: list[dict[str, Any]] = []
+        for n in active_nodes_raw:
+            res = n.get("Resources", {})
+            active_nodes.append({
+                "node_id": str(n.get("NodeID", "unknown")),
+                "address": str(n.get("NodeManagerAddress", "unknown")),
+                "hostname": str(n.get("NodeManagerHostname", "unknown")),
+                "alive": True,
+                "is_head": bool(res.get("node:__internal_head__")),
+                "cpus": float(res.get("CPU", 0.0)),
+                "gpus": float(res.get("GPU", 0.0)),
+                "memory_gb": round(float(res.get("memory", 0.0)) / (1024**3), 2),
+                "object_store_gb": round(float(res.get("object_store_memory", 0.0)) / (1024**3), 2),
+                "resources": res,
+            })
+
+        cluster_resources = ray.cluster_resources()  # type: ignore[no-untyped-call]
+        total_cpus = float(cluster_resources.get("CPU", 0.0))
+        total_gpus = float(cluster_resources.get("GPU", 0.0))
+        object_store_bytes = float(cluster_resources.get("object_store_memory", 0.0))
+        object_store_gb = round(object_store_bytes / (1024**3), 2)
+
+        custom_resources: dict[str, float] = {
+            k: float(v)
+            for k, v in cluster_resources.items()
+            if not k.startswith("node:") and k not in ("CPU", "GPU", "memory", "object_store_memory")
+        }
+
+        # Remote healthcheck task
+        t0 = time.perf_counter()
+        try:
+            @ray.remote(num_cpus=0)
+            def _remote_healthcheck_probe() -> dict[str, Any]:
+                import platform as _p
+                import time as _t
+
+                try:
+                    ip = ray.util.get_node_ip_address()  # type: ignore[no-untyped-call]
+                except Exception:
+                    ip = _p.node()
+                return {
+                    "status": "HEALTHY",
+                    "node_ip": ip,
+                    "timestamp": _t.time(),
+                }
+
+            probe_ref = _remote_healthcheck_probe.remote()
+            probe_res = ray.get(probe_ref, timeout=timeout)
+            latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+            healthcheck_info = {
+                "status": "PASS",
+                "latency_ms": latency_ms,
+                "worker_node": probe_res.get("node_ip"),
+                "detail": f"Remote task completed in {latency_ms}ms on {probe_res.get('node_ip')}",
+            }
+        except Exception as hc_exc:
+            latency_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+            healthcheck_info = {
+                "status": "FAIL",
+                "latency_ms": latency_ms,
+                "worker_node": None,
+                "detail": f"Remote healthcheck execution failed: {hc_exc}",
+            }
+
+        return {
+            "connected": True,
+            "address": resolved_address,
+            "nodes_count": len(active_nodes),
+            "active_nodes": active_nodes,
+            "total_cpus": total_cpus,
+            "total_gpus": total_gpus,
+            "object_store_memory_gb": object_store_gb,
+            "custom_resources": custom_resources,
+            "remote_healthcheck": healthcheck_info,
+            "error": None,
+        }
+    except Exception as exc:
+        return {
+            "connected": False,
+            "address": target_addr,
+            "nodes_count": 0,
+            "active_nodes": [],
+            "total_cpus": 0.0,
+            "total_gpus": 0.0,
+            "object_store_memory_gb": 0.0,
+            "custom_resources": {},
+            "remote_healthcheck": {
+                "status": "FAIL",
+                "latency_ms": 0.0,
+                "worker_node": None,
+                "detail": f"Connection failed: {exc}",
+            },
+            "error": str(exc),
+        }
+    finally:
+        if disconnect and not was_initialized and connected:
+            with contextlib.suppress(Exception):
+                ray.shutdown()
 
 
 def _probe_storage_latency() -> dict[str, Any]:
@@ -466,6 +677,7 @@ def _evaluate_readiness(
     # 5. Ray Distributed Runtime
     ray_installed = ray_info.get("installed", False)
     cluster_up = ray_info.get("cluster_running", False)
+    cluster_conn = ray_info.get("cluster_connectivity")
 
     if not ray_installed:
         checks.append({
@@ -476,6 +688,34 @@ def _evaluate_readiness(
             "detail": "Ray package is missing.",
         })
         recommendations.append("[Distributed] Run `uv sync` to install ray[default].")
+    elif cluster_conn is not None:
+        if cluster_conn.get("connected"):
+            hc = cluster_conn.get("remote_healthcheck", {})
+            checks.append({
+                "name": "Ray Cluster Connectivity",
+                "status": "PASS",
+                "requirement": "Connected to Ray cluster",
+                "actual": (
+                    f"{cluster_conn.get('nodes_count')} node(s), "
+                    f"{cluster_conn.get('total_cpus')} CPUs, "
+                    f"{cluster_conn.get('total_gpus')} GPUs"
+                ),
+                "detail": (
+                    f"Head: {cluster_conn.get('address')}; "
+                    f"Healthcheck: {hc.get('status')} ({hc.get('latency_ms')}ms)"
+                ),
+            })
+        else:
+            checks.append({
+                "name": "Ray Cluster Connectivity",
+                "status": "FAIL",
+                "requirement": "Connected to Ray cluster",
+                "actual": "Connection failed",
+                "detail": str(cluster_conn.get("error") or "Could not connect to Ray cluster"),
+            })
+            recommendations.append(
+                f"[Distributed] Verify Ray head at '{cluster_conn.get('address')}' is active and reachable."
+            )
     elif role == TargetNodeRole.STANDALONE:
         checks.append({
             "name": "Ray Distributed",
@@ -557,11 +797,15 @@ def _evaluate_readiness(
     return status, is_ready, checks, recommendations
 
 
-def diagnose_host_node(role: TargetNodeRole = TargetNodeRole.STANDALONE) -> dict[str, Any]:
+def diagnose_host_node(
+    role: TargetNodeRole = TargetNodeRole.STANDALONE,
+    ray_address: str | None = None,
+) -> dict[str, Any]:
     """Diagnose current host node hardware and evaluate readiness for a given cluster role.
 
     Args:
         role: Target cluster node role (DGX_SPARK, JETSON_AGX, RTX_A6000, or STANDALONE).
+        ray_address: Optional Ray cluster head address to verify distributed connectivity.
 
     Returns:
         Structured dictionary containing hardware attributes, subsystem probes,
@@ -572,6 +816,10 @@ def diagnose_host_node(role: TargetNodeRole = TargetNodeRole.STANDALONE) -> dict
     accel = _probe_accelerators()
     ray_info = _probe_ray()
     storage = _probe_storage_latency()
+
+    if ray_address is not None:
+        cluster_conn = verify_cluster_connectivity(address=ray_address)
+        ray_info["cluster_connectivity"] = cluster_conn
 
     status, is_ready, checks, recommendations = _evaluate_readiness(
         role=role,
@@ -686,6 +934,36 @@ def format_cluster_report(diagnosis: dict[str, Any]) -> str:
     lines.append(
         f"  Ray Distributed:   {ray_stat} (Version: {ray_info.get('version') or 'N/A'}; {ray_info.get('status_summary')})"
     )
+
+    cluster_conn = ray_info.get("cluster_connectivity")
+    if cluster_conn and cluster_conn.get("connected"):
+        lines.append(f"  Ray Cluster Head:  {cluster_conn.get('address')}")
+        lines.append(
+            f"  Cluster Topology:  {cluster_conn.get('nodes_count')} Active Node(s) | "
+            f"Total CPUs: {cluster_conn.get('total_cpus')} | Total GPUs: {cluster_conn.get('total_gpus')} | "
+            f"Object Store: {cluster_conn.get('object_store_memory_gb')} GB"
+        )
+        custom_res = cluster_conn.get("custom_resources", {})
+        if custom_res:
+            res_str = ", ".join(f"{k}: {v}" for k, v in sorted(custom_res.items()))
+            lines.append(f"  Custom Resources:  {res_str}")
+        hc = cluster_conn.get("remote_healthcheck", {})
+        lines.append(
+            f"  Remote Healthcheck: {hc.get('status')} ({hc.get('latency_ms')}ms on {hc.get('worker_node') or 'local'})"
+        )
+        active_nodes = cluster_conn.get("active_nodes", [])
+        if active_nodes:
+            lines.append("  Active Cluster Nodes:")
+            for idx, node in enumerate(active_nodes, 1):
+                head_flag = " [HEAD]" if node.get("is_head") else " [WORKER]"
+                lines.append(
+                    f"    - Node {idx}{head_flag}: {node.get('hostname')} ({node.get('address')}) "
+                    f"| CPUs: {node.get('cpus')} | GPUs: {node.get('gpus')} | Mem: {node.get('memory_gb')}GB"
+                )
+    elif cluster_conn and not cluster_conn.get("connected"):
+        lines.append(
+            f"  Ray Cluster Head:  FAILED to connect to {cluster_conn.get('address')} ({cluster_conn.get('error')})"
+        )
 
     storage_stat = "HEALTHY" if storage.get("healthy") else "DEGRADED / FAILED"
     lines.append(

@@ -510,11 +510,28 @@ def cluster(
             help="Output diagnostics in structured JSON format.",
         ),
     ] = False,
+    address: Annotated[
+        str | None,
+        typer.Option(
+            help="Ray cluster head node address (e.g. 'auto' or 'ray://IP:10001').",
+        ),
+    ] = None,
+    export_json: Annotated[
+        Path | None,
+        typer.Option(
+            help="Path to export cluster diagnostic JSON.",
+        ),
+    ] = None,
 ) -> None:
     """Pre-flight hardware diagnostics & cluster topology activation (Horizon 4)."""
     configure_logging(phase="cluster")
-    logger.info("Host cluster pre-flight diagnostic requested: role={}", role.value)
-    diag = diagnose_host_node(role=role)
+    logger.info("Host cluster pre-flight diagnostic requested: role={} address={}", role.value, address)
+    diag = diagnose_host_node(role=role, ray_address=address)
+    if export_json is not None:
+        export_json.parent.mkdir(parents=True, exist_ok=True)
+        export_json.write_text(json.dumps(diag, indent=2), encoding="utf-8")
+        typer.echo(f"Cluster diagnostics exported to: {export_json}")
+
     if json_output:
         typer.echo(json.dumps(diag, indent=2))
     else:
