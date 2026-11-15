@@ -27,7 +27,7 @@ untested until Phase 1.1 experiments are run.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
@@ -1318,6 +1318,7 @@ class SocialSandboxEngine:
         num_agents: int = 4,
         adulthood_age: int = 300,
         lifespan: int = 1500,
+        initial_capabilities: Sequence[CapabilityPackage] | None = None,
     ) -> None:
         self._default_seed = default_seed
         self._max_ticks = max_ticks
@@ -1326,6 +1327,13 @@ class SocialSandboxEngine:
         self._num_agents = num_agents
         self._adulthood_age = adulthood_age
         self._lifespan = lifespan
+        self._initial_capabilities = (
+            tuple(initial_capabilities) if initial_capabilities is not None else None
+        )
+
+    @property
+    def initial_capabilities(self) -> tuple[CapabilityPackage, ...] | None:
+        return self._initial_capabilities
 
     def reset(
         self,
@@ -1349,6 +1357,7 @@ class SocialSandboxEngine:
             initial_agent_age=initial_agent_age,
             adulthood_age=self._adulthood_age if adulthood_age is None else adulthood_age,
             lifespan=self._lifespan if lifespan is None else lifespan,
+            initial_capabilities=self._initial_capabilities,
         )
         report = check_invariants(None, world)
         if not report.passed:
@@ -1420,7 +1429,16 @@ class SocialSandboxEngine:
                 try:
                     action_type = ActionType(action.action_type)
                 except ValueError:
-                    outcome = _reject(world, f"unsupported action_type {action.action_type!r}")
+                    if action.action_type.startswith("craft:"):
+                        action_type = ActionType.CRAFT
+                        merged_params = dict(action.params)
+                        merged_params.setdefault("package_id", action.action_type)
+                        merged_params.setdefault("kind", action.action_type.removeprefix("craft:"))
+                        action = action.model_copy(update={"params": merged_params})
+                        handler = _ACTION_HANDLERS[action_type]
+                        outcome = handler(world, actor, action, next_tick)
+                    else:
+                        outcome = _reject(world, f"unsupported action_type {action.action_type!r}")
                 else:
                     handler = _ACTION_HANDLERS[action_type]
                     outcome = handler(world, actor, action, next_tick)

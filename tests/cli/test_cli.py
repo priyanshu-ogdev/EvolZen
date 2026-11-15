@@ -145,6 +145,32 @@ def test_cli_evaluate_with_planner() -> None:
     assert "planning efficiency delta:" in result.stdout
 
 
+def test_cli_evaluate_with_planner_multi_tier() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "evaluate",
+            "--rounds",
+            "2",
+            "--use-planner",
+            "--planning-horizon",
+            "5",
+            "--task-tier",
+            "multi_tier",
+            "--persistent-ticks",
+            "5",
+            "--seed",
+            "42",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "EVOLZEN EVALUATION REPORT" in result.stdout
+    assert "task tier: multi_tier" in result.stdout
+    assert "model-based planning: ENABLED (horizon=5)" in result.stdout
+    assert "planning efficiency delta:" in result.stdout
+
+
+
 
 def test_cli_inspect() -> None:
     result = runner.invoke(app, ["inspect", "--seed", "42", "--num-agents", "2"])

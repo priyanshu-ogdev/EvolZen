@@ -25,7 +25,7 @@ from evolzen.evaluation.report import EvaluationReport
 from evolzen.evaluation.rhae_scorer import RHAEResult, RHAEScorer
 from evolzen.predictor.planner import Planner
 from evolzen.schemas.transition import Action
-from evolzen.schemas.world import WorldState
+from evolzen.schemas.world import ActionType, WorldState
 
 
 @dataclass(frozen=True)
@@ -54,6 +54,7 @@ class FreshTrackResult:
     planning_horizon: int = 3
     baseline_eae_score: float | None = None
     baseline_solve_rate: float | None = None
+    task_tier: str = "basic"
 
 
 class DualTrackRunner:
@@ -120,12 +121,17 @@ class DualTrackRunner:
         rounds: int = 4,
         planner: Planner | None = None,
         planning_horizon: int = 3,
+        task_tier: str = "basic",
     ) -> FreshTrackResult:
         """Evaluate cold-start action efficiency across strictly non-reused procedural environments."""
+        effective_tier = task_tier
+        if generator is not None and hasattr(generator, "task_tier") and task_tier == "basic":
+            effective_tier = generator.task_tier
+
         gen = (
             generator
             if generator is not None
-            else ProceduralEnvironmentGenerator(seed=self.seed)
+            else ProceduralEnvironmentGenerator(seed=self.seed, task_tier=effective_tier)
         )
 
         scorer = RHAEScorer()
@@ -149,15 +155,82 @@ class DualTrackRunner:
                 cur_state = state
 
                 for _step_idx in range(15):
-                    candidate_actions: list[Action] = [
-                        Action(agent_id=target_agent_id, action_type="gather"),
-                        Action(agent_id=target_agent_id, action_type="wait"),
-                    ]
+                    candidate_actions: list[Action] = []
                     try:
                         world = WorldState.from_state(cur_state)
                         actor = world.agents.get(target_agent_id)
                         if actor is not None and actor.location_id in world.locations:
                             loc = world.locations[actor.location_id]
+                            age = world.tick - actor.born_at
+
+                            # Target craft goal check (e.g. craft:stone_axe)
+                            target_cap = (
+                                world.capabilities.get("craft:stone_axe")
+                                if effective_tier == "multi_tier"
+                                else None
+                            )
+                            can_craft_target = (
+                                target_cap is not None
+                                and age >= target_cap.min_age
+                                and all(
+                                    actor.inventory.get(r, 0) >= req
+                                    for r, req in target_cap.required_resources.items()
+                                )
+                            )
+                            if can_craft_target and target_cap is not None:
+                                candidate_actions.append(
+                                    Action(
+                                        agent_id=target_agent_id,
+                                        action_type="craft",
+                                        params={
+                                            "package_id": target_cap.package_id,
+                                            "kind": target_cap.output_kind,
+                                        },
+                                    )
+                                )
+
+                            # Legal craft actions matching world.capabilities when agent has prerequisites
+                            for cap in world.capabilities.values():
+                                if target_cap is not None and cap.package_id == target_cap.package_id:
+                                    continue
+                                if (
+                                    cap.action_type == ActionType.CRAFT
+                                    and cap.verified_replay
+                                    and cap.verified_intervention
+                                    and cap.verified_containment
+                                    and age >= cap.min_age
+                                    and all(
+                                        actor.inventory.get(r, 0) >= req
+                                        for r, req in cap.required_resources.items()
+                                    )
+                                    and (
+                                        effective_tier != "multi_tier"
+                                        or f"craft:{cap.output_kind}" not in actor.skills
+                                    )
+                                ):
+                                    candidate_actions.append(
+                                        Action(
+                                            agent_id=target_agent_id,
+                                            action_type="craft",
+                                            params={
+                                                "package_id": cap.package_id,
+                                                "kind": cap.output_kind,
+                                            },
+                                        )
+                                    )
+
+                            # If target goal is not yet craftable, prioritize gathering missing prerequisite resources
+                            if target_cap is not None and not can_craft_target:
+                                for res, req in target_cap.required_resources.items():
+                                    if actor.inventory.get(res, 0) < req and loc.resources.get(res, 0) > 0:
+                                        candidate_actions.append(
+                                            Action(
+                                                agent_id=target_agent_id,
+                                                action_type="gather",
+                                                params={"resource": res},
+                                            )
+                                        )
+
                             for neighbor in loc.neighbors:
                                 candidate_actions.append(
                                     Action(
@@ -167,7 +240,10 @@ class DualTrackRunner:
                                     )
                                 )
                             for res_name in loc.resources:
-                                if res_name != "food":
+                                if not any(
+                                    a.action_type == "gather" and a.params.get("resource") == res_name
+                                    for a in candidate_actions
+                                ):
                                     candidate_actions.append(
                                         Action(
                                             agent_id=target_agent_id,
@@ -186,6 +262,16 @@ class DualTrackRunner:
                     except Exception:
                         pass
 
+                    # Wait action
+                    if effective_tier == "basic" or actor is None or actor.fatigue >= 0.5:
+                        candidate_actions.append(Action(agent_id=target_agent_id, action_type="wait"))
+
+                    if not candidate_actions:
+                        candidate_actions = [
+                            Action(agent_id=target_agent_id, action_type="gather"),
+                            Action(agent_id=target_agent_id, action_type="wait"),
+                        ]
+
                     action, _ = planner.plan_rollout(
                         state=cur_state,
                         agent_id=target_agent_id,
@@ -196,10 +282,24 @@ class DualTrackRunner:
                     actions_taken += 1
                     cur_state = trans.next_state
 
-                    # Solved condition: resource gathered or successfully rested
-                    if trans.emission.data.get("accepted", False):
-                        solved = True
-                        break
+                    # Solved condition check
+                    if effective_tier == "multi_tier":
+                        is_target_solved = (
+                            action.action_type == "craft"
+                            and (
+                                action.params.get("package_id") == "craft:stone_axe"
+                                or action.params.get("kind") == "stone_axe"
+                                or "stone_axe" in str(trans.emission.data.get("reason", ""))
+                            )
+                            and bool(trans.emission.data.get("accepted", False))
+                        )
+                        if is_target_solved:
+                            solved = True
+                            break
+                    else:
+                        if trans.emission.data.get("accepted", False):
+                            solved = True
+                            break
 
                 scorer.record(
                     RHAEResult(
@@ -220,9 +320,23 @@ class DualTrackRunner:
                 base_actions_taken += 1
                 base_cur = base_trans.next_state
 
-                if base_trans.emission.data.get("accepted", False):
-                    base_solved = True
-                    break
+                if effective_tier == "multi_tier":
+                    is_base_target_solved = (
+                        base_action.action_type == "craft"
+                        and (
+                            base_action.params.get("package_id") == "craft:stone_axe"
+                            or base_action.params.get("kind") == "stone_axe"
+                            or "stone_axe" in str(base_trans.emission.data.get("reason", ""))
+                        )
+                        and bool(base_trans.emission.data.get("accepted", False))
+                    )
+                    if is_base_target_solved:
+                        base_solved = True
+                        break
+                else:
+                    if base_trans.emission.data.get("accepted", False):
+                        base_solved = True
+                        break
 
             baseline_scorer.record(
                 RHAEResult(
@@ -238,7 +352,8 @@ class DualTrackRunner:
             baseline_mean_eae = baseline_scorer.mean_rhae()
             baseline_solve = baseline_scorer.solve_rate()
             logger.info(
-                "Fresh-track comparison (rounds={}): planner EAE={:.4f} (solve={:.4f}) vs baseline EAE={:.4f} (solve={:.4f})",
+                "Fresh-track comparison (tier={}, rounds={}): planner EAE={:.4f} (solve={:.4f}) vs baseline EAE={:.4f} (solve={:.4f})",
+                effective_tier,
                 rounds,
                 fresh_mean_eae,
                 solve_rate,
@@ -257,6 +372,7 @@ class DualTrackRunner:
                 planning_horizon=planning_horizon,
                 baseline_eae_score=round(baseline_mean_eae, 4),
                 baseline_solve_rate=round(baseline_solve, 4),
+                task_tier=effective_tier,
             )
         else:
             fresh_mean_eae = baseline_scorer.mean_rhae()
@@ -273,6 +389,7 @@ class DualTrackRunner:
                 planning_horizon=planning_horizon,
                 baseline_eae_score=None,
                 baseline_solve_rate=None,
+                task_tier=effective_tier,
             )
 
     def run_full_evaluation(
@@ -281,6 +398,7 @@ class DualTrackRunner:
         fresh_rounds: int = 4,
         planner: Planner | None = None,
         planning_horizon: int = 3,
+        task_tier: str = "basic",
     ) -> EvaluationReport:
         """Run both tracks and compile the complete, honest Phase 2.5 evaluation report."""
         p_res = self.run_persistent_track(ticks=persistent_ticks)
@@ -288,6 +406,7 @@ class DualTrackRunner:
             rounds=fresh_rounds,
             planner=planner,
             planning_horizon=planning_horizon,
+            task_tier=task_tier,
         )
 
         in_sandbox = {
@@ -307,7 +426,7 @@ class DualTrackRunner:
             delta = f_res.mean_eae_score - f_res.baseline_eae_score
             negative_findings.append(
                 f"Model-based planning (horizon={f_res.planning_horizon}) achieved EAE={f_res.mean_eae_score:.4f} "
-                f"vs baseline EAE={f_res.baseline_eae_score:.4f} (delta={delta:+.4f})."
+                f"vs baseline EAE={f_res.baseline_eae_score:.4f} (delta={delta:+.4f}, tier={f_res.task_tier})."
             )
 
         return EvaluationReport(

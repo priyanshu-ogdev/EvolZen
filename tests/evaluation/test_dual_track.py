@@ -99,3 +99,60 @@ def test_dual_track_full_evaluation_with_planner() -> None:
     summary = report.summary()
     assert "Model-based planning (horizon=2)" in summary
 
+
+def test_dual_track_runner_fresh_track_multi_tier() -> None:
+    runner = DualTrackRunner(seed=42)
+    buf = RehearsalBuffer(capacity=50)
+    dyn = WorldDynamicsPredictor()
+    planner = Planner(rehearsal_buffer=buf, dynamics=dyn)
+
+    t_wood = _sample_transition("gather", [0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05])
+    t_stone = _sample_transition("gather", [0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05])
+    t_craft = _sample_transition("craft", [0.3, 0.15, 0.0, 0.0, 0.0, 0.0, -0.08, -0.05])
+    t_wait = _sample_transition("wait", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1])
+    planner.train_step([t_wood, t_stone, t_craft, t_wait])
+
+    f_res = runner.run_fresh_track(
+        rounds=2,
+        planner=planner,
+        planning_horizon=5,
+        task_tier="multi_tier",
+    )
+    assert isinstance(f_res, FreshTrackResult)
+    assert f_res.planner_enabled is True
+    assert f_res.planning_horizon == 5
+    assert f_res.task_tier == "multi_tier"
+    assert f_res.solve_rate == 1.0
+    assert f_res.baseline_solve_rate == 0.0
+    assert f_res.mean_eae_score > 0.0
+    assert f_res.baseline_eae_score == 0.0
+
+
+def test_dual_track_full_evaluation_multi_tier() -> None:
+    runner = DualTrackRunner(seed=42)
+    buf = RehearsalBuffer(capacity=50)
+    dyn = WorldDynamicsPredictor()
+    planner = Planner(rehearsal_buffer=buf, dynamics=dyn)
+
+    t_wood = _sample_transition("gather", [0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05])
+    t_stone = _sample_transition("gather", [0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05])
+    t_craft = _sample_transition("craft", [0.3, 0.15, 0.0, 0.0, 0.0, 0.0, -0.08, -0.05])
+    planner.train_step([t_wood, t_stone, t_craft])
+
+    report = runner.run_full_evaluation(
+        persistent_ticks=5,
+        fresh_rounds=2,
+        planner=planner,
+        planning_horizon=5,
+        task_tier="multi_tier",
+    )
+    assert isinstance(report, EvaluationReport)
+    assert report.fresh_result.task_tier == "multi_tier"
+    assert report.fresh_result.planning_horizon == 5
+    assert report.fresh_result.solve_rate == 1.0
+    assert report.fresh_result.baseline_solve_rate == 0.0
+    summary = report.summary()
+    assert "Model-based planning (horizon=5)" in summary
+    assert "tier=multi_tier" in summary
+
+

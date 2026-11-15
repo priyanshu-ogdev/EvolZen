@@ -24,6 +24,7 @@ from evolzen.economy.manuals import ManualStore
 from evolzen.economy.metrics import compute_gini_coefficient
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.evaluation.dual_track import DualTrackRunner
+from evolzen.evaluation.procedural_env_gen import MULTI_TIER_CAPABILITIES
 from evolzen.logging import configure_logging, logger
 from evolzen.predictor.dynamics import WorldDynamicsPredictor
 from evolzen.predictor.planner import Planner
@@ -291,17 +292,22 @@ def evaluate(
         int,
         typer.Option(help="Lookahead horizon for model-based rollout."),
     ] = 3,
+    task_tier: Annotated[
+        str,
+        typer.Option(help="Procedural task tier: 'basic' or 'multi_tier'."),
+    ] = "basic",
     db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
 ) -> None:
     """Run held-out dual-track generalization testing (Phases 2.4-2.5)."""
     configure_logging(phase="2.4")
     logger.info(
-        "Evaluation requested: rounds={} persistent_ticks={} seed={} use_planner={} planning_horizon={}",
+        "Evaluation requested: rounds={} persistent_ticks={} seed={} use_planner={} planning_horizon={} task_tier={}",
         rounds,
         persistent_ticks,
         seed,
         use_planner,
         planning_horizon,
+        task_tier,
     )
 
     planner: Planner | None = None
@@ -318,14 +324,48 @@ def evaluate(
             except Exception as exc:
                 logger.warning("Could not load transitions for planner from {}: {}", db_path, exc)
 
-        if not transitions:
-            bootstrap_engine = SocialSandboxEngine(default_seed=seed, num_locations=2, num_agents=2, max_ticks=40)
+        has_craft = any(t.action.action_type == "craft" for t in transitions)
+        if not transitions or (task_tier == "multi_tier" and not has_craft):
+            bootstrap_engine = SocialSandboxEngine(
+                default_seed=seed,
+                num_locations=2,
+                num_agents=2,
+                max_ticks=40,
+                initial_capabilities=MULTI_TIER_CAPABILITIES if task_tier == "multi_tier" else None,
+            )
             b_state = bootstrap_engine.reset(seed=seed)
-            for i in range(16):
-                b_action = Action(agent_id="agent-0", action_type="gather" if i % 2 == 0 else "wait")
-                b_trans = bootstrap_engine.step(b_state, b_action)
-                transitions.append(b_trans)
-                b_state = b_trans.next_state
+            if task_tier == "multi_tier":
+                for i in range(4):
+                    t1 = bootstrap_engine.step(
+                        b_state,
+                        Action(agent_id="agent-0", action_type="gather", params={"resource": "wood"}),
+                    )
+                    b_state = t1.next_state
+                    transitions.append(t1)
+
+                    t2 = bootstrap_engine.step(
+                        b_state,
+                        Action(agent_id="agent-0", action_type="gather", params={"resource": "stone"}),
+                    )
+                    b_state = t2.next_state
+                    transitions.append(t2)
+
+                    t3 = bootstrap_engine.step(
+                        b_state,
+                        Action(
+                            agent_id="agent-0",
+                            action_type="craft",
+                            params={"package_id": "craft:stone_axe", "kind": "stone_axe", "artifact_id": f"axe-{i}"},
+                        ),
+                    )
+                    b_state = t3.next_state
+                    transitions.append(t3)
+            else:
+                for i in range(16):
+                    b_action = Action(agent_id="agent-0", action_type="gather" if i % 2 == 0 else "wait")
+                    b_trans = bootstrap_engine.step(b_state, b_action)
+                    transitions.append(b_trans)
+                    b_state = b_trans.next_state
 
         planner.train_step(transitions)
 
@@ -335,6 +375,7 @@ def evaluate(
         fresh_rounds=rounds,
         planner=planner,
         planning_horizon=planning_horizon,
+        task_tier=task_tier,
     )
 
     typer.echo("=================================================")
@@ -354,6 +395,7 @@ def evaluate(
     if report.fresh_result is not None:
         f = report.fresh_result
         typer.echo("Track 2 (Held-out Fresh Worlds):")
+        typer.echo(f"  task tier: {f.task_tier}")
         typer.echo(f"  rounds: {f.rounds_evaluated}")
         typer.echo(f"  average EAE_B action efficiency: {f.mean_eae_score:.4f}")
         typer.echo(f"  fresh solve rate: {f.solve_rate:.4f}")

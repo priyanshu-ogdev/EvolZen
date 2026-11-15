@@ -18,20 +18,76 @@ import hashlib
 from typing import Any
 
 from evolzen.environment.engine import SocialSandboxEngine
+from evolzen.schemas.world import ActionType, CapabilityPackage
+
+MULTI_TIER_CAPABILITIES: tuple[CapabilityPackage, ...] = (
+    CapabilityPackage(
+        package_id="craft:tool_handle",
+        version="1.0.0",
+        action_type=ActionType.CRAFT,
+        required_resources={"wood": 1},
+        output_kind="tool_handle",
+        min_age=0,
+        evidence_id="multi_tier:craft:tool_handle",
+        verified_replay=True,
+        verified_intervention=True,
+        verified_containment=True,
+    ),
+    CapabilityPackage(
+        package_id="craft:stone_blade",
+        version="1.0.0",
+        action_type=ActionType.CRAFT,
+        required_resources={"stone": 1},
+        output_kind="stone_blade",
+        min_age=0,
+        evidence_id="multi_tier:craft:stone_blade",
+        verified_replay=True,
+        verified_intervention=True,
+        verified_containment=True,
+    ),
+    CapabilityPackage(
+        package_id="craft:stone_axe",
+        version="1.0.0",
+        action_type=ActionType.CRAFT,
+        required_resources={"wood": 1, "stone": 1},
+        output_kind="stone_axe",
+        min_age=0,
+        evidence_id="multi_tier:craft:stone_axe",
+        verified_replay=True,
+        verified_intervention=True,
+        verified_containment=True,
+    ),
+)
 
 
 class ProceduralEnvironmentGenerator:
     """Generates a fresh, never-before-seen environment instance within the Phase 1.1 domain
     family, for each evaluation round."""
 
-    def __init__(self, seed: int = 42) -> None:
+    def __init__(self, seed: int = 42, task_tier: str = "basic") -> None:
         self._seed = seed
+        self._task_tier = task_tier
         self._round = 0
         self._generated_configs: list[dict[str, Any]] = []
 
     @property
     def round_count(self) -> int:
         return self._round
+
+    @property
+    def task_tier(self) -> str:
+        return self._task_tier
+
+    @property
+    def target_goal(self) -> str | None:
+        return "craft:stone_axe" if self._task_tier == "multi_tier" else None
+
+    @property
+    def metadata(self) -> dict[str, Any]:
+        meta: dict[str, Any] = {"task_tier": self._task_tier}
+        if self._task_tier == "multi_tier":
+            meta["target_goal"] = "craft:stone_axe"
+        return meta
 
     @property
     def generated_configs(self) -> list[dict[str, Any]]:
@@ -42,7 +98,8 @@ class ProceduralEnvironmentGenerator:
 
         Guarantees:
         (a) genuinely novel parameters each call (seed, locations, agent counts);
-        (b) novel parameter tracking so the evaluation report can prove zero reuse.
+        (b) novel parameter tracking so the evaluation report can prove zero reuse;
+        (c) seeded multi-tier capabilities when task_tier == 'multi_tier'.
         """
         self._round += 1
         digest = hashlib.sha256(f"{self._seed}:round:{self._round}".encode()).hexdigest()
@@ -53,13 +110,16 @@ class ProceduralEnvironmentGenerator:
         num_agents = 2 + ((round_seed // 5) % 5)  # 2..6
         max_ticks = 200 + (round_seed % 800)  # 200..999
 
-        config = {
+        config: dict[str, Any] = {
             "round": self._round,
             "seed": round_seed,
             "num_locations": num_locations,
             "num_agents": num_agents,
             "max_ticks": max_ticks,
+            "task_tier": self._task_tier,
         }
+        if self._task_tier == "multi_tier":
+            config["target_goal"] = "craft:stone_axe"
 
         # Enforce strict non-repetition across seeds
         if any(c["seed"] == round_seed for c in self._generated_configs):
@@ -67,11 +127,13 @@ class ProceduralEnvironmentGenerator:
 
         self._generated_configs.append(config)
 
+        initial_caps = MULTI_TIER_CAPABILITIES if self._task_tier == "multi_tier" else None
         return SocialSandboxEngine(
             default_seed=round_seed,
             num_locations=num_locations,
             num_agents=num_agents,
             max_ticks=max_ticks,
+            initial_capabilities=initial_caps,
         )
 
     def has_reused_instances(self) -> bool:

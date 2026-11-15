@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import random
+from collections.abc import Sequence
 
 from evolzen.schemas.world import (
     ActionType,
@@ -40,6 +41,7 @@ def build_default_world(
     initial_agent_age: int = 0,
     adulthood_age: int = 300,
     lifespan: int = 1500,
+    initial_capabilities: Sequence[CapabilityPackage] | None = None,
 ) -> WorldState:
     """Construct a deterministic discrete graph/grid social sandbox initial state.
 
@@ -128,6 +130,11 @@ def build_default_world(
         verified_containment=True,
     )
 
+    capabilities: dict[str, CapabilityPackage] = {base_capability.package_id: base_capability}
+    if initial_capabilities is not None:
+        for cap in initial_capabilities:
+            capabilities[cap.package_id] = cap
+
     return WorldState(
         run_id=run_id,
         branch_id=branch_id,
@@ -141,7 +148,7 @@ def build_default_world(
         locations=locations,
         agents=agents,
         artifacts={},
-        capabilities={base_capability.package_id: base_capability},
+        capabilities=capabilities,
         contracts={},
         institutions={},
         norms={},
