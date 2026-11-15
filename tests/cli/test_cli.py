@@ -361,3 +361,30 @@ def test_cli_run_online_train(tmp_path: Path) -> None:
     assert "Online training rehearsal buffer size:" in result.stdout
     assert db_path.exists()
 
+
+def test_cli_run_neural_backend(tmp_path: Path) -> None:
+    """Verifies that evolzen run executes with live neural backend (transformers)."""
+    db_path = tmp_path / "test_run_neural.duckdb"
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "--backend",
+            "transformers",
+            "--generations",
+            "1",
+            "--ticks-per-gen",
+            "2",
+            "--seed",
+            "42",
+            "--db-path",
+            str(db_path),
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Simulation completed successfully" in result.stdout
+    assert "Inference backend: transformers" in result.stdout
+    assert "Neural model ID: Qwen/Qwen2.5-0.5B-Instruct" in result.stdout
+    assert db_path.exists()
+
+

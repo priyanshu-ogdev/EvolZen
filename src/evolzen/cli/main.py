@@ -16,9 +16,15 @@ import typer
 
 from evolzen.agents.development.lifecycle import stage_at
 from evolzen.agents.development.motivation import sample_genome
+from evolzen.agents.inference import InferenceBackend
 from evolzen.agents.qd_archive import CVTArchive, QDArchiveEntry, compute_behavioral_descriptor
 from evolzen.agents.scheduler import PopulationScheduler
-from evolzen.cli.cluster import TargetNodeRole, diagnose_host_node, format_cluster_report
+from evolzen.cli.cluster import (
+    TargetNodeRole,
+    benchmark_neural_inference,
+    diagnose_host_node,
+    format_cluster_report,
+)
 from evolzen.cli.dashboard import generate_dashboard_html
 from evolzen.cli.server import EvolZenDashboardServer
 from evolzen.economy.manuals import ManualStore
@@ -56,11 +62,13 @@ def run(
     drought_interval: Annotated[int, typer.Option(help="Period (in ticks) between exogenous resource scarcity droughts. 0 disables.")] = 0,
     drought_severity: Annotated[float, typer.Option(help="Fractional severity [0.0, 1.0] of resource scarcity during drought.")] = 0.5,
     online_train: Annotated[bool, typer.Option(help="Enable concurrent background online training during simulation.")] = False,
+    backend: Annotated[str, typer.Option(help="Inference backend: 'heuristic', 'transformers', or 'vllm'.")] = "heuristic",
+    model_id: Annotated[str, typer.Option(help="HuggingFace model ID for neural inference.")] = "Qwen/Qwen2.5-0.5B-Instruct",
 ) -> None:
     """Run the environment + agent-population loop (Phases 1.1-1.5)."""
     configure_logging(phase="1.x")
     logger.info(
-        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={} online_train={}",
+        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={} online_train={} backend={} model_id={}",
         generations,
         ticks_per_gen,
         seed,
@@ -69,6 +77,8 @@ def run(
         drought_interval,
         drought_severity,
         online_train,
+        backend,
+        model_id,
     )
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -122,11 +132,32 @@ def run(
                 adulthood_age=dev_config.adulthood,
                 lifespan=dev_config.lifespan,
             )
+            selected_backend: InferenceBackend | None = None
+            if backend.lower() == "heuristic":
+                selected_backend = None
+            elif backend.lower() == "transformers":
+                from evolzen.agents.inference import TransformersBackend
+
+                selected_backend = TransformersBackend(
+                    model_id=model_id,
+                    offline_fallback=True,
+                    load_weights=False,
+                )
+            elif backend.lower() == "vllm":
+                from evolzen.agents.inference import VLLMBackend
+
+                selected_backend = VLLMBackend(model_id=model_id)
+            else:
+                raise typer.BadParameter(
+                    f"Unsupported backend {backend!r}. Choose from: 'heuristic', 'transformers', 'vllm'."
+                )
+
             scheduler = PopulationScheduler(
                 engine=engine,
                 initial_state=init_state,
                 config=dev_config,
                 manual_store=manual_store,
+                backend=selected_backend,
                 run_id=run_id,
                 store=store,
             )
@@ -210,7 +241,9 @@ def run(
             f"  Drought interval: {drought_interval}\n"
             f"  Drought severity: {drought_severity:.2f}\n"
             f"  Cultural retention (recipe adoptions in ManualStore): {recipe_adoptions}\n"
-            f"  Gini stability under drought: {gini_stability:.4f}"
+            f"  Gini stability under drought: {gini_stability:.4f}\n"
+            f"  Inference backend: {backend}\n"
+            f"  Neural model ID: {model_id}"
         )
 
         if daemon_inst is not None:
@@ -673,11 +706,25 @@ def cluster(
             help="Path to export cluster diagnostic JSON.",
         ),
     ] = None,
+    benchmark_inference: Annotated[
+        bool,
+        typer.Option(
+            help="Benchmark neural LLM inference latency and throughput on target host.",
+        ),
+    ] = False,
 ) -> None:
     """Pre-flight hardware diagnostics & cluster topology activation (Horizon 4)."""
     configure_logging(phase="cluster")
-    logger.info("Host cluster pre-flight diagnostic requested: role={} address={}", role.value, address)
+    logger.info(
+        "Host cluster pre-flight diagnostic requested: role={} address={} benchmark_inference={}",
+        role.value,
+        address,
+        benchmark_inference,
+    )
     diag = diagnose_host_node(role=role, ray_address=address)
+    if benchmark_inference:
+        bench_res = benchmark_neural_inference()
+        diag["neural_inference_benchmark"] = bench_res
     if export_json is not None:
         export_json.parent.mkdir(parents=True, exist_ok=True)
         export_json.write_text(json.dumps(diag, indent=2), encoding="utf-8")

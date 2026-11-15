@@ -41,6 +41,7 @@ from evolzen.schemas.transition import ExogenousInput, State, Transition
 from evolzen.schemas.world import WorldState
 
 if TYPE_CHECKING:
+    from evolzen.agents.inference import InferenceBackend
     from evolzen.economy.manuals import ManualStore
     from evolzen.storage.transition_log import TransitionLogStore
 
@@ -71,6 +72,7 @@ class PopulationScheduler:
         archive: CVTArchive | None = None,
         store: TransitionLogStore | None = None,
         manual_store: ManualStore | None = None,
+        backend: InferenceBackend | None = None,
         run_id: str = "population-run",
         branch_id: str = "main",
     ) -> None:
@@ -80,6 +82,7 @@ class PopulationScheduler:
         self.archive = archive or CVTArchive.uniform_hypercube(num_centroids=32, dimensions=5)
         self.store = store
         self.manual_store = manual_store
+        self.backend = backend
         self.run_id = run_id
         self.branch_id = branch_id
 
@@ -117,6 +120,7 @@ class PopulationScheduler:
                     tick=init_tick,
                     config=self.config,
                     parents=parent_agents,
+                    backend=self.backend,
                 )
                 desc = compute_behavioral_descriptor(
                     agent.development.birth.genome,
@@ -155,19 +159,57 @@ class PopulationScheduler:
         features = observe_features(self.state, agent_id)
         candidates = legal_candidates(self.state, agent_id, config=self.config)
 
-        decision = agent.decide(features, candidates, world.tick, seed=seed)
-        transition, outcome = execute_decision(
-            self.engine,
-            self.state,
-            decision,
-            exogenous_input=exogenous_input,
-            seed=seed,
-        )
+        if self.backend is not None:
+            if agent.backend is None:
+                agent.backend = self.backend
+            action = agent.act_with_backend(
+                features,
+                candidates,
+                world.tick,
+                world_context={"tick": world.tick, "agent_id": agent_id, "location_id": w_agent.location_id},
+            )
+            transition = self.engine.step(
+                self.state,
+                action,
+                exogenous_input=exogenous_input,
+                seed=seed,
+            )
+            raw_rewards = transition.emission.data.get("rewards", [0.0] * 8)
+            rewards = tuple(float(v) for v in raw_rewards)
+            if len(rewards) != 8:
+                rewards = (0.0,) * 8
+            next_tick = int(transition.emission.data.get("tick", world.tick + 1))
+            pending = agent.development.pending
+            seq = pending.sequence if pending is not None else 1
+            act_id = pending.candidate.action_id if pending is not None else action.action_type
+            outcome = Outcome(
+                agent_id=agent_id,
+                sequence=seq,
+                tick=next_tick,
+                action_id=act_id,
+                evidence_id=str(transition.transition_id),
+                rewards=rewards,
+                verified=bool(transition.emission.data.get("invariant_passed", False)),
+            )
+        else:
+            decision = agent.decide(features, candidates, world.tick, seed=seed)
+            transition, outcome = execute_decision(
+                self.engine,
+                self.state,
+                decision,
+                exogenous_input=exogenous_input,
+                seed=seed,
+            )
 
         if stage_at(agent.development, outcome.tick) == LifeStage.DEAD:
             agent.advance(outcome.tick)
+        elif outcome.verified and agent.development.pending is not None:
+            try:
+                agent.observe(outcome)
+            except ValueError:
+                agent.advance(outcome.tick)
         else:
-            agent.observe(outcome)
+            agent.advance(outcome.tick)
         self.state = transition.next_state
         self._init_agents_from_world()
 

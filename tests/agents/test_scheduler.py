@@ -10,12 +10,14 @@ Citations:
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from evolzen.agents.scheduler import PopulationScheduler
 from evolzen.economy.manuals import ManualStore
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.environment.invariants import check_invariants
-from evolzen.schemas.development import DevelopmentConfig
+from evolzen.schemas.agent_profile import AgentProfile
+from evolzen.schemas.development import Candidate, DevelopmentConfig
 from evolzen.schemas.manual import ProvenanceCategory, ProvenanceRecord
 from evolzen.schemas.transition import Action
 from evolzen.schemas.world import ActionType, WorldState
@@ -215,4 +217,67 @@ def test_scheduler_communal_silo_food_buffering_under_drought() -> None:
     # Invariants must strictly hold across drought rollout
     report = check_invariants(w_drought, w_end)
     assert report.passed is True
+
+
+class _MockInferenceBackend:
+    """Mock InferenceBackend satisfying protocol for PopulationScheduler testing."""
+
+    def __init__(self) -> None:
+        self.call_count = 0
+        self.recorded_contexts: list[dict[str, Any]] = []
+
+    def generate_action(
+        self,
+        profile: AgentProfile,
+        signal: tuple[float, ...],
+        candidates: tuple[Candidate, ...],
+        motive_weights: tuple[float, ...],
+        world_context: dict[str, Any],
+    ) -> Action:
+        self.call_count += 1
+        self.recorded_contexts.append(world_context)
+        return Action(agent_id=profile.agent_id, action_type=ActionType.WAIT)
+
+
+def test_scheduler_with_mock_inference_backend() -> None:
+    """Verifies that PopulationScheduler executes neural inference routing with live backend."""
+    engine = SocialSandboxEngine(default_seed=42, num_agents=4, num_locations=4)
+    s0 = engine.reset(seed=42, run_id="mock-inference-test")
+    w0 = WorldState.from_state(s0)
+
+    backend = _MockInferenceBackend()
+    scheduler = PopulationScheduler(
+        engine=engine,
+        initial_state=s0,
+        backend=backend,
+        run_id="mock-inference-test",
+    )
+
+    assert scheduler.backend is backend
+    assert len(scheduler.agents) == 4
+    for agent in scheduler.agents.values():
+        assert agent.backend is backend
+
+    # Step single agent through live backend
+    step_res = scheduler.step_agent("agent-0")
+    assert step_res is not None
+    transition, outcome = step_res
+    assert transition.action.agent_id == "agent-0"
+    assert transition.action.action_type == ActionType.WAIT
+    assert outcome.verified is True
+    assert backend.call_count == 1
+    assert backend.recorded_contexts[0]["agent_id"] == "agent-0"
+    assert backend.recorded_contexts[0]["tick"] == 0
+    assert "location_id" in backend.recorded_contexts[0]
+
+    # Run multi-step generational rollout with backend
+    metrics = scheduler.run_generation(steps=2, seed=42)
+    assert metrics.total_transitions > 0
+    assert backend.call_count > 1
+
+    # Invariants must hold across transitions
+    w_final = WorldState.from_state(scheduler.state)
+    report = check_invariants(w0, w_final)
+    assert report.passed is True
+
 

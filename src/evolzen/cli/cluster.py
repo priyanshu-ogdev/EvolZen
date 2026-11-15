@@ -15,6 +15,7 @@ Citations:
 from __future__ import annotations
 
 import contextlib
+import math
 import os
 import platform
 import shutil
@@ -31,6 +32,7 @@ from evolzen.containment import is_gvisor_available
 
 __all__ = [
     "TargetNodeRole",
+    "benchmark_neural_inference",
     "diagnose_host_node",
     "format_cluster_report",
     "verify_cluster_connectivity",
@@ -406,6 +408,161 @@ def verify_cluster_connectivity(
         if disconnect and not was_initialized and connected:
             with contextlib.suppress(Exception):
                 ray.shutdown()
+
+
+def benchmark_neural_inference(
+    backend_type: str = "transformers",
+    model_id: str = "Qwen/Qwen2.5-0.5B-Instruct",
+    batch_size: int = 4,
+) -> dict[str, Any]:
+    """Benchmark agent inference throughput, action latency (ms), and schema validity rate.
+
+    Benchmarks agent inference throughput, action latency (ms), and schema validity rate using `InferenceBackend`.
+
+    Args:
+        backend_type: 'transformers', 'vllm', or 'heuristic'.
+        model_id: HuggingFace model ID or local path.
+        batch_size: Number of inference iterations to benchmark (default 4).
+
+    Returns:
+        Structured dictionary containing throughput, latency, validity metrics, and status.
+    """
+    from evolzen.schemas.agent_profile import AgentProfile
+    from evolzen.schemas.development import Candidate
+    from evolzen.schemas.transition import Action
+    from evolzen.schemas.world import ActionType
+
+    total_batch = max(1, batch_size)
+    try:
+        if backend_type.lower() == "transformers":
+            from evolzen.agents.inference import TransformersBackend
+
+            backend: Any = TransformersBackend(
+                model_id=model_id,
+                offline_fallback=True,
+                load_weights=False,
+            )
+        elif backend_type.lower() == "vllm":
+            from evolzen.agents.inference import VLLMBackend
+
+            backend = VLLMBackend(model_id=model_id)
+        elif backend_type.lower() == "heuristic":
+            from evolzen.agents.inference import TransformersBackend
+
+            backend = TransformersBackend(
+                model_id=model_id,
+                offline_fallback=True,
+                load_weights=False,
+            )
+        else:
+            raise ValueError(f"Unsupported backend_type for benchmarking: {backend_type!r}")
+    except Exception as exc:
+        return {
+            "backend_type": backend_type,
+            "model_id": model_id,
+            "batch_size": total_batch,
+            "total_time_seconds": 0.0,
+            "throughput_actions_per_sec": 0.0,
+            "mean_latency_ms": 0.0,
+            "p95_latency_ms": 0.0,
+            "min_latency_ms": 0.0,
+            "max_latency_ms": 0.0,
+            "schema_validity_rate": 0.0,
+            "valid_actions_count": 0,
+            "error": str(exc),
+        }
+
+    candidates = (
+        Candidate(
+            action_id="wait",
+            context_key="world:loc-0",
+            skill_key="wait:v1",
+            predicted=(0.0,) * 8,
+            cost=0.0,
+            minimum_age=0,
+            permitted=True,
+        ),
+        Candidate(
+            action_id="gather:food:1",
+            context_key="world:loc-0",
+            skill_key="gather:food:v1",
+            predicted=(0.1,) * 8,
+            cost=0.05,
+            minimum_age=0,
+            permitted=True,
+        ),
+        Candidate(
+            action_id="move:loc-1",
+            context_key="world:loc-0",
+            skill_key="move:v1",
+            predicted=(0.05,) * 8,
+            cost=0.1,
+            minimum_age=0,
+            permitted=True,
+        ),
+    )
+    signal = (0.1, -0.2, 0.3, 0.0, -0.5, 0.4, 0.0, 0.1)
+    motive_weights = (0.125,) * 8
+
+    latencies_ms: list[float] = []
+    valid_count = 0
+
+    t_start = time.perf_counter()
+    for i in range(total_batch):
+        profile = AgentProfile(
+            agent_id=f"bench-agent-{i}",
+            lineage_id="lineage-bench",
+            roles=("specialist",),
+            adopted_norms=("conserve",),
+            institutional_affiliations=(),
+        )
+        world_context = {
+            "tick": i + 1,
+            "agent_id": f"bench-agent-{i}",
+            "location_id": "loc-0",
+        }
+        item_t0 = time.perf_counter()
+        try:
+            action = backend.generate_action(
+                profile=profile,
+                signal=signal,
+                candidates=candidates,
+                motive_weights=motive_weights,
+                world_context=world_context,
+            )
+            item_elapsed_ms = (time.perf_counter() - item_t0) * 1000.0
+            latencies_ms.append(round(item_elapsed_ms, 3))
+
+            if isinstance(action, Action):
+                Action.model_validate(action.model_dump())
+                if any(action.action_type == at.value for at in ActionType):
+                    valid_count += 1
+        except Exception:
+            item_elapsed_ms = (time.perf_counter() - item_t0) * 1000.0
+            latencies_ms.append(round(item_elapsed_ms, 3))
+
+    total_time_sec = max(time.perf_counter() - t_start, 1e-6)
+    throughput = round(total_batch / total_time_sec, 2)
+    mean_lat = round(sum(latencies_ms) / len(latencies_ms), 3) if latencies_ms else 0.0
+    sorted_lats = sorted(latencies_ms) if latencies_ms else [0.0]
+    p95_idx = min(int(math.ceil(0.95 * len(sorted_lats))) - 1, len(sorted_lats) - 1)
+    p95_lat = sorted_lats[max(0, p95_idx)]
+    validity_rate = round(valid_count / total_batch, 4)
+
+    return {
+        "backend_type": backend_type,
+        "model_id": model_id,
+        "batch_size": total_batch,
+        "total_time_seconds": round(total_time_sec, 4),
+        "throughput_actions_per_sec": throughput,
+        "mean_latency_ms": mean_lat,
+        "p95_latency_ms": p95_lat,
+        "min_latency_ms": min(latencies_ms) if latencies_ms else 0.0,
+        "max_latency_ms": max(latencies_ms) if latencies_ms else 0.0,
+        "schema_validity_rate": validity_rate,
+        "valid_actions_count": valid_count,
+        "error": None,
+    }
 
 
 def _probe_storage_latency() -> dict[str, Any]:
@@ -990,6 +1147,24 @@ def format_cluster_report(diagnosis: dict[str, Any]) -> str:
             lines.append(f"  * {rec}")
     else:
         lines.append("  * All pre-flight deployment checks passed cleanly. Node is fully ready for activation.")
+
+    bench = diagnosis.get("neural_inference_benchmark")
+    if bench:
+        lines.append("")
+        lines.append("-" * 80)
+        lines.append("5. Neural LLM Inference Benchmark (InferenceBackend)")
+        lines.append("-" * 80)
+        lines.append(f"  Backend Type:       {bench.get('backend_type')}")
+        lines.append(f"  Model ID:           {bench.get('model_id')}")
+        lines.append(f"  Batch Size:         {bench.get('batch_size')}")
+        lines.append(f"  Throughput:         {bench.get('throughput_actions_per_sec')} actions/sec")
+        lines.append(f"  Mean Latency:       {bench.get('mean_latency_ms')} ms")
+        lines.append(f"  P95 Latency:        {bench.get('p95_latency_ms')} ms")
+        validity = bench.get("schema_validity_rate", 0.0)
+        lines.append(f"  Schema Validity:    {round(validity * 100, 1)}%")
+        if bench.get("error"):
+            lines.append(f"  Benchmark Error:    {bench.get('error')}")
+
     lines.append("=" * 80)
 
     return "\n".join(lines)

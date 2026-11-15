@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from evolzen.cli.cluster import (
     TargetNodeRole,
+    benchmark_neural_inference,
     diagnose_host_node,
     format_cluster_report,
     verify_cluster_connectivity,
@@ -301,3 +302,63 @@ def test_cli_cluster_with_address_and_export(tmp_path: Path) -> None:
     data = json.loads(export_file.read_text(encoding="utf-8"))
     assert "cluster_connectivity" in data["ray"]
     assert data["ray"]["cluster_connectivity"]["connected"] is False
+
+
+def test_benchmark_neural_inference_transformers() -> None:
+    """Verifies that benchmark_neural_inference measures throughput, latency, and valid schema."""
+    result = benchmark_neural_inference(backend_type="transformers", batch_size=4)
+    assert result["backend_type"] == "transformers"
+    assert result["model_id"] == "Qwen/Qwen2.5-0.5B-Instruct"
+    assert result["batch_size"] == 4
+    assert result["total_time_seconds"] > 0
+    assert result["throughput_actions_per_sec"] > 0
+    assert result["mean_latency_ms"] >= 0
+    assert result["p95_latency_ms"] >= 0
+    assert result["schema_validity_rate"] == 1.0
+    assert result["valid_actions_count"] == 4
+    assert result["error"] is None
+
+
+def test_benchmark_neural_inference_invalid_backend() -> None:
+    """Verifies that benchmark_neural_inference reports error for unsupported backends."""
+    result = benchmark_neural_inference(backend_type="unsupported_backend")
+    assert result["error"] is not None
+    assert result["schema_validity_rate"] == 0.0
+    assert result["throughput_actions_per_sec"] == 0.0
+
+
+def test_cli_cluster_benchmark_inference() -> None:
+    """Verifies that evolzen cluster --benchmark-inference outputs the neural benchmark section."""
+    result = runner.invoke(app, ["cluster", "--benchmark-inference"])
+    assert result.exit_code == 0
+    assert "Neural LLM Inference Benchmark" in result.stdout
+    assert "transformers" in result.stdout
+    assert "actions/sec" in result.stdout
+    assert "Schema Validity:" in result.stdout
+
+
+def test_cli_cluster_benchmark_inference_json() -> None:
+    """Verifies that evolzen cluster --benchmark-inference with --json outputs valid JSON."""
+    result = runner.invoke(app, ["cluster", "--benchmark-inference", "--json"])
+    assert result.exit_code == 0
+    stdout_data = json.loads(result.stdout)
+    assert "neural_inference_benchmark" in stdout_data
+    assert stdout_data["neural_inference_benchmark"]["schema_validity_rate"] == 1.0
+    assert stdout_data["neural_inference_benchmark"]["valid_actions_count"] == 4
+
+
+def test_cli_cluster_benchmark_inference_export_json(tmp_path: Path) -> None:
+    """Verifies that evolzen cluster --benchmark-inference exports JSON file."""
+    export_file = tmp_path / "cluster_bench.json"
+    result = runner.invoke(
+        app,
+        ["cluster", "--benchmark-inference", "--export-json", str(export_file)],
+    )
+    assert result.exit_code == 0
+    assert export_file.exists()
+    exported_data = json.loads(export_file.read_text(encoding="utf-8"))
+    assert "neural_inference_benchmark" in exported_data
+    assert exported_data["neural_inference_benchmark"]["backend_type"] == "transformers"
+    assert exported_data["neural_inference_benchmark"]["schema_validity_rate"] == 1.0
+
+
