@@ -1,4 +1,4 @@
-"""CLI entry point: `evolzen run / train / evaluate / replay / inspect / ablate / cluster`.
+"""CLI entry point: `evolzen run / train / evaluate / replay / inspect / ablate / cluster / serve`.
 
 See src/evolzen/cli/README.md for the command-to-subsystem map. Registered as a console script
 via [project.scripts] in pyproject.toml.
@@ -18,6 +18,7 @@ from evolzen.agents.qd_archive import CVTArchive, QDArchiveEntry, compute_behavi
 from evolzen.agents.scheduler import PopulationScheduler
 from evolzen.cli.cluster import TargetNodeRole, diagnose_host_node, format_cluster_report
 from evolzen.cli.dashboard import generate_dashboard_html
+from evolzen.cli.server import EvolZenDashboardServer
 from evolzen.economy.manuals import ManualStore
 from evolzen.economy.metrics import compute_gini_coefficient
 from evolzen.environment.engine import SocialSandboxEngine
@@ -437,6 +438,41 @@ def cluster(
     else:
         report = format_cluster_report(diag)
         typer.echo(report)
+
+
+@app.command()
+def serve(
+    port: Annotated[int, typer.Option(help="Port to bind server to.")] = 8000,
+    host: Annotated[str, typer.Option(help="Host interface.")] = "127.0.0.1",
+    db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
+    poll_interval: Annotated[float, typer.Option(help="Polling interval in seconds for SSE tailing.")] = 1.0,
+    once: Annotated[bool, typer.Option(help="Serve status once and exit (for CI/diagnostics).")] = False,
+) -> None:
+    """Launch the live real-time dashboard and transition event streaming server (Frontier 3)."""
+    configure_logging(phase="serve")
+    logger.info("Dashboard server requested on {}:{} (db: {}, poll: {}s)", host, port, db_path, poll_interval)
+    server = EvolZenDashboardServer(
+        host=host,
+        port=port,
+        db_path=db_path,
+        poll_interval=poll_interval,
+    )
+    if once:
+        server.start(background=True)
+        try:
+            status = server.get_status()
+            typer.echo(json.dumps(status, indent=2))
+        finally:
+            server.stop()
+        return
+
+    typer.echo(f"Serving EvolZen real-time dashboard at http://{host}:{port}/ (Ctrl+C to quit)")
+    try:
+        server.start(background=False)
+    except KeyboardInterrupt:
+        typer.echo("\nServer stopped.")
+    finally:
+        server.stop()
 
 
 if __name__ == "__main__":

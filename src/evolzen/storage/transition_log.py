@@ -327,6 +327,58 @@ class TransitionLogStore:
             )
         return results
 
+    def list_transitions_with_seq(
+        self,
+        *,
+        run_id: str | None = None,
+        branch_id: str | None = None,
+        from_seq: int = 0,
+        limit: int | None = None,
+    ) -> list[tuple[int, Transition]]:
+        """Load transitions alongside their monotonically increasing seq_no, ordered by seq_no."""
+        clauses: list[str] = ["seq_no > ?"]
+        params: list[Any] = [from_seq]
+        if run_id is not None:
+            clauses.append("run_id = ?")
+            params.append(run_id)
+        if branch_id is not None:
+            clauses.append("branch_id = ?")
+            params.append(branch_id)
+        where = f" WHERE {' AND '.join(clauses)}"
+        limit_clause = f" LIMIT {int(limit)}" if limit is not None else ""
+        rows = self._conn.execute(
+            f"""
+            SELECT seq_no, transition_id, timestamp, seed, state_json, action_json,
+                   exogenous_json, emission_json, next_state_json
+            FROM transitions{where}
+            ORDER BY seq_no ASC{limit_clause}
+            """,
+            params,
+        ).fetchall()
+        results: list[tuple[int, Transition]] = []
+        for row in rows:
+            seq_val = int(row[0])
+            ts_val = row[2]
+            if isinstance(ts_val, datetime) and ts_val.tzinfo is None:
+                ts_val = ts_val.replace(tzinfo=UTC)
+            trans = Transition(
+                transition_id=row[1],
+                timestamp=ts_val,
+                seed=int(row[3]),
+                state=State.model_validate_json(row[4]),
+                action=Action.model_validate_json(row[5]),
+                exogenous_input=ExogenousInput.model_validate_json(row[6]),
+                emission=Emission.model_validate_json(row[7]),
+                next_state=State.model_validate_json(row[8]),
+            )
+            results.append((seq_val, trans))
+        return results
+
+    def latest_seq_no(self) -> int:
+        """Return the highest persisted transition sequence number, or 0 if empty."""
+        row = self._conn.execute("SELECT COALESCE(MAX(seq_no), 0) FROM transitions").fetchone()
+        return int(row[0]) if row and row[0] is not None else 0
+
     def verify_integrity(self) -> bool:
         """Verify the SHA-256 hash chain across all persisted transitions."""
         rows = self._conn.execute(
