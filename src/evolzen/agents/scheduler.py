@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from evolzen.agents.agent import Agent
+from evolzen.agents.development.lifecycle import stage_at
 from evolzen.agents.qd_archive import (
     CVTArchive,
     QDArchiveEntry,
@@ -142,7 +143,10 @@ class PopulationScheduler:
         decision = agent.decide(features, candidates, world.tick, seed=seed)
         transition, outcome = execute_decision(self.engine, self.state, decision, seed=seed)
 
-        agent.observe(outcome)
+        if stage_at(agent.development, outcome.tick) == LifeStage.DEAD:
+            agent.advance(outcome.tick)
+        else:
+            agent.observe(outcome)
         self.state = transition.next_state
         self._init_agents_from_world()
 
@@ -236,8 +240,11 @@ class PopulationScheduler:
                 if (agent.stage == LifeStage.DEAD or (w_a and not w_a.alive)) and a_id in living_ids:
                     deaths += 1
 
-        active_pop = sum(1 for a in self.agents.values() if a.stage != LifeStage.DEAD)
         final_world = WorldState.from_state(self.state)
+        active_pop = sum(
+            1 for a_id, a in self.agents.items()
+            if a.stage != LifeStage.DEAD and (w_a := final_world.agents.get(a_id)) is not None and w_a.alive
+        )
 
         return PopulationSchedulerMetrics(
             ticks_elapsed=final_world.tick,

@@ -8,6 +8,7 @@ right.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -27,6 +28,8 @@ class EvaluationReport:
     frontier_model_reference_rhae: float | None = None  # Phase 2.4 calibration
     reused_vs_fresh_score_gap: float | None = None  # Phase 2.5's most important honesty check
     negative_findings: list[str] = field(default_factory=list)
+    persistent_result: Any = None
+    fresh_result: Any = None
 
     def summary(self) -> str:
         """Render a plain-text summary. Raises if the report is incomplete, on purpose — an

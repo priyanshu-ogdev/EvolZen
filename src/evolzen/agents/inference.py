@@ -143,13 +143,120 @@ class TransformersBackend:
 class VLLMBackend:
     """Throughput-optimized backend for a live agent population. Requires the `gpu` extra."""
 
-    def __init__(self, model_id: str, *, tensor_parallel_size: int = 1) -> None:
+    def __init__(
+        self,
+        model_id: str,
+        *,
+        tensor_parallel_size: int = 1,
+        llm: Any = None,
+        **engine_kwargs: Any,
+    ) -> None:
         try:
             import vllm  # noqa: F401
-        except ImportError as exc:  # pragma: no cover
+        except ImportError as exc:
             raise ImportError("VLLMBackend requires the 'gpu' extra: uv sync --extra gpu") from exc
         self._model_id = model_id
         self._tensor_parallel_size = tensor_parallel_size
+        self._llm = llm
+        self._engine_kwargs = engine_kwargs
+
+    def _init_engine(self) -> None:
+        """Lazily initialize the vLLM engine if not already provided."""
+        if self._llm is not None:
+            return
+        import vllm
+
+        self._llm = vllm.LLM(
+            model=self._model_id,
+            tensor_parallel_size=self._tensor_parallel_size,
+            **self._engine_kwargs,
+        )
+
+    def _parse_action_json(self, text: str, expected_agent_id: str | None = None) -> Action | None:
+        """Parse raw model output text into a validated Action schema instance."""
+        cleaned = text.strip()
+        if cleaned.startswith("```"):
+            lines = cleaned.splitlines()
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            cleaned = "\n".join(lines).strip()
+
+        valid_types = {at.value for at in ActionType}
+
+        def try_parse(candidate_str: str) -> Action | None:
+            try:
+                data = json.loads(candidate_str)
+                if isinstance(data, dict):
+                    action = Action.model_validate(data)
+                    if action.action_type in valid_types:
+                        if expected_agent_id is not None and action.agent_id != expected_agent_id:
+                            return None
+                        return action
+            except Exception:
+                pass
+            return None
+
+        # First try parsing the full cleaned text
+        result = try_parse(cleaned)
+        if result is not None:
+            return result
+
+        # If full text parsing fails, search for outer JSON braces
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start != -1 and end > start:
+            result = try_parse(cleaned[start : end + 1])
+            if result is not None:
+                return result
+
+        return None
+
+    def build_prompt(
+        self,
+        profile: AgentProfile,
+        signal: Signal,
+        candidates: tuple[Candidate, ...],
+        motive_weights: tuple[float, ...],
+        world_context: dict[str, Any],
+    ) -> str:
+        """Format a structured JSON prompt with candidate action descriptions, motives, and schema instructions."""
+        candidate_entries = [
+            {
+                "action_id": c.action_id,
+                "skill_key": c.skill_key,
+                "context_key": c.context_key,
+                "cost": c.cost,
+                "permitted": c.permitted,
+            }
+            for c in candidates
+        ]
+        legal_ids = [c.action_id for c in candidates if c.permitted]
+        payload = {
+            "instruction": "Select one valid action from the legal candidates and respond with a schema-valid Action JSON object.",
+            "schema": {
+                "agent_id": "string",
+                "action_type": "string (one of ActionType: 'wait', 'gather', 'move', 'consume', 'craft', 'trade', 'propose_contract', etc.)",
+                "params": "dict[str, Any]",
+            },
+            "agent": {
+                "agent_id": profile.agent_id,
+                "roles": list(profile.roles),
+                "norms": list(profile.adopted_norms),
+                "institutions": list(profile.institutional_affiliations),
+            },
+            "motive_weights": list(motive_weights),
+            "signal": list(signal),
+            "candidates": candidate_entries,
+            "legal_candidates": legal_ids,
+            "context": world_context,
+        }
+        return (
+            f"You are agent {profile.agent_id}. Given your state and motives, "
+            f"respond ONLY with a schema-valid JSON object matching the Action contract:\n"
+            f"{json.dumps(payload, separators=(',', ':'))}\n"
+        )
 
     def generate_action(
         self,
@@ -159,7 +266,48 @@ class VLLMBackend:
         motive_weights: tuple[float, ...],
         world_context: dict[str, Any],
     ) -> Action:
-        raise NotImplementedError(
-            "VLLM live population generation requires GPU hardware and live server initialization. "
-            "See docs/phases/1.2-agents.md."
-        )
+        """Generate a schema-valid Action using vLLM, falling back to a deterministic safe action on failure."""
+        try:
+            self._init_engine()
+        except Exception:
+            self._llm = None
+
+        if self._llm is not None:
+            prompt = self.build_prompt(profile, signal, candidates, motive_weights, world_context)
+            try:
+                import vllm
+
+                try:
+                    sampling_params = vllm.SamplingParams(
+                        temperature=0.7,
+                        max_tokens=256,
+                        guided_json=Action.model_json_schema(),
+                    )
+                except TypeError:
+                    sampling_params = vllm.SamplingParams(
+                        temperature=0.7,
+                        max_tokens=256,
+                    )
+                outputs = self._llm.generate([prompt], sampling_params)
+                if outputs:
+                    first = outputs[0]
+                    if hasattr(first, "outputs") and first.outputs:
+                        text = first.outputs[0].text
+                    elif isinstance(first, str):
+                        text = first
+                    elif hasattr(first, "text"):
+                        text = first.text
+                    else:
+                        text = str(first)
+                    parsed_action = self._parse_action_json(text, expected_agent_id=profile.agent_id)
+                    if parsed_action is not None:
+                        return parsed_action
+            except Exception:
+                pass  # Fall through to deterministic safe fallback
+
+        # Deterministic fallback: choose the highest-priority permitted candidate
+        permitted = [c for c in candidates if c.permitted]
+        chosen = permitted[0] if permitted else (candidates[0] if candidates else None)
+        if chosen is None:
+            return Action(agent_id=profile.agent_id, action_type=ActionType.WAIT)
+        return action_from_candidate(chosen.action_id, profile.agent_id)

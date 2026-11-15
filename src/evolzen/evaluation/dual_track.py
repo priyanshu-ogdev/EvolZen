@@ -195,4 +195,9 @@ class DualTrackRunner:
             frontier_model_reference_rhae=0.45,
             reused_vs_fresh_score_gap=f_res.reused_vs_fresh_score_gap,
             negative_findings=negative_findings,
+            persistent_result=p_res,
+            fresh_result=f_res,
         )
+
+
+DualTrackEvaluationRunner = DualTrackRunner

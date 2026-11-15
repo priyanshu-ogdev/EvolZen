@@ -1,4 +1,4 @@
-"""CLI entry point: `evolzen run / train / evaluate / replay / inspect`.
+"""CLI entry point: `evolzen run / train / evaluate / replay / inspect / ablate`.
 
 See src/evolzen/cli/README.md for the command-to-subsystem map. Registered as a console script
 via [project.scripts] in pyproject.toml.
@@ -19,6 +19,7 @@ from evolzen.evaluation.dual_track import DualTrackRunner
 from evolzen.logging import configure_logging, logger
 from evolzen.predictor.planner import Planner
 from evolzen.predictor.rehearsal_buffer import RehearsalBuffer
+from evolzen.recognition.ablations import AblationRunner
 from evolzen.schemas.agent_profile import AgentProfile
 from evolzen.schemas.transition import Action, Transition
 from evolzen.schemas.world import WorldState
@@ -36,45 +37,65 @@ def run(
     ticks_per_gen: Annotated[int, typer.Option(help="Number of environment ticks per generation cycle.")] = 4,
     seed: Annotated[int, typer.Option(help="Simulation PRNG seed.")] = 42,
     run_id: Annotated[str, typer.Option(help="Unique run identifier.")] = "cli-run",
+    db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
 ) -> None:
     """Run the environment + agent-population loop (Phases 1.1-1.5)."""
     configure_logging(phase="1.x")
-    logger.info("Starting simulation run: generations={} seed={} run_id={}", generations, seed, run_id)
-
-    engine = SocialSandboxEngine(
-        default_seed=seed,
-        num_locations=4,
-        num_agents=4,
-        max_ticks=(generations * ticks_per_gen) + 50,
-    )
-    init_state = engine.reset(seed=seed, run_id=run_id)
-    scheduler = PopulationScheduler(
-        engine=engine,
-        initial_state=init_state,
-        run_id=run_id,
+    logger.info(
+        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={}",
+        generations,
+        ticks_per_gen,
+        seed,
+        run_id,
+        db_path,
     )
 
-    total_ticks = 0
-    total_transitions = 0
-    for gen in range(generations):
-        metrics = scheduler.run_generation(steps=ticks_per_gen, seed=seed + gen)
-        total_ticks += metrics.ticks_elapsed
-        total_transitions += metrics.total_transitions
-        logger.info(
-            "Generation {} complete: world_tick={} transitions={} living_agents={}",
-            gen + 1,
-            total_ticks,
-            metrics.total_transitions,
-            metrics.active_population,
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    with TransitionLogStore(db_path) as store:
+        engine = SocialSandboxEngine(
+            default_seed=seed,
+            num_locations=4,
+            num_agents=4,
+            max_ticks=max(2000, (generations * ticks_per_gen * 16) + 1000),
+        )
+        init_state = engine.reset(seed=seed, run_id=run_id)
+        scheduler = PopulationScheduler(
+            engine=engine,
+            initial_state=init_state,
+            run_id=run_id,
+            store=store,
         )
 
-    typer.echo(
-        f"Simulation completed successfully:\n"
-        f"  Total generations: {generations}\n"
-        f"  World ticks: {total_ticks}\n"
-        f"  Transitions logged: {total_transitions}\n"
-        f"  Lineages active: {scheduler.archive.coverage()}"
-    )
+        total_transitions = 0
+        for gen in range(generations):
+            metrics = scheduler.run_generation(steps=ticks_per_gen, seed=seed + gen)
+            total_transitions += metrics.total_transitions
+            logger.info(
+                "Generation {} complete: world_tick={} transitions={} living_agents={}",
+                gen + 1,
+                metrics.ticks_elapsed,
+                metrics.total_transitions,
+                metrics.active_population,
+            )
+
+        final_world = WorldState.from_state(scheduler.state)
+        living_agents = [a for a in final_world.agents.values() if a.alive]
+        active_pop = len(living_agents)
+        wealths = [float(a.currency + sum(a.inventory.values())) for a in living_agents]
+        gini = compute_gini_coefficient(wealths) if wealths else 0.0
+        active_lineages = len({a.lineage_id for a in living_agents})
+        total_ticks = final_world.tick
+
+        typer.echo(
+            f"Simulation completed successfully:\n"
+            f"  Total generations: {generations}\n"
+            f"  World ticks: {total_ticks}\n"
+            f"  Transitions logged: {total_transitions}\n"
+            f"  Active population: {active_pop}\n"
+            f"  Wealth Gini coefficient: {gini:.4f}\n"
+            f"  Active lineages: {active_lineages}\n"
+            f"  Lineages active: {scheduler.archive.coverage()}"
+        )
 
 
 @app.command()
@@ -133,6 +154,27 @@ def evaluate(
     typer.echo("=================================================")
     typer.echo("          EVOLZEN EVALUATION REPORT               ")
     typer.echo("=================================================")
+    if report.persistent_result is not None:
+        p = report.persistent_result
+        typer.echo("Track 1 (Persistent World):")
+        typer.echo(f"  ticks: {p.total_ticks}")
+        typer.echo(f"  survival ratio: {p.living_agents_ratio:.4f}")
+        typer.echo(f"  invariant violations: {0 if p.invariants_passed else 1}")
+        typer.echo(f"  cumulative growth events: {p.growth_events_count}")
+        typer.echo(f"  gini inequality: {p.gini_coefficient:.4f}")
+        typer.echo(f"  active capabilities: {p.capabilities_count}")
+        typer.echo(f"  artifact count: {p.artifact_count}")
+        typer.echo("")
+    if report.fresh_result is not None:
+        f = report.fresh_result
+        typer.echo("Track 2 (Held-out Fresh Worlds):")
+        typer.echo(f"  rounds: {f.rounds_evaluated}")
+        typer.echo(f"  average EAE_B action efficiency: {f.mean_eae_score:.4f}")
+        typer.echo(f"  fresh solve rate: {f.solve_rate:.4f}")
+        typer.echo(f"  reused world score: {f.reused_env_score:.4f}")
+        typer.echo(f"  generalization gap (EAE_reused - EAE_fresh): {f.reused_vs_fresh_score_gap:.4f}")
+        typer.echo("")
+    typer.echo("Calibration & Benchmark References:")
     typer.echo(report.summary())
     typer.echo("=================================================")
 
@@ -192,6 +234,48 @@ def inspect(
         f"  CVT Archive Centroid Niches: {archive.total_niches()}\n"
         f"  Founder Agent Behavioral Descriptor: {[round(v, 3) for v in desc]}"
     )
+
+
+@app.command()
+def ablate(
+    db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
+    steps: Annotated[int, typer.Option(help="Number of transitions to evaluate in ablation matrix.")] = 50,
+    seed: Annotated[int, typer.Option(help="PRNG seed.")] = 42,
+    output: Annotated[Path | None, typer.Option(help="Optional path to output Markdown report.")] = None,
+) -> None:
+    """Benchmark the pre-registered 4-cell recognition ablation matrix (Phase 2.3)."""
+    configure_logging(phase="2.3")
+    logger.info("Recognition ablation benchmark requested: steps={} seed={} db_path={}", steps, seed, db_path)
+
+    transitions: list[Transition] = []
+    if db_path.exists():
+        with TransitionLogStore(db_path) as store:
+            loaded = store.list_transitions()
+            if loaded:
+                transitions = loaded[:steps]
+
+    if not transitions:
+        engine = SocialSandboxEngine(
+            default_seed=seed,
+            num_locations=2,
+            num_agents=2,
+            max_ticks=max(2000, (steps * 2) + 100),
+        )
+        cur_state = engine.reset(seed=seed)
+        for i in range(steps):
+            action = Action(agent_id="agent_0", action_type="wait" if i % 2 == 0 else "gather")
+            t = engine.step(cur_state, action)
+            transitions.append(t)
+            cur_state = t.next_state
+
+    runner = AblationRunner(seed=seed)
+    matrix = runner.run_full_matrix(transitions)
+    report = runner.format_report(matrix)
+    typer.echo(report)
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(report, encoding="utf-8")
 
 
 if __name__ == "__main__":

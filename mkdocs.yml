@@ -39,6 +39,7 @@ nav:
   - Paper Outline: PAPER.md
   - Phase 0 (Foreground): phase-0-foreground.md
   - Dependency Stack: dependency-stack.md
+  - Hardware Deployment: hardware-deployment.md
   - CI/CD & Parallel Workflow: ci-cd.md
   - Phases:
       - "1.1 Environment Engine": phases/1.1-environment.md
