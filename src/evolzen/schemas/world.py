@@ -62,6 +62,7 @@ class ActionType(StrEnum):
     FOUND_INSTITUTION = "found_institution"
     JOIN_INSTITUTION = "join_institution"
     CONTRIBUTE_INSTITUTION = "contribute_institution"
+    WITHDRAW_INSTITUTION = "withdraw_institution"
     PROPOSE_NORM = "propose_norm"
     ADOPT_NORM = "adopt_norm"
     ASSIGN_ROLE = "assign_role"

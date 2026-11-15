@@ -572,3 +572,93 @@ def test_stage1_and_stage2_architectural_integration() -> None:
     assert not replayed.invariant_failures
 
 
+def test_withdraw_and_contribute_candidate_generation_and_execution() -> None:
+    """Verifies candidate surfacing for withdraw (when hungry) and contribute (surplus food), and execution."""
+    engine = SocialSandboxEngine(default_seed=77, num_agents=2, num_locations=1)
+    s0 = engine.reset(seed=77, initial_agent_age=350)
+
+    # 1. Action translation check
+    act_withdraw = action_from_candidate("withdraw_institution:silo-1:food:1", "agent-0")
+    assert act_withdraw.action_type == ActionType.WITHDRAW_INSTITUTION
+    assert act_withdraw.params == {
+        "institution_id": "silo-1",
+        "resource": "food",
+        "amount": 1,
+    }
+
+    # 2. Agent-0 founds institution
+    tr1 = engine.step(
+        s0,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.FOUND_INSTITUTION,
+            params={"institution_id": "silo-1", "name": "GrainSilo", "seed_currency": 5},
+        ),
+    )
+    assert tr1.emission.data["accepted"] is True
+
+    # 3. Candidate surfacing for adult with surplus food (food >= 2)
+    # Agent-0 has food >= 2 and is adult -> contribute_institution:silo-1:food:1 must be surfaced
+    cands_a0 = {c.action_id: c for c in legal_candidates(tr1.next_state, "agent-0")}
+    assert "contribute_institution:silo-1:food:1" in cands_a0
+    cand_contrib = cands_a0["contribute_institution:silo-1:food:1"]
+    assert cand_contrib.predicted[0] >= 0.4  # strong pride / norm compliance utility
+    assert cand_contrib.predicted[2] >= 0.3  # social/norm compliance
+
+    # Execute contribute_institution
+    dec_contrib = Decision(
+        agent_id="agent-0",
+        sequence=1,
+        tick=WorldState.from_state(tr1.next_state).tick,
+        candidate=cand_contrib,
+        activation=(0.0,) * 8,
+        ratios=(0.125,) * 8,
+        score=1.0,
+    )
+    tr2, out2 = execute_decision(engine, tr1.next_state, dec_contrib)
+    assert out2.verified is True
+    w2 = WorldState.from_state(tr2.next_state)
+    assert w2.institutions["silo-1"].treasury.get("food", 0) >= 1
+
+    # 4. Now make agent-0 hungry (e.g. food == 0 and energy < 0.6)
+    w2_agents = dict(w2.agents)
+    w2_a0_inv = dict(w2_agents["agent-0"].inventory)
+    w2_a0_inv["food"] = 0
+    w2_agents["agent-0"] = w2_agents["agent-0"].model_copy(
+        update={"inventory": w2_a0_inv, "energy": 0.45}
+    )
+    # Rebalance accounting consumed so invariants hold
+    diff_food = w2.agents["agent-0"].inventory.get("food", 0)
+    consumed = dict(w2.accounting.consumed_or_decayed)
+    consumed["food"] = consumed.get("food", 0) + diff_food
+    w2_hungry = w2.model_copy(
+        update={"agents": w2_agents, "accounting": w2.accounting.model_copy(update={"consumed_or_decayed": consumed})}
+    )
+    s2_hungry = w2_hungry.to_state()
+
+    # Candidate surfacing for hungry agent: withdraw_institution:silo-1:food:1 must be surfaced!
+    cands_hungry = {c.action_id: c for c in legal_candidates(s2_hungry, "agent-0")}
+    assert "withdraw_institution:silo-1:food:1" in cands_hungry
+    cand_withdraw = cands_hungry["withdraw_institution:silo-1:food:1"]
+    assert cand_withdraw.permitted is True
+    assert cand_withdraw.predicted[4] >= 0.6  # strong gluttony / survival utility
+
+    # 5. Execute decision with withdraw candidate
+    dec_withdraw = Decision(
+        agent_id="agent-0",
+        sequence=2,
+        tick=w2_hungry.tick,
+        candidate=cand_withdraw,
+        activation=(0.0,) * 8,
+        ratios=(0.125,) * 8,
+        score=1.0,
+    )
+    tr3, out3 = execute_decision(engine, s2_hungry, dec_withdraw)
+    assert out3.verified is True
+    w3 = WorldState.from_state(tr3.next_state)
+    assert w3.agents["agent-0"].inventory["food"] == 1
+    assert w3.agents["agent-0"].energy == 0.50  # 0.45 + 0.05
+    assert w3.institutions["silo-1"].treasury.get("food", 0) == 0
+
+
+

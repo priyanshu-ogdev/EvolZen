@@ -472,3 +472,126 @@ def test_spawn_offspring_living_agents_capacity() -> None:
     # Invariants must pass because living_agents <= max_agents
     assert ok_step.emission.data["invariant_passed"] is True
 
+
+def test_withdraw_institution_authorization_and_exact_conservation() -> None:
+    """Verifies that withdraw_institution enforces membership/juvenile permissions and exact conservation."""
+    engine = SocialSandboxEngine(default_seed=55, num_agents=3)
+    s0 = engine.reset(seed=55, initial_agent_age=350)
+
+    # 1. Agent-0 founds institution 'silo-1'
+    tr1 = engine.step(
+        s0,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.FOUND_INSTITUTION,
+            params={"institution_id": "silo-1", "name": "CommunalSilo", "seed_currency": 5},
+        ),
+    )
+    assert tr1.emission.data["accepted"] is True
+    assert tr1.emission.data["invariant_passed"] is True
+
+    # 2. Agent-0 contributes 2 food to silo-1
+    tr2 = engine.step(
+        tr1.next_state,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.CONTRIBUTE_INSTITUTION,
+            params={"institution_id": "silo-1", "resource": "food", "amount": 2},
+        ),
+    )
+    assert tr2.emission.data["accepted"] is True
+    assert tr2.emission.data["invariant_passed"] is True
+    w2 = WorldState.from_state(tr2.next_state)
+    assert w2.institutions["silo-1"].treasury["food"] == 2
+    initial_food_stock = sum(
+        loc.resources.get("food", 0) for loc in w2.locations.values()
+    ) + sum(a.inventory.get("food", 0) for a in w2.agents.values()) + sum(
+        i.treasury.get("food", 0) for i in w2.institutions.values()
+    )
+
+    # 3. Agent-0 (member) withdraws 1 food from silo-1
+    a0_food_before = w2.agents["agent-0"].inventory.get("food", 0)
+    a0_energy_before = w2.agents["agent-0"].energy
+    a0_status_before = w2.agents["agent-0"].status
+
+    tr3 = engine.step(
+        tr2.next_state,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.WITHDRAW_INSTITUTION,
+            params={"institution_id": "silo-1", "resource": "food", "amount": 1},
+        ),
+    )
+    assert tr3.emission.data["accepted"] is True
+    assert tr3.emission.data["invariant_passed"] is True
+    w3 = WorldState.from_state(tr3.next_state)
+    assert w3.institutions["silo-1"].treasury["food"] == 1
+    assert w3.agents["agent-0"].inventory["food"] == a0_food_before + 1
+    assert w3.agents["agent-0"].energy == min(1.0, round(a0_energy_before + 0.05, 6))
+    assert w3.agents["agent-0"].status == min(1.0, round(a0_status_before + 0.02, 6))
+
+    # Conservation must be exact
+    food_stock_after = sum(
+        loc.resources.get("food", 0) for loc in w3.locations.values()
+    ) + sum(a.inventory.get("food", 0) for a in w3.agents.values()) + sum(
+        i.treasury.get("food", 0) for i in w3.institutions.values()
+    )
+    assert food_stock_after == initial_food_stock
+
+    # 4. Agent-1 (adult non-member) attempts to withdraw -> rejected
+    tr_unauth = engine.step(
+        tr3.next_state,
+        Action(
+            agent_id="agent-1",
+            action_type=ActionType.WITHDRAW_INSTITUTION,
+            params={"institution_id": "silo-1", "resource": "food", "amount": 1},
+        ),
+    )
+    assert tr_unauth.emission.data["accepted"] is False
+    assert "not authorized" in tr_unauth.emission.data["reason"]
+
+    # 5. Spawn juvenile child of Agent-0
+    # Set tick so juvenile age < adulthood_age
+    w3_agents = dict(w3.agents)
+    w3_agents["child-0"] = w3_agents["agent-0"].model_copy(
+        update={
+            "agent_id": "child-0",
+            "born_at": w3.tick,
+            "parents": ("agent-0",),
+            "institution_ids": (),
+            "inventory": {"food": 0},
+            "currency": 0,
+            "energy": 0.5,
+        }
+    )
+    w3_with_child = w3.model_copy(update={"agents": w3_agents})
+    s3_child = w3_with_child.to_state()
+
+    # Child-0 (juvenile with parent in silo-1) withdraws remaining 1 food -> accepted!
+    tr_child = engine.step(
+        s3_child,
+        Action(
+            agent_id="child-0",
+            action_type=ActionType.WITHDRAW_INSTITUTION,
+            params={"institution_id": "silo-1", "resource": "food", "amount": 1},
+        ),
+    )
+    assert tr_child.emission.data["accepted"] is True
+    assert tr_child.emission.data["invariant_passed"] is True
+    w_child_next = WorldState.from_state(tr_child.next_state)
+    assert w_child_next.institutions["silo-1"].treasury["food"] == 0
+    assert w_child_next.agents["child-0"].inventory["food"] == 1
+    assert w_child_next.agents["child-0"].energy == 0.55
+
+    # 6. Attempting to withdraw when treasury is empty -> rejected
+    tr_empty = engine.step(
+        tr_child.next_state,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.WITHDRAW_INSTITUTION,
+            params={"institution_id": "silo-1", "resource": "food", "amount": 1},
+        ),
+    )
+    assert tr_empty.emission.data["accepted"] is False
+    assert "insufficient food" in tr_empty.emission.data["reason"]
+

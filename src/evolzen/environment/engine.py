@@ -797,6 +797,57 @@ def _handle_contribute_institution(
     )
 
 
+def _handle_withdraw_institution(
+    world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
+) -> _StepOutcome:
+    raw_inst_id = action.params.get("institution_id", "")
+    if not isinstance(raw_inst_id, str) or not raw_inst_id.strip():
+        return _reject(world, f"unknown institution {raw_inst_id!r}")
+    inst_id = raw_inst_id.strip()
+    inst = world.institutions.get(inst_id)
+    if inst is None:
+        return _reject(world, f"unknown institution {inst_id!r}")
+
+    is_member = actor.agent_id in inst.member_ids or inst_id in actor.institution_ids
+    is_juvenile = (next_tick - actor.born_at) < world.adulthood_age
+    parent_is_member = any(p in inst.member_ids for p in actor.parents)
+    if not (is_member or (is_juvenile and parent_is_member)):
+        return _reject(world, f"actor {actor.agent_id} is not authorized to withdraw from {inst_id}")
+
+    resource, res_err = _resolve_identifier(action.params, "resource", default="food")
+    if res_err is not None or resource is None:
+        return _reject(world, res_err or "invalid resource")
+    amount = action.params.get("amount", 1)
+    if isinstance(amount, bool) or not isinstance(amount, int) or amount < 1:
+        return _reject(world, "withdrawal amount must be a positive integer")
+    if inst.treasury.get(resource, 0) < amount:
+        return _reject(world, f"insufficient {resource} in institution treasury")
+
+    treasury = dict(inst.treasury)
+    treasury[resource] -= amount
+    inv = dict(actor.inventory)
+    inv[resource] = inv.get(resource, 0) + amount
+    institutions = dict(world.institutions)
+    institutions[inst_id] = inst.model_copy(update={"treasury": treasury})
+
+    energy_delta = 0.05 * amount if resource == "food" else -0.01
+    status_delta = 0.02
+    updated = actor.model_copy(
+        update={
+            "inventory": inv,
+            "energy": round(_clamp(actor.energy + energy_delta, 0.0, 1.0), 6),
+            "status": round(_clamp(actor.status + status_delta, 0.0, 1.0), 6),
+            "last_action_tick": next_tick,
+        }
+    )
+    return _StepOutcome(
+        world=_replace_agent(world.model_copy(update={"institutions": institutions}), updated),
+        accepted=True,
+        reason=f"withdrew {amount} {resource} from {inst_id}",
+        rewards=(0.1, 0.25, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0),
+    )
+
+
 def _handle_propose_norm(
     world: WorldState, actor: WorldAgentState, action: Action, next_tick: int
 ) -> _StepOutcome:
@@ -1107,6 +1158,7 @@ _ACTION_HANDLERS: dict[ActionType, _HandlerFn] = {
     ActionType.FOUND_INSTITUTION: _handle_found_institution,
     ActionType.JOIN_INSTITUTION: _handle_join_institution,
     ActionType.CONTRIBUTE_INSTITUTION: _handle_contribute_institution,
+    ActionType.WITHDRAW_INSTITUTION: _handle_withdraw_institution,
     ActionType.PROPOSE_NORM: _handle_propose_norm,
     ActionType.ADOPT_NORM: _handle_adopt_norm,
     ActionType.ASSIGN_ROLE: _handle_assign_role,

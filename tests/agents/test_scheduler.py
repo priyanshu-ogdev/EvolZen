@@ -17,7 +17,8 @@ from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.environment.invariants import check_invariants
 from evolzen.schemas.development import DevelopmentConfig
 from evolzen.schemas.manual import ProvenanceCategory, ProvenanceRecord
-from evolzen.schemas.world import WorldState
+from evolzen.schemas.transition import Action
+from evolzen.schemas.world import ActionType, WorldState
 from evolzen.storage.transition_log import TransitionLogStore
 
 
@@ -122,3 +123,96 @@ def test_scheduler_drought_multi_generation_demographics(tmp_path: Path) -> None
 
     assert store.count(run_id="multi-gen-drought") > 0
     assert store.verify_integrity() is True
+
+
+def test_scheduler_communal_silo_food_buffering_under_drought() -> None:
+    """Verifies that communal silo grain stores buffer hungry agents against famine under drought shocks."""
+    engine = SocialSandboxEngine(default_seed=42, num_agents=2, num_locations=1)
+    s0 = engine.reset(seed=42, run_id="communal-silo-test", initial_agent_age=350)
+
+    # 1. Establish communal institution and fund its food treasury
+    tr1 = engine.step(
+        s0,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.FOUND_INSTITUTION,
+            params={"institution_id": "communal-silo", "name": "GrainBank", "seed_currency": 5},
+        ),
+    )
+    assert tr1.emission.data["accepted"] is True
+
+    tr2 = engine.step(
+        tr1.next_state,
+        Action(
+            agent_id="agent-1",
+            action_type=ActionType.JOIN_INSTITUTION,
+            params={"institution_id": "communal-silo"},
+        ),
+    )
+    assert tr2.emission.data["accepted"] is True
+
+    tr3 = engine.step(
+        tr2.next_state,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.CONTRIBUTE_INSTITUTION,
+            params={"institution_id": "communal-silo", "resource": "food", "amount": 2},
+        ),
+    )
+    assert tr3.emission.data["accepted"] is True
+    w3 = WorldState.from_state(tr3.next_state)
+    assert w3.institutions["communal-silo"].treasury["food"] == 2
+
+    # 2. Simulate environmental drought scarcity shock: deplete location food and agent-1 food
+    loc_id = list(w3.locations.keys())[0]
+    locs = dict(w3.locations)
+    loc_res = dict(locs[loc_id].resources)
+    diff_loc_food = loc_res.get("food", 0)
+    loc_res["food"] = 0
+    locs[loc_id] = locs[loc_id].model_copy(update={"resources": loc_res})
+
+    a1_inv = dict(w3.agents["agent-1"].inventory)
+    diff_food = a1_inv.get("food", 0)
+    a1_inv["food"] = 0
+    w_agents = dict(w3.agents)
+    w_agents["agent-1"] = w_agents["agent-1"].model_copy(update={"energy": 0.45, "inventory": a1_inv})
+
+    consumed = dict(w3.accounting.consumed_or_decayed)
+    consumed["food"] = consumed.get("food", 0) + diff_food + diff_loc_food
+    w_drought = w3.model_copy(
+        update={
+            "locations": locs,
+            "agents": w_agents,
+            "accounting": w3.accounting.model_copy(update={"consumed_or_decayed": consumed}),
+        }
+    )
+    s_drought = w_drought.to_state()
+
+    # 3. Step scheduler under drought
+    cfg = DevelopmentConfig(adolescence=5, adulthood=10, elderhood=500, lifespan=1000)
+    scheduler = PopulationScheduler(
+        engine=engine,
+        initial_state=s_drought,
+        run_id="communal-silo-test",
+        config=cfg,
+    )
+
+    metrics = scheduler.run_generation(
+        steps=4,
+        seed=42,
+        drought_interval=2,
+        drought_severity=0.8,
+    )
+
+    assert metrics.total_transitions > 0
+    assert metrics.active_population >= 2
+    w_end = WorldState.from_state(scheduler.state)
+    # The communal food reserve buffered the colony: treasury food was tapped
+    assert w_end.institutions["communal-silo"].treasury.get("food", 0) < 2
+    # Living agents survived drought
+    assert w_end.agents["agent-1"].alive is True
+
+    # Invariants must strictly hold across drought rollout
+    report = check_invariants(w_drought, w_end)
+    assert report.passed is True
+

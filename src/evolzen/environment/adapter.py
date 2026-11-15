@@ -277,10 +277,45 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
                 )
             )
 
+    # Withdraw from institution (communal silo)
+    for inst_id in sorted(world.institutions):
+        inst = world.institutions[inst_id]
+        if inst.location_id == agent.location_id:
+            is_member = agent.agent_id in inst.member_ids or inst_id in agent.institution_ids
+            is_juvenile = (world.tick - agent.born_at) < world.adulthood_age
+            parent_is_member = any(p in inst.member_ids for p in agent.parents)
+            if is_member or (is_juvenile and parent_is_member):
+                is_hungry = agent.energy < 0.6 or agent.inventory.get("food", 0) == 0
+                if is_hungry and inst.treasury.get("food", 0) >= 1:
+                    candidates.append(
+                        Candidate(
+                            action_id=f"withdraw_institution:{inst_id}:food:1",
+                            context_key=context_key,
+                            skill_key="withdraw_institution:food:v1",
+                            predicted=(0.15, 0.30, 0.0, 0.0, 0.65, 0.0, -0.01, 0.0),
+                            cost=0.01,
+                            minimum_age=0,
+                            permitted=True,
+                        )
+                    )
+
     for inst_id in sorted(agent.institution_ids):
         member_inst = world.institutions.get(inst_id)
         if member_inst is not None:
-            for res in ("food", "wood", "stone"):
+            is_adult = (world.tick - agent.born_at) >= world.adulthood_age
+            if is_adult and agent.inventory.get("food", 0) >= 2:
+                candidates.append(
+                    Candidate(
+                        action_id=f"contribute_institution:{inst_id}:food:1",
+                        context_key=context_key,
+                        skill_key="contribute_institution:food:v1",
+                        predicted=(0.45, -0.05, 0.35, 0.0, 0.0, 0.0, -0.02, 0.0),
+                        cost=0.02,
+                        minimum_age=world.adulthood_age,
+                        permitted=True,
+                    )
+                )
+            for res in ("wood", "stone"):
                 if agent.inventory.get(res, 0) >= 1:
                     candidates.append(
                         Candidate(
@@ -530,6 +565,19 @@ def action_from_candidate(
                 "institution_id": parts[1],
                 "resource": parts[2],
                 "amount": int(parts[3]),
+            },
+        )
+    if verb == "withdraw_institution" and len(parts) in (2, 3, 4):
+        inst_id = parts[1]
+        res = parts[2] if len(parts) >= 3 else "food"
+        amount = int(parts[3]) if len(parts) >= 4 else 1
+        return Action(
+            agent_id=agent_id,
+            action_type=ActionType.WITHDRAW_INSTITUTION,
+            params={
+                "institution_id": inst_id,
+                "resource": res,
+                "amount": amount,
             },
         )
     if verb == "propose_norm" and len(parts) in (2, 3, 4):
