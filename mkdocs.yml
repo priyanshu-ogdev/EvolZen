@@ -59,6 +59,7 @@ nav:
       - Design Audit: research/design-audit.md
       - Docs & Codebase Audit: research/docs-and-codebase-audit.md
       - Objectives & Evaluation: research/objectives-and-evaluation.md
+      - Next Frontier Strategy: research/next-frontier-strategy.md
   - Subsystem Design:
       - Overview: subsystems/README.md
       - Environment: subsystems/environment/README.md
