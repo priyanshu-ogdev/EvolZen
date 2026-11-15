@@ -95,6 +95,29 @@ def test_cli_evaluate() -> None:
     assert "Reused-vs-fresh score gap:" in result.stdout
 
 
+def test_cli_evaluate_with_planner() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "evaluate",
+            "--use-planner",
+            "--planning-horizon",
+            "2",
+            "--rounds",
+            "2",
+            "--persistent-ticks",
+            "5",
+            "--seed",
+            "42",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "EVOLZEN EVALUATION REPORT" in result.stdout
+    assert "model-based planning: ENABLED (horizon=2)" in result.stdout
+    assert "planning efficiency delta:" in result.stdout
+
+
+
 def test_cli_inspect() -> None:
     result = runner.invoke(app, ["inspect", "--seed", "42", "--num-agents", "2"])
     assert result.exit_code == 0

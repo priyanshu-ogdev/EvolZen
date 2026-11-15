@@ -252,13 +252,59 @@ def evaluate(
     rounds: Annotated[int, typer.Option(help="Number of held-out fresh evaluation rounds.")] = 4,
     persistent_ticks: Annotated[int, typer.Option(help="Number of persistent-track ticks.")] = 20,
     seed: Annotated[int, typer.Option(help="Evaluation seed.")] = 42,
+    use_planner: Annotated[
+        bool,
+        typer.Option("--use-planner/--no-use-planner", help="Enable model-based policy rollout planner."),
+    ] = False,
+    planning_horizon: Annotated[
+        int,
+        typer.Option(help="Lookahead horizon for model-based rollout."),
+    ] = 3,
+    db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
 ) -> None:
     """Run held-out dual-track generalization testing (Phases 2.4-2.5)."""
     configure_logging(phase="2.4")
-    logger.info("Evaluation requested: rounds={} persistent_ticks={} seed={}", rounds, persistent_ticks, seed)
+    logger.info(
+        "Evaluation requested: rounds={} persistent_ticks={} seed={} use_planner={} planning_horizon={}",
+        rounds,
+        persistent_ticks,
+        seed,
+        use_planner,
+        planning_horizon,
+    )
+
+    planner: Planner | None = None
+    if use_planner:
+        rehearsal_buffer = RehearsalBuffer(capacity=500)
+        predictor = WorldDynamicsPredictor()
+        planner = Planner(dynamics=predictor, rehearsal_buffer=rehearsal_buffer, lr=0.05)
+        transitions: list[Transition] = []
+        if db_path.exists():
+            try:
+                with TransitionLogStore(db_path) as store:
+                    if store.count() > 0:
+                        transitions = store.list_transitions()[:100]
+            except Exception as exc:
+                logger.warning("Could not load transitions for planner from {}: {}", db_path, exc)
+
+        if not transitions:
+            bootstrap_engine = SocialSandboxEngine(default_seed=seed, num_locations=2, num_agents=2, max_ticks=40)
+            b_state = bootstrap_engine.reset(seed=seed)
+            for i in range(16):
+                b_action = Action(agent_id="agent-0", action_type="gather" if i % 2 == 0 else "wait")
+                b_trans = bootstrap_engine.step(b_state, b_action)
+                transitions.append(b_trans)
+                b_state = b_trans.next_state
+
+        planner.train_step(transitions)
 
     runner = DualTrackRunner(seed=seed)
-    report = runner.run_full_evaluation(persistent_ticks=persistent_ticks, fresh_rounds=rounds)
+    report = runner.run_full_evaluation(
+        persistent_ticks=persistent_ticks,
+        fresh_rounds=rounds,
+        planner=planner,
+        planning_horizon=planning_horizon,
+    )
 
     typer.echo("=================================================")
     typer.echo("          EVOLZEN EVALUATION REPORT               ")
@@ -282,6 +328,11 @@ def evaluate(
         typer.echo(f"  fresh solve rate: {f.solve_rate:.4f}")
         typer.echo(f"  reused world score: {f.reused_env_score:.4f}")
         typer.echo(f"  generalization gap (EAE_reused - EAE_fresh): {f.reused_vs_fresh_score_gap:.4f}")
+        if f.planner_enabled:
+            typer.echo(f"  model-based planning: ENABLED (horizon={f.planning_horizon})")
+            if f.baseline_eae_score is not None:
+                typer.echo(f"  baseline EAE without planner: {f.baseline_eae_score:.4f}")
+                typer.echo(f"  planning efficiency delta: {f.mean_eae_score - f.baseline_eae_score:+.4f}")
         typer.echo("")
     typer.echo("Calibration & Benchmark References:")
     typer.echo(report.summary())

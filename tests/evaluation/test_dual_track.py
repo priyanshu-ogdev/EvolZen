@@ -4,6 +4,21 @@ from evolzen.evaluation.dual_track import (
     PersistentTrackResult,
 )
 from evolzen.evaluation.report import EvaluationReport
+from evolzen.predictor.dynamics import WorldDynamicsPredictor
+from evolzen.predictor.planner import Planner
+from evolzen.predictor.rehearsal_buffer import RehearsalBuffer
+from evolzen.schemas.transition import Action, Emission, State, Transition
+
+
+def _sample_transition(action_type: str, rewards: list[float]) -> Transition:
+    s = State(data={"tick": 1, "step_index": 1, "agents": {"agent_0": {"energy": 0.5, "fatigue": 0.5, "currency": 10.0}}})
+    ns = State(data={"tick": 2, "step_index": 2, "agents": {"agent_0": {"energy": 0.5, "fatigue": 0.4, "currency": 10.0}}})
+    return Transition(
+        state=s,
+        action=Action(agent_id="agent_0", action_type=action_type),
+        emission=Emission(data={"accepted": True, "reason": "ok", "rewards": rewards}),
+        next_state=ns,
+    )
 
 
 def test_dual_track_runner_persistent_track() -> None:
@@ -45,3 +60,42 @@ def test_dual_track_full_evaluation_report() -> None:
     assert "Held-out RHAE score:" in summary
     assert "Reused-vs-fresh score gap:" in summary
     assert "Negative findings:" in summary
+
+
+def test_dual_track_runner_fresh_track_with_planner() -> None:
+    runner = DualTrackRunner(seed=42)
+    buf = RehearsalBuffer(capacity=10)
+    dyn = WorldDynamicsPredictor()
+    planner = Planner(rehearsal_buffer=buf, dynamics=dyn)
+
+    t1 = _sample_transition("gather", [0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    t2 = _sample_transition("wait", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.3])
+    planner.train_step([t1, t2])
+
+    f_res = runner.run_fresh_track(rounds=2, planner=planner, planning_horizon=3)
+    assert isinstance(f_res, FreshTrackResult)
+    assert f_res.planner_enabled is True
+    assert f_res.planning_horizon == 3
+    assert f_res.baseline_eae_score is not None
+    assert f_res.baseline_solve_rate is not None
+    assert f_res.mean_eae_score >= 0.0
+    assert 0.0 <= f_res.solve_rate <= 1.0
+
+
+def test_dual_track_full_evaluation_with_planner() -> None:
+    runner = DualTrackRunner(seed=42)
+    buf = RehearsalBuffer(capacity=10)
+    dyn = WorldDynamicsPredictor()
+    planner = Planner(rehearsal_buffer=buf, dynamics=dyn)
+
+    t1 = _sample_transition("gather", [0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    planner.train_step([t1])
+
+    report = runner.run_full_evaluation(persistent_ticks=5, fresh_rounds=2, planner=planner, planning_horizon=2)
+    assert isinstance(report, EvaluationReport)
+    assert report.fresh_result.planner_enabled is True
+    assert report.fresh_result.planning_horizon == 2
+    assert len(report.negative_findings) >= 3
+    summary = report.summary()
+    assert "Model-based planning (horizon=2)" in summary
+

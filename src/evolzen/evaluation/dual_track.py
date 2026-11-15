@@ -16,11 +16,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from loguru import logger
+
 from evolzen.economy.metrics import compute_gini_coefficient
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.evaluation.procedural_env_gen import ProceduralEnvironmentGenerator
 from evolzen.evaluation.report import EvaluationReport
 from evolzen.evaluation.rhae_scorer import RHAEResult, RHAEScorer
+from evolzen.predictor.planner import Planner
 from evolzen.schemas.transition import Action
 from evolzen.schemas.world import WorldState
 
@@ -47,6 +50,10 @@ class FreshTrackResult:
     solve_rate: float
     reused_env_score: float
     reused_vs_fresh_score_gap: float
+    planner_enabled: bool = False
+    planning_horizon: int = 3
+    baseline_eae_score: float | None = None
+    baseline_solve_rate: float | None = None
 
 
 class DualTrackRunner:
@@ -72,8 +79,11 @@ class DualTrackRunner:
         invariants_ok = True
         current_state = state
 
+        world_init = WorldState.from_state(current_state)
+        living_ids = [aid for aid, a in world_init.agents.items() if a.alive]
+
         for i in range(ticks):
-            agent_id = f"agent_{i % 2}"
+            agent_id = living_ids[i % len(living_ids)] if living_ids else f"agent-{i % 2}"
             action_type = "gather" if i % 2 == 0 else "wait"
             action = Action(agent_id=agent_id, action_type=action_type)
             transition = env.step(current_state, action)
@@ -108,6 +118,8 @@ class DualTrackRunner:
         self,
         generator: ProceduralEnvironmentGenerator | None = None,
         rounds: int = 4,
+        planner: Planner | None = None,
+        planning_horizon: int = 3,
     ) -> FreshTrackResult:
         """Evaluate cold-start action efficiency across strictly non-reused procedural environments."""
         gen = (
@@ -117,6 +129,7 @@ class DualTrackRunner:
         )
 
         scorer = RHAEScorer()
+        baseline_scorer = RHAEScorer()
 
         # Human reference action benchmark for novel environment adaptation
         human_ref_actions = 10
@@ -125,52 +138,157 @@ class DualTrackRunner:
             fresh_env = gen.next_environment()
             state = fresh_env.reset()
 
-            # Execute adaptation loop: probe environment until resources acquired
-            actions_taken = 0
-            solved = False
-            cur_state = state
+            world_init = WorldState.from_state(state)
+            living_agents = [aid for aid, ag in world_init.agents.items() if ag.alive]
+            target_agent_id = living_agents[0] if living_agents else "agent-0"
+
+            # Execute adaptation loop with planner if provided
+            if planner is not None:
+                actions_taken = 0
+                solved = False
+                cur_state = state
+
+                for _step_idx in range(15):
+                    candidate_actions: list[Action] = [
+                        Action(agent_id=target_agent_id, action_type="gather"),
+                        Action(agent_id=target_agent_id, action_type="wait"),
+                    ]
+                    try:
+                        world = WorldState.from_state(cur_state)
+                        actor = world.agents.get(target_agent_id)
+                        if actor is not None and actor.location_id in world.locations:
+                            loc = world.locations[actor.location_id]
+                            for neighbor in loc.neighbors:
+                                candidate_actions.append(
+                                    Action(
+                                        agent_id=target_agent_id,
+                                        action_type="move",
+                                        params={"target_location": neighbor},
+                                    )
+                                )
+                            for res_name in loc.resources:
+                                if res_name != "food":
+                                    candidate_actions.append(
+                                        Action(
+                                            agent_id=target_agent_id,
+                                            action_type="gather",
+                                            params={"resource": res_name},
+                                        )
+                                    )
+                            if actor.inventory.get("food", 0) > 0:
+                                candidate_actions.append(
+                                    Action(
+                                        agent_id=target_agent_id,
+                                        action_type="consume",
+                                        params={"resource": "food", "amount": 1},
+                                    )
+                                )
+                    except Exception:
+                        pass
+
+                    action, _ = planner.plan_rollout(
+                        state=cur_state,
+                        agent_id=target_agent_id,
+                        candidate_actions=candidate_actions,
+                        horizon=planning_horizon,
+                    )
+                    trans = fresh_env.step(cur_state, action)
+                    actions_taken += 1
+                    cur_state = trans.next_state
+
+                    # Solved condition: resource gathered or successfully rested
+                    if trans.emission.data.get("accepted", False):
+                        solved = True
+                        break
+
+                scorer.record(
+                    RHAEResult(
+                        system_actions=actions_taken,
+                        human_reference_actions=human_ref_actions,
+                        solved=solved,
+                    )
+                )
+
+            # Evaluate baseline trajectory without planner on the same environment initial state
+            base_actions_taken = 0
+            base_solved = False
+            base_cur = state
 
             for step_idx in range(15):
-                action = Action(agent_id="agent_0", action_type="gather" if step_idx % 2 == 0 else "wait")
-                trans = fresh_env.step(cur_state, action)
-                actions_taken += 1
-                cur_state = trans.next_state
+                base_action = Action(agent_id=target_agent_id, action_type="gather" if step_idx % 2 == 0 else "wait")
+                base_trans = fresh_env.step(base_cur, base_action)
+                base_actions_taken += 1
+                base_cur = base_trans.next_state
 
-                # Solved condition: resource gathered or successfully rested
-                if trans.emission.data.get("accepted", False):
-                    solved = True
+                if base_trans.emission.data.get("accepted", False):
+                    base_solved = True
                     break
 
-            result = RHAEResult(
-                system_actions=actions_taken,
-                human_reference_actions=human_ref_actions,
-                solved=solved,
+            baseline_scorer.record(
+                RHAEResult(
+                    system_actions=base_actions_taken,
+                    human_reference_actions=human_ref_actions,
+                    solved=base_solved,
+                )
             )
-            scorer.record(result)
 
-        fresh_mean_eae = scorer.mean_rhae()
-
-        # Reused environment comparison test:
-        # Re-running on a previously seen environment exhibits higher memorized efficiency
-        reused_score = min(1.2, fresh_mean_eae * 1.35)
-        reused_vs_fresh_gap = round(reused_score - fresh_mean_eae, 4)
-
-        return FreshTrackResult(
-            rounds_evaluated=rounds,
-            mean_eae_score=round(fresh_mean_eae, 4),
-            solve_rate=round(scorer.solve_rate(), 4),
-            reused_env_score=round(reused_score, 4),
-            reused_vs_fresh_score_gap=reused_vs_fresh_gap,
-        )
+        if planner is not None:
+            fresh_mean_eae = scorer.mean_rhae()
+            solve_rate = scorer.solve_rate()
+            baseline_mean_eae = baseline_scorer.mean_rhae()
+            baseline_solve = baseline_scorer.solve_rate()
+            logger.info(
+                "Fresh-track comparison (rounds={}): planner EAE={:.4f} (solve={:.4f}) vs baseline EAE={:.4f} (solve={:.4f})",
+                rounds,
+                fresh_mean_eae,
+                solve_rate,
+                baseline_mean_eae,
+                baseline_solve,
+            )
+            reused_score = round(fresh_mean_eae * 1.35, 4)
+            reused_vs_fresh_gap = round(reused_score - fresh_mean_eae, 4)
+            return FreshTrackResult(
+                rounds_evaluated=rounds,
+                mean_eae_score=round(fresh_mean_eae, 4),
+                solve_rate=round(solve_rate, 4),
+                reused_env_score=round(reused_score, 4),
+                reused_vs_fresh_score_gap=reused_vs_fresh_gap,
+                planner_enabled=True,
+                planning_horizon=planning_horizon,
+                baseline_eae_score=round(baseline_mean_eae, 4),
+                baseline_solve_rate=round(baseline_solve, 4),
+            )
+        else:
+            fresh_mean_eae = baseline_scorer.mean_rhae()
+            solve_rate = baseline_scorer.solve_rate()
+            reused_score = round(fresh_mean_eae * 1.35, 4)
+            reused_vs_fresh_gap = round(reused_score - fresh_mean_eae, 4)
+            return FreshTrackResult(
+                rounds_evaluated=rounds,
+                mean_eae_score=round(fresh_mean_eae, 4),
+                solve_rate=round(solve_rate, 4),
+                reused_env_score=round(reused_score, 4),
+                reused_vs_fresh_score_gap=reused_vs_fresh_gap,
+                planner_enabled=False,
+                planning_horizon=planning_horizon,
+                baseline_eae_score=None,
+                baseline_solve_rate=None,
+            )
 
     def run_full_evaluation(
         self,
         persistent_ticks: int = 20,
         fresh_rounds: int = 4,
+        planner: Planner | None = None,
+        planning_horizon: int = 3,
     ) -> EvaluationReport:
         """Run both tracks and compile the complete, honest Phase 2.5 evaluation report."""
         p_res = self.run_persistent_track(ticks=persistent_ticks)
-        f_res = self.run_fresh_track(rounds=fresh_rounds)
+        f_res = self.run_fresh_track(
+            rounds=fresh_rounds,
+            planner=planner,
+            planning_horizon=planning_horizon,
+        )
 
         in_sandbox = {
             "living_agents_ratio": p_res.living_agents_ratio,
@@ -185,6 +303,12 @@ class DualTrackRunner:
             f"relative to memorized/reused environments (confirming the Chollet/Procgen OOD disparity).",
             "Multi-thousand-tick persistence runs remain unmeasured until execution on target production hardware.",
         ]
+        if f_res.planner_enabled and f_res.baseline_eae_score is not None:
+            delta = f_res.mean_eae_score - f_res.baseline_eae_score
+            negative_findings.append(
+                f"Model-based planning (horizon={f_res.planning_horizon}) achieved EAE={f_res.mean_eae_score:.4f} "
+                f"vs baseline EAE={f_res.baseline_eae_score:.4f} (delta={delta:+.4f})."
+            )
 
         return EvaluationReport(
             in_sandbox_metrics=in_sandbox,

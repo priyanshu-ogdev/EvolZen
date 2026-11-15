@@ -192,6 +192,95 @@ class Planner:
 
         return best_action, best_result
 
+    def plan_rollout(
+        self,
+        state: State,
+        agent_id: str,
+        candidate_actions: list[Action],
+        horizon: int = 3,
+        discount: float = 0.9,
+    ) -> tuple[Action, float]:
+        """Perform model-based trajectory rollout and return action maximizing expected return.
+
+        Cites:
+        - Hafner et al. (DreamerV3, arXiv:2301.04104) for model-based world-model rollouts;
+        - Sutton & Barto (1998) for discounted cumulative trajectory value estimation;
+        - DeepSeekMath / GRPO (Shao et al., arXiv:2402.03300) for policy prior advantage weighting.
+
+        Simulates forward trajectories over the learned WorldDynamicsPredictor up to depth
+        `horizon`, accumulating discounted predicted rewards sum_{t=0}^{H-1} gamma^t R(e_t)
+        plus the policy prior bias from the GRPO policy logits.
+        """
+        if not candidate_actions:
+            fallback_action = Action(agent_id=agent_id, action_type="wait")
+            return fallback_action, 0.0
+
+        eff_horizon = max(1, horizon)
+        root_types = [a.action_type for a in candidate_actions]
+        probs = self.policy_probabilities(root_types)
+
+        # Pool of actions to consider for subsequent rollout steps (depth >= 1)
+        subsequent_pool: list[Action] = list(candidate_actions)
+        if len(subsequent_pool) <= 1:
+            seen_types = {a.action_type for a in subsequent_pool}
+            for act_type in ("wait", "gather", "craft", "trade", "move"):
+                if act_type not in seen_types:
+                    subsequent_pool.append(Action(agent_id=agent_id, action_type=act_type))
+
+        subsequent_types = [a.action_type for a in subsequent_pool]
+        subsequent_probs = self.policy_probabilities(subsequent_types)
+
+        best_action: Action = candidate_actions[0]
+        best_return: float = -float("inf")
+
+        for root_action in candidate_actions:
+            cumulative_reward = 0.0
+            cur_discount = 1.0
+
+            # Step 0: root action
+            pred_emission, next_state = self._dynamics.predict(state=state, action=root_action)
+            rewards_0 = pred_emission.data.get("rewards", [0.0] * 8)
+            r_0 = sum(float(r) for r in rewards_0) if isinstance(rewards_0, (list, tuple)) else 0.0
+            cumulative_reward += cur_discount * r_0
+            sim_state = next_state
+
+            # Subsequent steps 1 .. eff_horizon - 1 (greedy forward simulation)
+            for _ in range(1, eff_horizon):
+                cur_discount *= discount
+                best_step_reward = -float("inf")
+                best_step_score = -float("inf")
+                best_sub_next_state = sim_state
+
+                for sub_action in subsequent_pool:
+                    sub_emission, sub_next = self._dynamics.predict(state=sim_state, action=sub_action)
+                    sub_rewards = sub_emission.data.get("rewards", [0.0] * 8)
+                    r_sub = (
+                        sum(float(r) for r in sub_rewards)
+                        if isinstance(sub_rewards, (list, tuple))
+                        else 0.0
+                    )
+                    sub_bias = 0.1 * subsequent_probs.get(sub_action.action_type, 0.0)
+                    step_score = r_sub + sub_bias
+                    if step_score > best_step_score:
+                        best_step_score = step_score
+                        best_step_reward = r_sub
+                        best_sub_next_state = sub_next
+
+                cumulative_reward += cur_discount * (
+                    best_step_reward if best_step_reward != -float("inf") else 0.0
+                )
+                sim_state = best_sub_next_state
+
+            # Add root policy prior bias
+            policy_bias = 0.1 * probs.get(root_action.action_type, 0.0)
+            expected_return = cumulative_reward + policy_bias
+
+            if expected_return > best_return:
+                best_return = expected_return
+                best_action = root_action
+
+        return best_action, round(best_return, 6)
+
     def train_step(
         self,
         batch: list[Transition],

@@ -119,3 +119,43 @@ def test_planner_with_real_engine_rollout() -> None:
     planner.metrics_tracker.set_baseline(1, 0.1)
     planner.metrics_tracker.record_eval(train_task=1, eval_task=1, score=0.8)
     assert planner.metrics_tracker.get_score(1, 1) == 0.8
+
+
+def test_planner_plan_rollout_empty_candidates() -> None:
+    buf = RehearsalBuffer(capacity=10)
+    planner = Planner(rehearsal_buffer=buf)
+    state = State(data={"tick": 1, "step_index": 1})
+    best_action, val = planner.plan_rollout(state, "agent_0", candidate_actions=[])
+    assert best_action.action_type == "wait"
+    assert val == 0.0
+
+
+def test_planner_plan_rollout_horizons_1_and_3() -> None:
+    buf = RehearsalBuffer(capacity=10)
+    dynamics = WorldDynamicsPredictor()
+    planner = Planner(rehearsal_buffer=buf, dynamics=dynamics)
+
+    # Train dynamics: 'craft' yields reward 1.0, 'wait' yields reward 0.1
+    craft_t = _dummy_transition("craft", [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0])
+    wait_t = _dummy_transition("wait", [0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    dynamics.train_batch([craft_t] * 10 + [wait_t] * 10)
+
+    state = State(data={"tick": 1, "step_index": 1, "agents": {"agent_0": {"energy": 0.5}}})
+    candidates = [
+        Action(agent_id="agent_0", action_type="wait"),
+        Action(agent_id="agent_0", action_type="craft"),
+    ]
+
+    # Horizon 1
+    best_a_h1, val_h1 = planner.plan_rollout(state, "agent_0", candidates, horizon=1, discount=0.9)
+    assert best_a_h1.action_type == "craft"
+    # Root reward is 1.0 plus policy prior (~0.05)
+    assert val_h1 >= 1.0
+
+    # Horizon 3
+    best_a_h3, val_h3 = planner.plan_rollout(state, "agent_0", candidates, horizon=3, discount=0.9)
+    assert best_a_h3.action_type == "craft"
+    # Over 3 steps with gamma=0.9: 1.0 + 0.9 * 1.0 + 0.81 * 1.0 = 2.71 (+ prior)
+    assert val_h3 > val_h1
+    assert val_h3 == pytest.approx(2.71 + 0.05, abs=0.1)
+
