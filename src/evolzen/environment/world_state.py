@@ -38,6 +38,8 @@ def build_default_world(
     max_ticks: int = 2000,
     max_agents: int = 64,
     initial_agent_age: int = 0,
+    adulthood_age: int = 300,
+    lifespan: int = 1500,
 ) -> WorldState:
     """Construct a deterministic discrete graph/grid social sandbox initial state.
 
@@ -134,6 +136,8 @@ def build_default_world(
         seed=seed,
         max_ticks=max_ticks,
         max_agents=max_agents,
+        adulthood_age=adulthood_age,
+        lifespan=lifespan,
         locations=locations,
         agents=agents,
         artifacts={},

@@ -129,10 +129,15 @@ class PopulationScheduler:
     def step_agent(self, agent_id: str, *, seed: int | None = None) -> tuple[Transition, Outcome] | None:
         """Step one living agent through the observation -> decision -> host-execution loop."""
         agent = self.agents.get(agent_id)
-        if agent is None or agent.stage == LifeStage.DEAD:
+        if agent is None:
             return None
 
         world = WorldState.from_state(self.state)
+        if stage_at(agent.development, world.tick) == LifeStage.DEAD:
+            if agent.stage != LifeStage.DEAD:
+                agent.advance(world.tick)
+            return None
+
         w_agent = world.agents.get(agent_id)
         if w_agent is None or not w_agent.alive:
             return None
@@ -163,7 +168,7 @@ class PopulationScheduler:
     ) -> PopulationSchedulerMetrics:
         """Execute `steps` world cycles across living agents with teaching and reproduction."""
         transitions_count = 0
-        births = 0
+        initial_agent_count = len(self.agents)
         deaths = 0
         teachings = 0
 
@@ -171,7 +176,9 @@ class PopulationScheduler:
             world = WorldState.from_state(self.state)
             living_ids = [
                 a_id for a_id, a in self.agents.items()
-                if a.stage != LifeStage.DEAD and world.agents.get(a_id, None) and world.agents[a_id].alive
+                if stage_at(a.development, world.tick) != LifeStage.DEAD
+                and (w_a := world.agents.get(a_id)) is not None
+                and w_a.alive
             ]
 
             for a_id in living_ids:
@@ -180,8 +187,7 @@ class PopulationScheduler:
                     transitions_count += 1
 
             # Detect newly born agents
-            new_births = self._init_agents_from_world()
-            births += new_births
+            self._init_agents_from_world()
 
             # Facilitate living parent-child teaching among colocated agents
             curr_world = WorldState.from_state(self.state)
@@ -237,19 +243,19 @@ class PopulationScheduler:
             # Reconcile deaths
             for a_id, agent in self.agents.items():
                 w_a = curr_world.agents.get(a_id)
-                if (agent.stage == LifeStage.DEAD or (w_a and not w_a.alive)) and a_id in living_ids:
+                if (stage_at(agent.development, curr_world.tick) == LifeStage.DEAD or (w_a and not w_a.alive)) and a_id in living_ids:
                     deaths += 1
 
         final_world = WorldState.from_state(self.state)
         active_pop = sum(
             1 for a_id, a in self.agents.items()
-            if a.stage != LifeStage.DEAD and (w_a := final_world.agents.get(a_id)) is not None and w_a.alive
+            if stage_at(a.development, final_world.tick) != LifeStage.DEAD and (w_a := final_world.agents.get(a_id)) is not None and w_a.alive
         )
 
         return PopulationSchedulerMetrics(
             ticks_elapsed=final_world.tick,
             total_transitions=transitions_count,
-            births=births,
+            births=len(self.agents) - initial_agent_count,
             deaths=deaths,
             teachings=teachings,
             archive_coverage=self.archive.coverage(),

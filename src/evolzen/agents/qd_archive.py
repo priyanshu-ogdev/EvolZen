@@ -146,6 +146,16 @@ class CVTArchive:
         """Return all occupied entries."""
         return list(self._cells.values())
 
+    @property
+    def centroids(self) -> tuple[tuple[float, ...], ...]:
+        """Centroid coordinates defining the Voronoi niches."""
+        return self._centroids
+
+    @property
+    def cells(self) -> dict[int, QDArchiveEntry]:
+        """Dictionary mapping centroid indices to occupied entries."""
+        return dict(self._cells)
+
 
 def compute_behavioral_descriptor(
     genome: BirthGenome,

@@ -200,6 +200,10 @@ ray status
 Before beginning an empirical multi-generation run, execute the following validation ladder:
 
 ```bash
+# 0. Hardware cluster pre-flight diagnostic probe
+uv run evolzen cluster --role standalone
+# (Or target topology: --role dgx_spark / jetson_agx / rtx_a6000)
+
 # 1. Codebase hygiene and static typing
 uv run ruff check .
 uv run mypy src tests

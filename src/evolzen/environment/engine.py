@@ -1264,12 +1264,16 @@ class SocialSandboxEngine:
         max_agents: int = 64,
         num_locations: int = 4,
         num_agents: int = 4,
+        adulthood_age: int = 300,
+        lifespan: int = 1500,
     ) -> None:
         self._default_seed = default_seed
         self._max_ticks = max_ticks
         self._max_agents = max_agents
         self._num_locations = num_locations
         self._num_agents = num_agents
+        self._adulthood_age = adulthood_age
+        self._lifespan = lifespan
 
     def reset(
         self,
@@ -1278,6 +1282,8 @@ class SocialSandboxEngine:
         run_id: str = "default-run",
         branch_id: str = "main",
         initial_agent_age: int = 0,
+        adulthood_age: int | None = None,
+        lifespan: int | None = None,
     ) -> State:
         """Return a deterministic initial `State`."""
         world = build_default_world(
@@ -1289,6 +1295,8 @@ class SocialSandboxEngine:
             max_ticks=self._max_ticks,
             max_agents=self._max_agents,
             initial_agent_age=initial_agent_age,
+            adulthood_age=self._adulthood_age if adulthood_age is None else adulthood_age,
+            lifespan=self._lifespan if lifespan is None else lifespan,
         )
         report = check_invariants(None, world)
         if not report.passed:

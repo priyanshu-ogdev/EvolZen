@@ -98,8 +98,8 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
                 action_id=f"gather:{res}:1",
                 context_key=context_key,
                 skill_key=f"gather:{res}:v1",
-                predicted=(0.05, 0.25, 0.0, 0.0, 0.05, 0.0, -0.05, -0.05),
-                cost=0.02,
+                predicted=(0.10, 0.45, 0.0, 0.0, 0.25, 0.0, -0.02, -0.02),
+                cost=0.01,
                 minimum_age=0,
                 permitted=available,
             )
@@ -111,7 +111,7 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
                 action_id="consume:food:1",
                 context_key=context_key,
                 skill_key="consume:food:v1",
-                predicted=(0.0, -0.1, 0.0, 0.0, 0.35, 0.0, 0.05, 0.0),
+                predicted=(0.05, 0.0, 0.0, 0.0, 0.50, 0.0, 0.05, -0.01),
                 cost=0.0,
                 minimum_age=0,
                 permitted=True,
@@ -295,7 +295,10 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
                     )
                     break
 
-    norm_id = f"norm-{world.step_index + 1}-{agent.agent_id}"
+    norm_idx = len(world.norms) + 1
+    while f"norm-{norm_idx}" in world.norms:
+        norm_idx += 1
+    norm_id = f"norm-{norm_idx}"
     candidates.append(
         Candidate(
             action_id=f"propose_norm:{norm_id}:conservation",
@@ -343,14 +346,17 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
         and living_agents_count < world.max_agents
         and (world.tick - agent.born_at) >= world.adulthood_age
     )
-    child_id = f"agent-{world.step_index + 1}-{agent.agent_id}"
+    child_idx = len(world.agents)
+    while f"agent-{child_idx}" in world.agents:
+        child_idx += 1
+    child_id = f"agent-{child_idx}"
     candidates.append(
         Candidate(
             action_id=f"spawn_offspring:{child_id}:5",
             context_key=context_key,
             skill_key="spawn_offspring:v1",
-            predicted=(0.1, -0.1, 0.45, 0.0, 0.0, 0.0, -0.1, -0.1),
-            cost=0.1,
+            predicted=(0.25, 0.1, 0.65, 0.0, 0.0, 0.0, -0.02, -0.02),
+            cost=0.02,
             minimum_age=world.adulthood_age,
             permitted=can_spawn,
         )

@@ -1,26 +1,36 @@
-"""CLI entry point: `evolzen run / train / evaluate / replay / inspect / ablate`.
+"""CLI entry point: `evolzen run / train / evaluate / replay / inspect / ablate / cluster`.
 
 See src/evolzen/cli/README.md for the command-to-subsystem map. Registered as a console script
 via [project.scripts] in pyproject.toml.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Annotated
 
+import numpy as np
 import typer
 
+from evolzen.agents.development.lifecycle import stage_at
 from evolzen.agents.development.motivation import sample_genome
-from evolzen.agents.qd_archive import CVTArchive, compute_behavioral_descriptor
+from evolzen.agents.qd_archive import CVTArchive, QDArchiveEntry, compute_behavioral_descriptor
 from evolzen.agents.scheduler import PopulationScheduler
+from evolzen.cli.cluster import TargetNodeRole, diagnose_host_node, format_cluster_report
+from evolzen.cli.dashboard import generate_dashboard_html
+from evolzen.economy.manuals import ManualStore
 from evolzen.economy.metrics import compute_gini_coefficient
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.evaluation.dual_track import DualTrackRunner
 from evolzen.logging import configure_logging, logger
+from evolzen.predictor.dynamics import WorldDynamicsPredictor
 from evolzen.predictor.planner import Planner
 from evolzen.predictor.rehearsal_buffer import RehearsalBuffer
 from evolzen.recognition.ablations import AblationRunner
+from evolzen.recognition.jepa import GroundedJEPAEncoder
 from evolzen.schemas.agent_profile import AgentProfile
+from evolzen.schemas.development import DevelopmentConfig, LifeStage
+from evolzen.schemas.manual import ProvenanceCategory, ProvenanceRecord
 from evolzen.schemas.transition import Action, Transition
 from evolzen.schemas.world import WorldState
 from evolzen.storage.transition_log import TransitionLogStore
@@ -51,50 +61,102 @@ def run(
     )
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    if db_path.exists():
+        db_path.unlink()
+    dev_config = DevelopmentConfig(
+        adolescence=15,
+        adulthood=25,
+        elderhood=200,
+        lifespan=350,
+    )
+    manual_store = ManualStore(real_data_floor=0.2)
+    prov = ProvenanceRecord.create(
+        provenance_id="prov-crafting-recipe",
+        category=ProvenanceCategory.HUMAN_AUTHORED,
+        uri_or_source="seeds/crafting.md",
+        description="Human-authored tool-crafting recipe",
+    )
+    manual_store.add_entry(
+        situation_key="crafting",
+        text="Gather wood and stone to craft specialized tools",
+        category=ProvenanceCategory.HUMAN_AUTHORED,
+        provenance=prov,
+        written_by="human_expert",
+    )
+
     with TransitionLogStore(db_path) as store:
         engine = SocialSandboxEngine(
             default_seed=seed,
             num_locations=4,
             num_agents=4,
             max_ticks=max(2000, (generations * ticks_per_gen * 16) + 1000),
+            adulthood_age=dev_config.adulthood,
+            lifespan=dev_config.lifespan,
         )
-        init_state = engine.reset(seed=seed, run_id=run_id)
+        init_state = engine.reset(
+            seed=seed,
+            run_id=run_id,
+            adulthood_age=dev_config.adulthood,
+            lifespan=dev_config.lifespan,
+        )
         scheduler = PopulationScheduler(
             engine=engine,
             initial_state=init_state,
+            config=dev_config,
+            manual_store=manual_store,
             run_id=run_id,
             store=store,
         )
 
         total_transitions = 0
+        total_births = 0
+        total_deaths = 0
+        total_teachings = 0
         for gen in range(generations):
             metrics = scheduler.run_generation(steps=ticks_per_gen, seed=seed + gen)
             total_transitions += metrics.total_transitions
+            total_births += metrics.births
+            total_deaths += metrics.deaths
+            total_teachings += metrics.teachings
             logger.info(
-                "Generation {} complete: world_tick={} transitions={} living_agents={}",
+                "Generation {} complete: world_tick={} transitions={} births={} deaths={} teachings={} living_agents={}",
                 gen + 1,
                 metrics.ticks_elapsed,
                 metrics.total_transitions,
+                metrics.births,
+                metrics.deaths,
+                metrics.teachings,
                 metrics.active_population,
             )
 
         final_world = WorldState.from_state(scheduler.state)
-        living_agents = [a for a in final_world.agents.values() if a.alive]
+        living_agents = [
+            w_a for a_id, a in scheduler.agents.items()
+            if stage_at(a.development, final_world.tick) != LifeStage.DEAD
+            and (w_a := final_world.agents.get(a_id)) is not None
+            and w_a.alive
+        ]
         active_pop = len(living_agents)
         wealths = [float(a.currency + sum(a.inventory.values())) for a in living_agents]
         gini = compute_gini_coefficient(wealths) if wealths else 0.0
         active_lineages = len({a.lineage_id for a in living_agents})
+        max_gen = max((a.generation for a in final_world.agents.values()), default=0)
         total_ticks = final_world.tick
+        archive_cov = scheduler.archive.coverage()
 
         typer.echo(
             f"Simulation completed successfully:\n"
             f"  Total generations: {generations}\n"
             f"  World ticks: {total_ticks}\n"
             f"  Transitions logged: {total_transitions}\n"
+            f"  Births: {total_births}\n"
+            f"  Deaths: {total_deaths}\n"
+            f"  Teachings: {total_teachings}\n"
             f"  Active population: {active_pop}\n"
             f"  Wealth Gini coefficient: {gini:.4f}\n"
             f"  Active lineages: {active_lineages}\n"
-            f"  Lineages active: {scheduler.archive.coverage()}"
+            f"  Max generation reached: {max_gen}\n"
+            f"  CVTArchive coverage: {archive_cov}"
         )
 
 
@@ -104,36 +166,82 @@ def train(
     batch_size: Annotated[int, typer.Option(help="Batch size per training step.")] = 4,
     replay_ratio: Annotated[float, typer.Option(help="CLEAR replay ratio [0.0, 1.0].")] = 0.5,
     seed: Annotated[int, typer.Option(help="Training seed.")] = 42,
+    db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
 ) -> None:
     """Run the grounded-predictor / recognition-model training loop (Phases 2.1, 2.3)."""
     configure_logging(phase="2.1")
-    logger.info("Training requested: steps={} batch_size={} replay_ratio={}", steps, batch_size, replay_ratio)
+    logger.info(
+        "Training requested: steps={} batch_size={} replay_ratio={} seed={} db_path={}",
+        steps,
+        batch_size,
+        replay_ratio,
+        seed,
+        db_path,
+    )
 
-    engine = SocialSandboxEngine(default_seed=seed, num_locations=2, num_agents=2, max_ticks=100)
-    state = engine.reset(seed=seed)
-
-    # Generate bootstrap training transitions
     transitions: list[Transition] = []
-    cur_state = state
-    for i in range(max(batch_size * 2, 8)):
-        action = Action(agent_id="agent_0", action_type="wait" if i % 2 == 0 else "gather")
-        t = engine.step(cur_state, action)
-        transitions.append(t)
-        cur_state = t.next_state
+    source: str = "engine bootstrap"
+    if db_path.exists():
+        try:
+            with TransitionLogStore(db_path) as store:
+                if store.count() > 0:
+                    transitions = store.list_transitions()
+                    source = f"DuckDB ({db_path})"
+        except Exception as exc:
+            logger.warning("Could not read transitions from {}: {}", db_path, exc)
+
+    if not transitions:
+        source = "engine bootstrap"
+        engine = SocialSandboxEngine(default_seed=seed, num_locations=2, num_agents=2, max_ticks=100)
+        state = engine.reset(seed=seed)
+        cur_state = state
+        for i in range(max(batch_size * 2, 8)):
+            action = Action(agent_id="agent_0", action_type="wait" if i % 2 == 0 else "gather")
+            t = engine.step(cur_state, action)
+            transitions.append(t)
+            cur_state = t.next_state
 
     rehearsal_buffer = RehearsalBuffer(capacity=100)
-    planner = Planner(rehearsal_buffer=rehearsal_buffer, lr=0.05)
+    predictor = WorldDynamicsPredictor()
+    planner = Planner(dynamics=predictor, rehearsal_buffer=rehearsal_buffer, lr=0.05)
+    jepa = GroundedJEPAEncoder(seed=seed)
 
-    last_metrics: dict[str, float] = {}
-    for _step in range(steps):
-        batch = transitions[:batch_size]
-        last_metrics = planner.train_step(batch, replay_ratio=replay_ratio)
+    last_planner_metrics: dict[str, float] = {}
+
+    for step in range(steps):
+        start_idx = (step * batch_size) % len(transitions)
+        end_idx = start_idx + batch_size
+        if end_idx <= len(transitions):
+            batch = transitions[start_idx:end_idx]
+        else:
+            batch = transitions[start_idx:] + transitions[: end_idx % len(transitions)]
+
+        last_planner_metrics = planner.train_step(batch, replay_ratio=replay_ratio)
+        jepa.train_step([t.state for t in batch])
+        predictor.train_batch(batch)
+
+    # JEPA representation variance and dimension health across transitions
+    sample_size = min(len(transitions), 64)
+    sample_stride = max(1, len(transitions) // sample_size)
+    sample_states = [t.state for t in transitions[::sample_stride][:sample_size]]
+    if len(sample_states) > 1:
+        encoded = np.asarray([jepa.encode(s) for s in sample_states], dtype=np.float32)
+        dim_vars = np.var(encoded, axis=0)
+        jepa_rep_var = float(np.mean(dim_vars))
+        active_dims = int(np.sum(dim_vars > 1e-4))
+    else:
+        jepa_rep_var = 0.0
+        active_dims = 0
 
     typer.echo(
         f"Training complete:\n"
-        f"  Updates executed: {planner.update_count}\n"
-        f"  Final step loss: {last_metrics.get('loss', 0.0):.4f}\n"
-        f"  Policy entropy: {last_metrics.get('policy_entropy', 0.0):.4f}\n"
+        f"  Transitions source: {source}\n"
+        f"  Transitions count: {len(transitions)}\n"
+        f"  Total GRPO updates executed: {planner.update_count}\n"
+        f"  Final step loss: {last_planner_metrics.get('loss', 0.0):.4f}\n"
+        f"  Policy entropy: {last_planner_metrics.get('policy_entropy', 0.0):.4f}\n"
+        f"  JEPA representation variance: {jepa_rep_var:.6f}\n"
+        f"  JEPA dimension health: {active_dims}/{jepa.embedding_dim} active dimensions\n"
         f"  Rehearsal buffer size: {len(rehearsal_buffer)}"
     )
 
@@ -206,6 +314,7 @@ def inspect(
     seed: Annotated[int, typer.Option(help="Seed to inspect default world layout.")] = 42,
     num_agents: Annotated[int, typer.Option(help="Number of agents in inspect world.")] = 4,
     num_locations: Annotated[int, typer.Option(help="Number of locations.")] = 4,
+    export_html: Annotated[Path | None, typer.Option(help="Path to export interactive HTML5 visualization dashboard.")] = None,
 ) -> None:
     """Query CVTArchive diversity and economy health indicators."""
     configure_logging(phase="1.2")
@@ -222,6 +331,24 @@ def inspect(
         dimension=5,
     )
 
+    for a_id, a_state in world.agents.items():
+        a_profile = AgentProfile(
+            agent_id=a_id,
+            lineage_id=a_state.lineage_id,
+            adopted_norms=tuple(a_state.adopted_norms),
+            institutional_affiliations=tuple(a_state.institution_ids),
+        )
+        a_genome = sample_genome(seed + (hash(a_id) % 1000))
+        a_desc = compute_behavioral_descriptor(a_genome, a_profile, dimension=5)
+        archive.consider(
+            QDArchiveEntry(
+                agent_id=a_id,
+                profile=a_profile,
+                behavioral_descriptor=a_desc,
+                fitness=float(a_state.currency + 10.0),
+            )
+        )
+
     wealths = [a.currency for a in world.agents.values()]
     gini = compute_gini_coefficient(wealths) if wealths else 0.0
 
@@ -234,6 +361,12 @@ def inspect(
         f"  CVT Archive Centroid Niches: {archive.total_niches()}\n"
         f"  Founder Agent Behavioral Descriptor: {[round(v, 3) for v in desc]}"
     )
+
+    if export_html is not None:
+        dashboard_content = generate_dashboard_html(world, archive, gini, desc)
+        export_html.parent.mkdir(parents=True, exist_ok=True)
+        export_html.write_text(dashboard_content, encoding="utf-8")
+        typer.echo(f"Dashboard exported to: {export_html}")
 
 
 @app.command()
@@ -276,6 +409,34 @@ def ablate(
     if output is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(report, encoding="utf-8")
+
+
+@app.command()
+def cluster(
+    role: Annotated[
+        TargetNodeRole,
+        typer.Option(
+            help="Target cluster node role to diagnose (dgx_spark, jetson_agx, rtx_a6000, standalone).",
+            case_sensitive=False,
+        ),
+    ] = TargetNodeRole.STANDALONE,
+    json_output: Annotated[
+        bool,
+        typer.Option(
+            "--json",
+            help="Output diagnostics in structured JSON format.",
+        ),
+    ] = False,
+) -> None:
+    """Pre-flight hardware diagnostics & cluster topology activation (Horizon 4)."""
+    configure_logging(phase="cluster")
+    logger.info("Host cluster pre-flight diagnostic requested: role={}", role.value)
+    diag = diagnose_host_node(role=role)
+    if json_output:
+        typer.echo(json.dumps(diag, indent=2))
+    else:
+        report = format_cluster_report(diag)
+        typer.echo(report)
 
 
 if __name__ == "__main__":

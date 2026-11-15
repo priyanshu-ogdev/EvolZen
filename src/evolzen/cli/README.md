@@ -8,10 +8,13 @@ implementing behavior, you want the subsystem folder, not this one.
 
 | Command | Wires to | Status |
 |---|---|---|
-| `evolzen run` | `evolzen.environment`, `evolzen.agents`, `evolzen.economy` | `NotImplementedError`: Phase 1.1 engine (`SocialSandboxEngine`) and `run_environment_pilot` are implemented; CLI wiring to `configs/*.yaml` + `run_environment_pilot`, Phase 1.2/1.3 loops, and hardware pilot remain pending. |
-| `evolzen train` | `evolzen.predictor`, `evolzen.recognition` | `NotImplementedError`, pending Phase 2.1's planner. |
-| `evolzen evaluate` | `evolzen.evaluation` | `NotImplementedError`, pending the persistent-world and fresh-world evaluation generators. |
+| `evolzen run` | `evolzen.environment`, `evolzen.agents`, `evolzen.economy` | Implemented: runs multi-generation developmental agent loop with transition logging and generational reproduction. |
+| `evolzen train` | `evolzen.predictor`, `evolzen.recognition` | Implemented: trains GRPO planner & JEPA representations on logged transitions. |
+| `evolzen evaluate` | `evolzen.evaluation` | Implemented: runs dual-track persistent vs held-out generalization benchmark. |
 | `evolzen ablate` | `evolzen.recognition` | Implemented: runs 4-cell pre-registered ablation matrix. |
+| `evolzen replay` | `evolzen.storage` | Implemented: verifies cryptographic SHA-256 hash chains of logged transitions. |
+| `evolzen inspect` | `evolzen.environment`, `evolzen.agents`, `evolzen.cli.dashboard` | Implemented: inspects world state and exports hermetic interactive HTML5 visualization dashboard. |
+| `evolzen cluster` | `evolzen.cli.cluster`, `evolzen.containment` | Implemented: pre-flight hardware cluster activation and node diagnostics for DGX Spark, Jetson AGX Spark, RTX A6000, and standalone rigs. |
 
 ## Run it
 
@@ -21,6 +24,9 @@ uv run evolzen run --generations 5
 uv run evolzen train --steps 1000
 uv run evolzen evaluate --rounds 10
 uv run evolzen ablate --steps 50
+uv run evolzen inspect --export-html data/dashboard.html
+uv run evolzen replay --db-path data/transitions.duckdb
+uv run evolzen cluster --role standalone
 ```
 
 `main.py` remains a thin entry point. Command logic belongs in its owning subsystem; the current
