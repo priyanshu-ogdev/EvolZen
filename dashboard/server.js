@@ -79,7 +79,9 @@ const CIVIC_STRUCTURES = [
   { id: 'fire', name: 'Fire Station', x: 550, z: 450, width: 28, depth: 28, floors: 2, material: 'RED', color: '#dc2626', desc: 'Disaster management & emergency hazard dispatch core' },
   { id: 'office', name: 'Municipal Office', x: 450, z: 450, width: 32, depth: 32, floors: 4, material: 'VINYL', color: '#eab308', desc: 'Civic governance, institutional norm voting, and property registry' },
   { id: 'market', name: 'Central Agora Market', x: 550, z: 650, width: 44, depth: 44, floors: 1, material: 'RED/WHITE Stripes', color: '#f97316', desc: 'Double-auction order book, commodity trade & treasury clearing' },
-  { id: 'park', name: 'EvolZen Central Park', x: 500, z: 500, width: 100, depth: 100, floors: 1, material: 'GRASS + GREENHOUSE', color: '#22c55e', desc: 'Public green reserve, central conservatory gazebo, and greenhouse (GLASS)' }
+  { id: 'park', name: 'EvolZen Central Park', x: 500, z: 500, width: 100, depth: 100, floors: 1, material: 'GRASS + GREENHOUSE', color: '#22c55e', desc: 'Public green reserve, central conservatory gazebo, and greenhouse (GLASS)' },
+  { id: 'silo', name: 'Communal Granary Silos', x: 520, z: 620, width: 30, depth: 30, floors: 3, material: 'METAL + CONC', color: '#f59e0b', desc: 'Communal grain silos & emergency food reserve for drought buffer' },
+  { id: 'workshop', name: 'Timber & Quarry Workshops', x: 450, z: 250, width: 36, depth: 36, floors: 2, material: 'WOOD + BRICK', color: '#8b5cf6', desc: 'Tool fabrication, masonry cutting, and material processing facility' }
 ];
 
 // ---------------------------------------------------------------------------
@@ -91,6 +93,20 @@ let simState = {
   seed: 42,
   world_version: 'evolzen-v2.0-certified',
   running: false,
+  drought: {
+    active: false,
+    severity: 0.60,
+    started_tick: null
+  },
+  communal_silo: {
+    name: 'Central Granary & Communal Silo',
+    location: { x: 520, z: 620 },
+    food_reserve: 650.0,
+    max_capacity: 2500.0,
+    total_withdrawn: 0.0,
+    total_recycled: 0.0,
+    status: 'ACTIVE_BUFFER'
+  },
   locations: {
     plaza: { name: 'Plaza Core', capacity: 120, agents: 16, food: 85, wood: 120, stone: 95, renewal_rate: 1.2 },
     grove: { name: 'Timber Grove', capacity: 80, agents: 12, food: 40, wood: 450, stone: 30, renewal_rate: 2.8 },
@@ -107,13 +123,26 @@ let simState = {
     last_checked_tick: 142
   },
   history: [
-    { tick: 100, food: 880, wood: 790, stone: 610, gini: 0.281 },
-    { tick: 110, food: 910, wood: 810, stone: 620, gini: 0.283 },
-    { tick: 120, food: 900, wood: 825, stone: 630, gini: 0.284 },
-    { tick: 130, food: 935, wood: 840, stone: 645, gini: 0.285 },
-    { tick: 142, food: 950, wood: 850, stone: 660, gini: 0.284 }
+    { tick: 100, food: 880, wood: 790, stone: 610, gini: 0.281, communal_silo: 650 },
+    { tick: 110, food: 910, wood: 810, stone: 620, gini: 0.283, communal_silo: 650 },
+    { tick: 120, food: 900, wood: 825, stone: 630, gini: 0.284, communal_silo: 650 },
+    { tick: 130, food: 935, wood: 840, stone: 645, gini: 0.285, communal_silo: 650 },
+    { tick: 142, food: 950, wood: 850, stone: 660, gini: 0.284, communal_silo: 650 }
+  ],
+  events: [
+    {
+      tick: 142,
+      timestamp: new Date().toISOString(),
+      type: 'SIM_INITIALIZED',
+      message: 'Simulation initialized with Moore Machine environment & communal granary buffer.'
+    }
   ]
 };
+
+// Autoplay Timer & State
+let autoplayTimer = null;
+let autoplayActive = false;
+let autoplayIntervalMs = 300;
 
 // ---------------------------------------------------------------------------
 // 2b. Agent Population & Homeostatic Core (Phase 1.2 Chebyshev Core)
@@ -158,11 +187,31 @@ const AGENT_NAMES = [
 const ROLES = [
   { name: 'Farmer', color: '#10b981', target: { x: 50, z: 500, label: 'West Farm Belt' }, action: 'GATHER_CROP' },
   { name: 'Builder', color: '#eab308', target: { x: 450, z: 450, label: 'Municipal Construction' }, action: 'CONSTRUCT' },
-  { name: 'Crafter', color: '#8b5cf6', target: { x: 450, z: 250, label: 'Timber / Quarry Workshop' }, action: 'CRAFT_TOOL' },
+  { name: 'Crafter', color: '#8b5cf6', target: { x: 450, z: 250, label: 'Timber & Quarry Workshops' }, action: 'CRAFT_TOOL' },
   { name: 'Trader', color: '#f59e0b', target: { x: 550, z: 650, label: 'Agora Central Market' }, action: 'AUCTION_BID' },
   { name: 'Medic', color: '#ef4444', target: { x: 450, z: 550, label: 'Hospital ✚ Trauma' }, action: 'MEDIC_CARE' },
   { name: 'Generalist', color: '#06b6d4', target: { x: 500, z: 500, label: 'Central Park / Commons' }, action: 'CIVIC_REST' }
 ];
+
+/**
+ * Generate smooth multi-segment street waypoints connecting start to destination.
+ * EvolZen world primary avenues run at X = 500, Z = 500 with street grid connections.
+ */
+function generateWaypoints(start, destination) {
+  const dist = Math.hypot(destination.x - start.x, destination.z - start.z);
+  if (dist < 35) {
+    return [{ x: destination.x, z: destination.z, label: destination.label || 'Target' }];
+  }
+
+  const waypoints = [];
+  // Midway arterial alignment along grid
+  const midX = (Math.abs(start.x - 500) < Math.abs(destination.x - 500)) ? 500 : destination.x;
+  const midZ = (Math.abs(start.z - 500) < Math.abs(destination.z - 500)) ? 500 : start.z;
+
+  waypoints.push({ x: midX, z: midZ, label: 'Street Corridor' });
+  waypoints.push({ x: destination.x, z: destination.z, label: destination.label || 'Target' });
+  return waypoints;
+}
 
 function initializeAgents() {
   const agents = [];
@@ -174,10 +223,10 @@ function initializeAgents() {
     const homeX = homeHouse[0] + homeHouse[2] / 2;
     const homeZ = homeHouse[1] + homeHouse[3] / 2;
     
-    // Start along street network near home or target
     const isAtWork = Math.random() > 0.4;
-    const currentX = isAtWork ? (roleInfo.target.x + (Math.random() - 0.5) * 40) : homeX;
-    const currentZ = isAtWork ? (roleInfo.target.z + (Math.random() - 0.5) * 40) : homeZ;
+    const currentX = isAtWork ? (roleInfo.target.x + (Math.random() - 0.5) * 30) : homeX;
+    const currentZ = isAtWork ? (roleInfo.target.z + (Math.random() - 0.5) * 30) : homeZ;
+    const target = isAtWork ? { ...roleInfo.target } : { x: homeX, z: homeZ, label: 'Home Dwelling' };
     
     agents.push({
       id: `agent_${String(i + 1).padStart(2, '0')}`,
@@ -186,9 +235,11 @@ function initializeAgents() {
       color: roleInfo.color,
       home_house_index: (i % houses.length) + 1,
       home: { x: homeX, z: homeZ },
-      target: { ...roleInfo.target },
-      position: { x: Math.round(currentX), y: 0.5, z: Math.round(currentZ) },
-      action: isAtWork ? roleInfo.action : 'REST_DWELLING',
+      target: target,
+      waypoints: generateWaypoints({ x: currentX, z: currentZ }, target),
+      position: { x: Math.round(currentX * 10) / 10, y: 0.5, z: Math.round(currentZ * 10) / 10 },
+      heading: 0,
+      action: isAtWork ? roleInfo.action : 'REST_HOME',
       homeostasis: {
         food: Math.round(75 + Math.random() * 20),
         hydration: Math.round(80 + Math.random() * 18),
@@ -205,6 +256,373 @@ function initializeAgents() {
 }
 
 let simulatedAgents = initializeAgents();
+
+/**
+ * Evaluates Chebyshev 8-Drive Homeostasis (Augmented Chebyshev Scalarization).
+ * Reference: Hayes et al., JAAMAS 2022; Van Moffaert & Nowe, JMLR 2014.
+ * Evaluates the worst-case weighted deficit from Utopia point z* = 100:
+ * S(v, w) = -max_k { w_k * (z*_k - v_k) } + rho * sum_k (w_k * v_k)
+ */
+function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
+  const h = agent.homeostasis;
+  
+  // Weights (priority multipliers) for the 8 drives
+  // When drought is active, nutrition priority surges significantly
+  const weights = {
+    food: isDrought ? 2.4 : 1.4,
+    hydration: 1.3,
+    rest: 1.2,
+    health: 1.5,
+    currency: 0.8,
+    shelter: 1.0,
+    tools: 0.9,
+    kinship: 0.7
+  };
+  
+  const utopia = 100.0;
+  
+  // Calculate deficits: w_k * (utopia - v_k)
+  const deficits = {};
+  for (const drive of Object.keys(weights)) {
+    const val = h[drive] !== undefined ? h[drive] : 50;
+    deficits[drive] = weights[drive] * Math.max(0, utopia - val);
+  }
+  
+  // Find drive with maximum deficit (worst-case vulnerability)
+  let maxDrive = 'rest';
+  let maxDeficit = -Infinity;
+  for (const [drive, deficit] of Object.entries(deficits)) {
+    if (deficit > maxDeficit) {
+      maxDeficit = deficit;
+      maxDrive = drive;
+    }
+  }
+  
+  // 1. Emergency drought withdrawal condition:
+  // When drought is active, agents withdraw food from communal silos
+  if (isDrought && (h.food < 65 || maxDrive === 'food')) {
+    if (communalSiloReserve > 0) {
+      return {
+        action: 'WITHDRAW_INSTITUTION',
+        target: { x: 520, z: 620, label: 'Communal Granary Silo' },
+        urgency: 'EMERGENCY_DROUGHT_WITHDRAWAL',
+        drive: 'food'
+      };
+    }
+  }
+  
+  // 2. Health trauma triage
+  if (maxDrive === 'health' || h.health < 35) {
+    return {
+      action: 'MEDIC_CARE',
+      target: { x: 450, z: 550, label: 'Hospital ✚ Trauma' },
+      urgency: 'HIGH',
+      drive: 'health'
+    };
+  }
+  
+  // 3. Exhaustion & rest recovery at home dwelling
+  if (maxDrive === 'rest' || h.rest < 30) {
+    return {
+      action: 'REST_HOME',
+      target: { x: agent.home.x, z: agent.home.z, label: 'Home Dwelling' },
+      urgency: 'HIGH',
+      drive: 'rest'
+    };
+  }
+  
+  // 4. Food deficit (normal or drought)
+  if (maxDrive === 'food' || h.food < 35) {
+    if (isDrought && communalSiloReserve > 0) {
+      return {
+        action: 'WITHDRAW_INSTITUTION',
+        target: { x: 520, z: 620, label: 'Communal Granary Silo' },
+        urgency: 'HIGH',
+        drive: 'food'
+      };
+    }
+    return {
+      action: 'GATHER_CROP',
+      target: { x: 50, z: 500, label: 'West Farm Belt' },
+      urgency: 'HIGH',
+      drive: 'food'
+    };
+  }
+  
+  // 5. Hydration recovery
+  if (maxDrive === 'hydration' || h.hydration < 35) {
+    return {
+      action: 'HYDRATE',
+      target: { x: 500, z: 500, label: 'Central Park Fountain' },
+      urgency: 'MEDIUM',
+      drive: 'hydration'
+    };
+  }
+  
+  // 6. Tool maintenance at workshops
+  if (maxDrive === 'tools' || h.tools < 35) {
+    return {
+      action: 'CRAFT_TOOL',
+      target: { x: 450, z: 250, label: 'Timber & Quarry Workshops' },
+      urgency: 'MEDIUM',
+      drive: 'tools'
+    };
+  }
+  
+  // 7. Kinship / cultural transmission at civic academy
+  if (maxDrive === 'kinship' || h.kinship < 40) {
+    return {
+      action: 'CIVIC_TRANSMISSION',
+      target: { x: 650, z: 550, label: 'Civic Academy' },
+      urgency: 'LOW',
+      drive: 'kinship'
+    };
+  }
+  
+  // 8. Economic liquidity at Agora Market
+  if (maxDrive === 'currency' || h.currency < 15) {
+    return {
+      action: 'AUCTION_BID',
+      target: { x: 550, z: 650, label: 'Agora Central Market' },
+      urgency: 'LOW',
+      drive: 'currency'
+    };
+  }
+  
+  // Default: Vocational workplace activity
+  const roleInfo = ROLES.find(r => r.name === agent.role) || ROLES[0];
+  return {
+    action: roleInfo.action,
+    target: { ...roleInfo.target },
+    urgency: 'ROUTINE',
+    drive: 'vocation'
+  };
+}
+
+/**
+ * Execute homeostatic replenishment upon arriving at destination site.
+ */
+function executeAgentActionReplenishment(a, steps, isDrought) {
+  const h = a.homeostasis;
+  switch (a.action) {
+    case 'WITHDRAW_INSTITUTION': {
+      // Withdraw food from communal granary silo
+      if (simState.communal_silo.food_reserve > 0) {
+        const withdrawAmt = Math.min(12.0 * steps, simState.communal_silo.food_reserve);
+        simState.communal_silo.food_reserve = +(simState.communal_silo.food_reserve - withdrawAmt).toFixed(2);
+        simState.communal_silo.total_withdrawn = +(simState.communal_silo.total_withdrawn + withdrawAmt).toFixed(2);
+        h.food = Math.min(100, +(h.food + withdrawAmt * 1.6).toFixed(1));
+      }
+      break;
+    }
+    case 'REST_HOME': {
+      h.rest = Math.min(100, +(h.rest + 5.0 * steps).toFixed(1));
+      h.shelter = Math.min(100, +(h.shelter + 2.0 * steps).toFixed(1));
+      break;
+    }
+    case 'GATHER_CROP': {
+      const harvestYield = isDrought ? 1.5 : 4.0;
+      h.food = Math.min(100, +(h.food + harvestYield * steps).toFixed(1));
+      h.tools = Math.max(10, +(h.tools - 0.25 * steps).toFixed(1));
+      // In non-drought, farmers deposit surplus into communal silo buffer (Bowles & Gintis common-pool institution)
+      if (!isDrought) {
+        const deposit = 0.4 * steps;
+        simState.communal_silo.food_reserve = Math.min(
+          simState.communal_silo.max_capacity,
+          +(simState.communal_silo.food_reserve + deposit).toFixed(2)
+        );
+        simState.communal_silo.total_recycled = +(simState.communal_silo.total_recycled + deposit).toFixed(2);
+      }
+      break;
+    }
+    case 'HYDRATE': {
+      h.hydration = Math.min(100, +(h.hydration + 6.0 * steps).toFixed(1));
+      break;
+    }
+    case 'MEDIC_CARE': {
+      h.health = Math.min(100, +(h.health + 5.5 * steps).toFixed(1));
+      h.currency = Math.max(0, +(h.currency - 0.3 * steps).toFixed(2));
+      break;
+    }
+    case 'CRAFT_TOOL': {
+      h.tools = Math.min(100, +(h.tools + 4.5 * steps).toFixed(1));
+      h.currency = +(h.currency + 0.15 * steps).toFixed(2);
+      break;
+    }
+    case 'AUCTION_BID': {
+      h.currency = +(h.currency + 0.35 * steps).toFixed(2);
+      h.kinship = Math.min(100, +(h.kinship + 0.8 * steps).toFixed(1));
+      break;
+    }
+    case 'CIVIC_TRANSMISSION': {
+      h.kinship = Math.min(100, +(h.kinship + 4.0 * steps).toFixed(1));
+      break;
+    }
+    case 'CONSTRUCT': {
+      h.tools = Math.max(10, +(h.tools - 0.3 * steps).toFixed(1));
+      h.currency = +(h.currency + 0.2 * steps).toFixed(2);
+      break;
+    }
+    case 'CIVIC_REST': {
+      h.rest = Math.min(100, +(h.rest + 2.0 * steps).toFixed(1));
+      h.kinship = Math.min(100, +(h.kinship + 1.5 * steps).toFixed(1));
+      break;
+    }
+  }
+}
+
+/**
+ * Apply metabolic decay and senescent wealth recycling (Initiative 1 / commit 2510711).
+ */
+function applyMetabolicDrift(a, steps, isDrought) {
+  const h = a.homeostasis;
+  if (a.action !== 'REST_HOME') {
+    h.rest = Math.max(5, +(h.rest - 0.6 * steps).toFixed(1));
+  }
+  const foodDecay = isDrought ? 0.75 : 0.45;
+  if (a.action !== 'WITHDRAW_INSTITUTION' && a.action !== 'GATHER_CROP') {
+    h.food = Math.max(5, +(h.food - foodDecay * steps).toFixed(1));
+  }
+  if (a.action !== 'HYDRATE') {
+    h.hydration = Math.max(5, +(h.hydration - 0.35 * steps).toFixed(1));
+  }
+
+  // Demographic wealth recycling if elder reaches critical exhaustion
+  if (h.food <= 10 && h.health <= 20) {
+    const surplus = Math.max(0, h.currency - 5.0);
+    if (surplus > 0) {
+      simState.communal_silo.food_reserve = Math.min(
+        simState.communal_silo.max_capacity,
+        +(simState.communal_silo.food_reserve + surplus * 0.5).toFixed(2)
+      );
+      simState.communal_silo.total_recycled = +(simState.communal_silo.total_recycled + surplus * 0.5).toFixed(2);
+      h.currency = 5.0;
+    }
+    // Rejuvenate living successor cohort
+    h.food = 70;
+    h.health = 85;
+    h.rest = 80;
+    h.hydration = 80;
+    a.action = 'REST_HOME';
+    a.target = { x: a.home.x, z: a.home.z, label: 'Home Dwelling' };
+    a.waypoints = generateWaypoints(a.position, a.target);
+  }
+}
+
+/**
+ * Update agent positions with smooth waypoint navigation and Chebyshev 8-drive homeostasis.
+ */
+function simAgentsStep(steps) {
+  const isDrought = simState.drought.active;
+  const siloReserve = simState.communal_silo.food_reserve;
+
+  for (let a of simulatedAgents) {
+    const distToTarget = Math.hypot(a.target.x - a.position.x, a.target.z - a.position.z);
+    const atTarget = distToTarget < (a.action === 'WITHDRAW_INSTITUTION' ? 16.0 : 4.0);
+    
+    // Evaluate Chebyshev Homeostasis
+    const decision = evaluateChebyshevHomeostasis(a, isDrought, siloReserve);
+    
+    if (atTarget) {
+      // Arrived at destination site: execute homeostatic replenishment
+      executeAgentActionReplenishment(a, steps, isDrought);
+      
+      // Once replenished, transition back to work or dwelling
+      if (a.action === 'REST_HOME' && a.homeostasis.rest >= 90) {
+        a.target = { ...decision.target };
+        a.action = decision.action;
+        a.waypoints = generateWaypoints(a.position, a.target);
+      } else if (a.action === 'WITHDRAW_INSTITUTION' && (a.homeostasis.food >= 85 || siloReserve <= 0)) {
+        const roleInfo = ROLES.find(r => r.name === a.role) || ROLES[0];
+        a.target = { ...roleInfo.target };
+        a.action = roleInfo.action;
+        a.waypoints = generateWaypoints(a.position, a.target);
+      }
+    } else if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL' && a.action !== 'WITHDRAW_INSTITUTION') {
+      // Emergency redirection to communal granary silo
+      a.target = { ...decision.target };
+      a.action = decision.action;
+      a.waypoints = generateWaypoints(a.position, a.target);
+    } else if (a.action === 'REST_HOME' && a.homeostasis.rest >= 95) {
+      a.target = { ...decision.target };
+      a.action = decision.action;
+      a.waypoints = generateWaypoints(a.position, a.target);
+    }
+
+    // Smooth waypoint advancement & spatial steering
+    if (!a.waypoints || a.waypoints.length === 0) {
+      a.waypoints = generateWaypoints(a.position, a.target);
+    }
+
+    let activeWp = a.waypoints[0] || a.target;
+    let dx = activeWp.x - a.position.x;
+    let dz = activeWp.z - a.position.z;
+    let dist = Math.hypot(dx, dz);
+
+    if (dist < 3.0 && a.waypoints.length > 1) {
+      a.waypoints.shift();
+      activeWp = a.waypoints[0];
+      dx = activeWp.x - a.position.x;
+      dz = activeWp.z - a.position.z;
+      dist = Math.hypot(dx, dz);
+    }
+
+    if (dist > 2.0) {
+      const speed = Math.min(dist, 2.4 * steps);
+      const vx = (dx / dist) * speed;
+      const vz = (dz / dist) * speed;
+      a.position.x += vx;
+      a.position.z += vz;
+      a.heading = +(Math.atan2(vz, vx)).toFixed(3);
+    } else {
+      a.position.x += (Math.random() - 0.5) * 0.4;
+      a.position.z += (Math.random() - 0.5) * 0.4;
+    }
+
+    a.position.x = +(Math.max(10, Math.min(990, a.position.x))).toFixed(2);
+    a.position.z = +(Math.max(10, Math.min(990, a.position.z))).toFixed(2);
+
+    // Apply baseline metabolic drift & homeostatic bounds
+    applyMetabolicDrift(a, steps, isDrought);
+  }
+}
+
+/**
+ * Execute one atomic step of the deterministic Moore Machine simulation.
+ */
+function executeSimulationStep(steps) {
+  simState.tick += steps;
+  simState.step_index += steps * 4;
+
+  const locs = simState.locations;
+  const isDrought = simState.drought.active;
+
+  // Ecological fluctuations & renewal
+  const harvestFactor = isDrought ? (1.0 - simState.drought.severity) : 1.0;
+  locs.plaza.food = Math.min(150, Math.max(10, +(locs.plaza.food + Math.sin(simState.tick * 0.1) * 2 * harvestFactor).toFixed(1)));
+  locs.grove.wood = Math.min(500, Math.max(100, +(locs.grove.wood + locs.grove.renewal_rate * steps * harvestFactor).toFixed(1)));
+  locs.quarry.stone = Math.min(450, Math.max(100, +(locs.quarry.stone + locs.quarry.renewal_rate * steps).toFixed(1)));
+  locs.west_farms.food = Math.min(800, Math.max(50, +(locs.west_farms.food + locs.west_farms.renewal_rate * steps * harvestFactor).toFixed(1)));
+
+  // Update invariant status
+  simState.invariants.last_checked_tick = simState.tick;
+
+  // Record history
+  simState.history.push({
+    tick: simState.tick,
+    food: Math.round(locs.plaza.food + locs.west_farms.food),
+    wood: Math.round(locs.grove.wood + locs.plaza.wood),
+    stone: Math.round(locs.quarry.stone + locs.market_square.stone),
+    gini: economyState.gini_coefficient,
+    communal_silo: Math.round(simState.communal_silo.food_reserve)
+  });
+  if (simState.history.length > 30) {
+    simState.history.shift();
+  }
+
+  // Update agent positions & Chebyshev homeostasis
+  simAgentsStep(steps);
+}
 
 // ---------------------------------------------------------------------------
 // 3. Economy & Double-Auction Market State (Phase 1.3)
@@ -430,23 +848,36 @@ const ARCHITECTURE_PIPELINE = {
       details: 'Separates Track 1 (Persistent World growth) from Track 2 (Fresh World adaptation EAE). CLEAR mixed experience replay safeguards against catastrophic forgetting.',
       metrics: { held_out_eae: '0.842', human_ref: '1.000', ood_reused_gap: '0.286', forgetting_rate: '0.045' }
     },
-    // THE INCOMPLETE / STAGED LLM ROUTE (HIGHLIGHTED IN VIBRANT HAZARD ORANGE / CRITIQUE COLOR)
+    // THE INCOMPLETE / STAGED LLM ROUTE (STAGED_RESEARCH / ZERO RUNTIME INFERENCE)
     {
       id: 'llm_cognitive_route',
       name: 'Cognitive LLM / Agent Synthesis',
-      phase: 'Stage 2 Downstream',
+      phase: 'Phase 2.2 (Staged Research)',
       category: 'cognitive_ai',
-      status: 'INCOMPLETE_STAGED',
-      status_label: 'INCOMPLETE / STAGED — NO RUNTIME INFERENCE',
-      color: '#f97316', // Striking vibrant hazard orange
-      accent_color: 'rgba(249, 115, 22, 0.25)',
+      status: 'STAGED_RESEARCH',
+      status_label: 'STAGED_RESEARCH',
+      color: '#f59e0b',
+      accent_color: 'rgba(245, 158, 11, 0.25)',
+      hazard_badge: 'RESEARCH WIP / ZERO RUNTIME INFERENCE',
       is_incomplete: true,
+      metadata: {
+        zero_runtime_inference: true,
+        runtime_gpu_inference: 'ZERO / DISABLED BY ARCHITECTURAL MANDATE',
+        runtime_llm_inference: 'ZERO / DISABLED BY ARCHITECTURAL MANDATE',
+        zero_runtime_gpu_llm_inference: 'Explicit architectural mandate: zero runtime GPU or LLM inference in production loop',
+        decision_policy: 'Augmented Chebyshev Homeostatic Core (Phase 1.2)',
+        token_overhead: '0.00 ms',
+        model_weights_loaded: false,
+        containment_status: 'Decoupled from Live Loop'
+      },
       details: 'STAGED FOR DOWNSTREAM RESEARCH. By strict architectural mandate, runtime LLM inference and heavy neural fine-tuning are excluded from the live evaluation dashboard. This eliminates non-deterministic hallucination, token latency, and uncontrolled code execution. Agent decision policy uses the Phase 1.2 deterministic Augmented Chebyshev homeostatic core instead.',
       metrics: {
         runtime_llm_calls: '0 (Mandate)',
         token_overhead: '0.00 ms',
-        decision_policy: 'Augmented Chebyshev',
-        status: 'Staged for Offline Rig'
+        gpu_inference: '0 TFLOPs (Zero Inference)',
+        hazard_badge: 'RESEARCH WIP / ZERO RUNTIME INFERENCE',
+        decision_policy: 'Augmented Chebyshev Homeostasis',
+        status: 'STAGED_RESEARCH'
       }
     }
   ],
@@ -460,19 +891,21 @@ const ARCHITECTURE_PIPELINE = {
       from: 'rule_library',
       to: 'llm_cognitive_route',
       type: 'staged_cognitive_link',
-      status: 'incomplete',
-      color: '#f97316',
+      status: 'STAGED_RESEARCH',
+      color: '#f59e0b',
+      hazard_badge: 'RESEARCH WIP / ZERO RUNTIME INFERENCE',
       dashed: true,
-      label: 'STAGED / EXPERIMENTAL (OFFLINE ONLY)'
+      label: 'RESEARCH WIP / ZERO RUNTIME INFERENCE'
     },
     {
       from: 'llm_cognitive_route',
       to: 'evaluator',
       type: 'ablation_channel',
-      status: 'incomplete',
-      color: '#f97316',
+      status: 'STAGED_RESEARCH',
+      color: '#f59e0b',
+      hazard_badge: 'RESEARCH WIP / ZERO RUNTIME INFERENCE',
       dashed: true,
-      label: 'ABLATION TARGET (NO RUNTIME INFERENCE)'
+      label: 'ABLATION TARGET (ZERO RUNTIME INFERENCE)'
     }
   ]
 };
@@ -508,39 +941,19 @@ app.get('/api/world/meta', (req, res) => {
 
 // Environment State & Invariant Audit
 app.get('/api/environment/state', (req, res) => {
-  res.json(simState);
+  res.json({
+    ...simState,
+    autoplay: {
+      active: autoplayActive,
+      interval_ms: autoplayIntervalMs
+    }
+  });
 });
 
 // Step Environment Simulation (Deterministic)
 app.post('/api/environment/step', (req, res) => {
   const steps = Math.min(Math.max(parseInt(req.body.steps || 1, 10), 1), 50);
-  simState.tick += steps;
-  simState.step_index += steps * 4;
-
-  // Ecological fluctuations & renewal
-  const locs = simState.locations;
-  locs.plaza.food = Math.min(150, Math.max(30, locs.plaza.food + Math.sin(simState.tick * 0.1) * 3));
-  locs.grove.wood = Math.min(500, Math.max(200, locs.grove.wood + locs.grove.renewal_rate * steps));
-  locs.quarry.stone = Math.min(450, Math.max(150, locs.quarry.stone + locs.quarry.renewal_rate * steps));
-  locs.west_farms.food = Math.min(800, Math.max(400, locs.west_farms.food + locs.west_farms.renewal_rate * steps));
-
-  // Update invariant status
-  simState.invariants.last_checked_tick = simState.tick;
-
-  // Record history
-  simState.history.push({
-    tick: simState.tick,
-    food: Math.round(locs.plaza.food + locs.west_farms.food),
-    wood: Math.round(locs.grove.wood + locs.plaza.wood),
-    stone: Math.round(locs.quarry.stone + locs.market_square.stone),
-    gini: economyState.gini_coefficient
-  });
-  if (simState.history.length > 30) {
-    simState.history.shift();
-  }
-
-  // Update agent positions & Chebyshev homeostasis
-  simAgentsStep(steps);
+  executeSimulationStep(steps);
 
   res.json({
     status: 'ok',
@@ -548,58 +961,185 @@ app.post('/api/environment/step', (req, res) => {
     step_index: simState.step_index,
     invariants_passed: true,
     locations: simState.locations,
+    communal_silo: simState.communal_silo,
+    drought: simState.drought,
     active_agents: simulatedAgents.length
   });
 });
 
-function simAgentsStep(steps) {
-  for (let a of simulatedAgents) {
-    // Determine active destination (home or work target based on rest level)
-    if (a.homeostasis.rest < 30) {
-      a.target = { x: a.home.x, z: a.home.z, label: 'Home Dwelling' };
-      a.action = 'REST_HOME';
-    } else if (a.homeostasis.rest > 85 && a.action === 'REST_HOME') {
-      const roleInfo = ROLES.find(r => r.name === a.role) || ROLES[0];
-      a.target = { ...roleInfo.target };
-      a.action = roleInfo.action;
-    }
-
-    // Move along vector towards target
-    const dx = a.target.x - a.position.x;
-    const dz = a.target.z - a.position.z;
-    const dist = Math.hypot(dx, dz);
-    
-    if (dist > 3) {
-      const speed = Math.min(dist, 1.8 * steps);
-      a.position.x += (dx / dist) * speed;
-      a.position.z += (dz / dist) * speed;
-    } else {
-      // Small jitter around target
-      a.position.x += (Math.random() - 0.5) * 1.5;
-      a.position.z += (Math.random() - 0.5) * 1.5;
-    }
-
-    // Homeostatic Chebyshev scalarization drift
-    if (a.action === 'REST_HOME') {
-      a.homeostasis.rest = Math.min(100, a.homeostasis.rest + 4 * steps);
-      a.homeostasis.food = Math.max(10, a.homeostasis.food - 0.3 * steps);
-    } else {
-      a.homeostasis.rest = Math.max(10, a.homeostasis.rest - 1.2 * steps);
-      a.homeostasis.food = Math.max(10, a.homeostasis.food - 0.5 * steps);
-      a.homeostasis.hydration = Math.max(10, a.homeostasis.hydration - 0.4 * steps);
-      if (a.role === 'Farmer') a.homeostasis.currency = +(a.homeostasis.currency + 0.15 * steps).toFixed(2);
-      if (a.role === 'Trader') a.homeostasis.currency = +(a.homeostasis.currency + 0.25 * steps).toFixed(2);
-    }
-  }
-}
-
 // Reset Environment Simulation
 app.post('/api/environment/reset', (req, res) => {
+  if (autoplayTimer) {
+    clearInterval(autoplayTimer);
+    autoplayTimer = null;
+    autoplayActive = false;
+  }
   simState.tick = 0;
   simState.step_index = 0;
-  simState.history = [{ tick: 0, food: 700, wood: 650, stone: 500, gini: 0.281 }];
+  simState.drought = {
+    active: false,
+    severity: 0.60,
+    started_tick: null
+  };
+  simState.communal_silo = {
+    name: 'Central Granary & Communal Silo',
+    location: { x: 520, z: 620 },
+    food_reserve: 650.0,
+    max_capacity: 2500.0,
+    total_withdrawn: 0.0,
+    total_recycled: 0.0,
+    status: 'ACTIVE_BUFFER'
+  };
+  simState.locations = {
+    plaza: { name: 'Plaza Core', capacity: 120, agents: 16, food: 85, wood: 120, stone: 95, renewal_rate: 1.2 },
+    grove: { name: 'Timber Grove', capacity: 80, agents: 12, food: 40, wood: 450, stone: 30, renewal_rate: 2.8 },
+    quarry: { name: 'Granite Quarry', capacity: 60, agents: 8, food: 15, wood: 40, stone: 380, renewal_rate: 2.1 },
+    market_square: { name: 'Agora Market', capacity: 150, agents: 24, food: 190, wood: 160, stone: 110, renewal_rate: 1.5 },
+    west_farms: { name: 'West Farm Belt', capacity: 200, agents: 18, food: 620, wood: 80, stone: 45, renewal_rate: 4.5 }
+  };
+  simState.history = [{ tick: 0, food: 700, wood: 650, stone: 500, gini: 0.281, communal_silo: 650 }];
   simulatedAgents = initializeAgents();
   res.json({ status: 'reset', tick: 0 });
+});
+
+// Autoplay Background Ticking API (Configurable interval e.g. 100ms - 1000ms)
+app.get('/api/sim/autoplay', (req, res) => {
+  res.json({
+    active: autoplayActive,
+    interval_ms: autoplayIntervalMs,
+    tick: simState.tick,
+    step_index: simState.step_index
+  });
+});
+
+app.post('/api/sim/autoplay', (req, res) => {
+  const newInterval = req.body.interval_ms || req.body.interval;
+  if (newInterval !== undefined) {
+    autoplayIntervalMs = Math.max(50, Math.min(5000, parseInt(newInterval, 10) || 300));
+  }
+  
+  let shouldBeActive = autoplayActive;
+  if (req.body.toggle) {
+    shouldBeActive = !autoplayActive;
+  } else if (req.body.active !== undefined) {
+    shouldBeActive = Boolean(req.body.active);
+  } else if (req.body.enabled !== undefined) {
+    shouldBeActive = Boolean(req.body.enabled);
+  } else if (newInterval !== undefined && !autoplayActive) {
+    shouldBeActive = true;
+  }
+
+  if (shouldBeActive) {
+    if (autoplayTimer) clearInterval(autoplayTimer);
+    autoplayActive = true;
+    autoplayTimer = setInterval(() => {
+      executeSimulationStep(1);
+    }, autoplayIntervalMs);
+  } else {
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
+      autoplayTimer = null;
+    }
+    autoplayActive = false;
+  }
+
+  res.json({
+    status: 'ok',
+    active: autoplayActive,
+    interval_ms: autoplayIntervalMs,
+    tick: simState.tick,
+    step_index: simState.step_index
+  });
+});
+
+// Drought Shock Endpoint (Triggers 60% resource scarcity shock across locations & logs event)
+app.get('/api/environment/drought', (req, res) => {
+  res.json({
+    drought: simState.drought,
+    communal_silo: simState.communal_silo,
+    events: simState.events.filter(e => e.type.includes('DROUGHT'))
+  });
+});
+
+app.post('/api/environment/drought', (req, res) => {
+  let activate = true;
+  if (req.body.active !== undefined) {
+    activate = Boolean(req.body.active);
+  } else if (req.body.toggle) {
+    activate = !simState.drought.active;
+  }
+
+  const severity = req.body.severity !== undefined ? Math.max(0.1, Math.min(0.95, parseFloat(req.body.severity))) : 0.60;
+
+  if (activate) {
+    simState.drought.active = true;
+    simState.drought.severity = severity;
+    simState.drought.started_tick = simState.tick;
+
+    // Apply 60% resource scarcity shock across locations
+    const mult = 1.0 - severity; // 0.40 remaining for 0.60 shock
+    const locs = simState.locations;
+    for (const key of Object.keys(locs)) {
+      locs[key].food = Math.max(5, +(locs[key].food * mult).toFixed(1));
+      locs[key].renewal_rate = Math.max(0.2, +(locs[key].renewal_rate * mult).toFixed(2));
+    }
+
+    // Immediate household food stress across agent population to trigger emergency withdrawals
+    for (let a of simulatedAgents) {
+      a.homeostasis.food = Math.max(15, +(a.homeostasis.food * 0.70).toFixed(1));
+      // Immediate emergency redirection to communal granary silos
+      if (simState.communal_silo.food_reserve > 0) {
+        a.target = { x: 520, z: 620, label: 'Communal Granary Silo' };
+        a.action = 'WITHDRAW_INSTITUTION';
+        a.waypoints = generateWaypoints(a.position, a.target);
+      }
+    }
+
+    const evt = {
+      tick: simState.tick,
+      timestamp: new Date().toISOString(),
+      type: 'DROUGHT_SHOCK_TRIGGERED',
+      severity: severity,
+      message: `Compound ${Math.round(severity * 100)}% resource scarcity shock triggered across all locations. West Farm Belt yield collapsed. Communal silos (reserve: ${simState.communal_silo.food_reserve.toFixed(1)}) activated for emergency agent withdrawals.`
+    };
+    simState.events.unshift(evt);
+    if (simState.events.length > 50) simState.events.pop();
+
+    res.json({
+      status: 'ok',
+      message: 'Drought shock activated',
+      drought: simState.drought,
+      communal_silo: simState.communal_silo,
+      locations: simState.locations,
+      event: evt
+    });
+  } else {
+    simState.drought.active = false;
+    // Restore baseline renewal rates
+    simState.locations.plaza.renewal_rate = 1.2;
+    simState.locations.grove.renewal_rate = 2.8;
+    simState.locations.quarry.renewal_rate = 2.1;
+    simState.locations.market_square.renewal_rate = 1.5;
+    simState.locations.west_farms.renewal_rate = 4.5;
+
+    const evt = {
+      tick: simState.tick,
+      timestamp: new Date().toISOString(),
+      type: 'DROUGHT_LIFTED',
+      message: 'Drought shock lifted. Ecological regeneration and baseline agrarian renewal rates restored.'
+    };
+    simState.events.unshift(evt);
+    if (simState.events.length > 50) simState.events.pop();
+
+    res.json({
+      status: 'ok',
+      message: 'Drought shock lifted',
+      drought: simState.drought,
+      communal_silo: simState.communal_silo,
+      locations: simState.locations,
+      event: evt
+    });
+  }
 });
 
 // Agents Roster Endpoint (64 Multi-Agent Population)
@@ -609,6 +1149,8 @@ app.get('/api/agents/roster', (req, res) => {
     active_in_world: simulatedAgents.length,
     homeostatic_norm: 'Augmented Chebyshev Scalarization (Phase 1.2)',
     roles_distribution: economyState.role_distribution,
+    communal_silo: simState.communal_silo,
+    drought: simState.drought,
     agents: simulatedAgents
   });
 });
@@ -671,12 +1213,21 @@ app.get('/api/system/audit', (req, res) => {
   });
 });
 
-// Start Express Server
-app.listen(PORT, () => {
-  console.log(`================================================================`);
-  console.log(`🌍 EvolZen Frontend Portfolio Dashboard listening on port ${PORT}`);
-  console.log(`   URL: http://localhost:${PORT}`);
-  console.log(`   Architecture: Zero runtime LLM inference by mandate.`);
-  console.log(`   Spatial: 1x1 km parallel universe with 345 wired houses.`);
-  console.log(`================================================================`);
-});
+// Start Express Server if run directly
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    console.log(`================================================================`);
+    console.log(`🌍 EvolZen Frontend Portfolio Dashboard listening on port ${PORT}`);
+    console.log(`   URL: http://localhost:${PORT}`);
+    console.log(`   Architecture: Zero runtime LLM inference by mandate.`);
+    console.log(`   Spatial: 1x1 km parallel universe with 345 wired houses.`);
+    console.log(`================================================================`);
+  });
+
+  process.on('SIGTERM', () => {
+    if (autoplayTimer) clearInterval(autoplayTimer);
+    server.close();
+  });
+}
+
+module.exports = app;

@@ -1,19 +1,21 @@
 /* ==========================================================================
-   EVOLZEN // 1×1 KM Parallel Universe & Multi-Agent Infrastructure
-   ui-ux-pro-max Design System: Deep OLED Dark Cybernetic Aesthetic
+   EVOLZEN // 1×1 KM Parallel Universe & Multi-Agent Infrastructure Cockpit
+   ui-ux-pro-max Design System: Deep Void Cockpit Cybernetic Aesthetic (#090d16)
    ========================================================================== */
 
 :root {
-  /* Surface Tokens */
-  --bg-void: #020617;
-  --bg-surface: #0b1120;
-  --bg-surface-elevated: #0f172a;
-  --bg-surface-card: rgba(11, 17, 32, 0.85);
+  /* High-End Dark Void Cockpit Surfaces */
+  --bg-void: #090d16;
+  --bg-surface: #0e1526;
+  --bg-surface-elevated: #141e34;
+  --bg-surface-card: rgba(14, 21, 38, 0.85);
+  --bg-card-glass: rgba(14, 21, 38, 0.75);
   
   /* Border Tokens */
   --border-subtle: #1e293b;
   --border-medium: #334155;
   --border-focus: #38bdf8;
+  --border-glass: rgba(56, 189, 248, 0.15);
   
   /* Subsystem Brand Accents */
   --cyan-primary: #06b6d4;
@@ -21,23 +23,24 @@
   --emerald-primary: #10b981;
   --emerald-glow: rgba(16, 185, 129, 0.25);
   --amber-primary: #f59e0b;
-  --amber-glow: rgba(245, 158, 11, 0.25);
+  --amber-glow: rgba(245, 158, 11, 0.35);
   --purple-primary: #8b5cf6;
   --purple-glow: rgba(139, 92, 246, 0.25);
   --rose-primary: #f43f5e;
   --rose-glow: rgba(244, 63, 94, 0.25);
   --blue-primary: #38bdf8;
   
-  /* Hazard Orange for Staged Cognitive Route */
-  --hazard-orange: #f97316;
-  --hazard-orange-glow: rgba(249, 115, 22, 0.45);
-  --hazard-orange-dark: #7c2d12;
+  /* Glowing Hazard Amber for Staged Cognitive Route (#f59e0b) */
+  --hazard-amber: #f59e0b;
+  --hazard-amber-glow: rgba(245, 158, 11, 0.45);
+  --hazard-amber-bg: rgba(245, 158, 11, 0.14);
+  --hazard-amber-dark: #78350f;
 
   /* Typography Scales */
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* Spacing Scale (ui-ux-pro-max dense dashboard dial) */
+  /* Spacing Scale */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -63,8 +66,9 @@ html {
 body {
   background-color: var(--bg-void);
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.07) 0%, transparent 60%),
-    radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 0% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
   color: #f1f5f9;
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -82,20 +86,20 @@ code, pre, .font-mono {
   font-family: var(--font-mono);
 }
 
-/* Custom Sleek Scrollbar */
+/* Custom Sleek High-End Cockpit Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #040813;
+  background: #090d16;
 }
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #38bdf8;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -113,7 +117,7 @@ code, pre, .font-mono {
 }
 
 /* Button & Interactive Cursor Guarantees */
-button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule-card {
+button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule-card, .btn-speed, .niche-card {
   cursor: pointer;
   user-select: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -122,12 +126,14 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 /* Layout Utilities */
 .max-w-7xl { max-width: 80rem; }
 .mx-auto { margin-left: auto; margin-right: auto; }
+.px-1\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
 .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
 .px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
 .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
 .px-3\.5 { padding-left: 0.875rem; padding-right: 0.875rem; }
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .px-8 { padding-left: 2rem; padding-right: 2rem; }
+.py-0\.2 { padding-top: 0.05rem; padding-bottom: 0.05rem; }
 .py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
 .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
 .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
@@ -162,7 +168,9 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .mb-2 { margin-bottom: 0.5rem; }
 .mb-3 { margin-bottom: 0.75rem; }
 .mr-1 { margin-right: 0.25rem; }
+.pb-1\.5 { padding-bottom: 0.375rem; }
 .pb-2 { padding-bottom: 0.5rem; }
+.pb-2\.5 { padding-bottom: 0.625rem; }
 .pb-3 { padding-bottom: 0.75rem; }
 .pb-4 { padding-bottom: 1rem; }
 .pt-2 { padding-top: 0.5rem; }
@@ -170,13 +178,17 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 
 .flex { display: flex; }
 .inline-flex { display: inline-flex; }
+.flex-1 { flex: 1 1 0%; }
 .flex-col { flex-direction: column; }
 .flex-wrap { flex-wrap: wrap; }
 .items-center { align-items: center; }
 .items-start { align-items: flex-start; }
 .justify-between { justify-content: space-between; }
 .justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
 .shrink-0 { flex-shrink: 0; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
 
 .grid { display: grid; }
 .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
@@ -186,6 +198,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 @media (min-width: 640px) {
   .sm\:block { display: block; }
   .sm\:inline { display: inline; }
+  .sm\:hidden { display: none; }
 }
 
 @media (min-width: 768px) {
@@ -200,16 +213,19 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 
 @media (min-width: 1024px) {
   .lg\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .lg\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
   .lg\:col-span-4 { grid-column: span 4 / span 4; }
   .lg\:col-span-5 { grid-column: span 5 / span 5; }
   .lg\:col-span-7 { grid-column: span 7 / span 7; }
   .lg\:col-span-8 { grid-column: span 8 / span 8; }
+  .lg\:inline { display: inline; }
 }
 
 @media (min-width: 1280px) {
   .xl\:flex { display: flex; }
+  .xl\:inline { display: inline; }
 }
 
 .gap-1 { gap: 0.25rem; }
@@ -225,6 +241,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
 .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.375rem; }
 .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+.space-y-2\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.625rem; }
 .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
 .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
 .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
@@ -247,16 +264,22 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .h-5 { height: 1.25rem; }
 .w-6 { width: 1.5rem; }
 .h-6 { height: 1.5rem; }
+.w-7 { width: 1.75rem; }
+.h-7 { height: 1.75rem; }
 .w-8 { width: 2rem; }
 .h-8 { height: 2rem; }
 .w-10 { width: 2.5rem; }
 .h-10 { height: 2.5rem; }
 .w-11 { width: 2.75rem; }
 .h-11 { height: 2.75rem; }
+.h-2 { height: 0.5rem; }
 .h-48 { height: 12rem; }
 .h-60 { height: 15rem; }
 .max-h-44 { max-height: 11rem; }
+.max-h-56 { max-height: 14rem; }
+.max-w-lg { max-width: 32rem; }
 .max-w-5xl { max-width: 64rem; }
+.max-w-sm { max-width: 24rem; }
 .max-w-\[200px\] { max-width: 200px; }
 .aspect-square { aspect-ratio: 1 / 1; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -273,48 +296,71 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .border-t { border-top-width: 1px; border-top-style: solid; }
 .border-r { border-right-width: 1px; border-right-style: solid; }
 .border-l-4 { border-left-width: 4px; border-left-style: solid; }
+.border-transparent { border-color: transparent; }
 
 /* Colors & Surface Shades */
 .bg-void { background-color: var(--bg-void); }
 .bg-slate-800 { background-color: #1e293b; }
 .bg-slate-900 { background-color: #0f172a; }
-.bg-slate-950 { background-color: #020617; }
+.bg-slate-950 { background-color: #040814; }
 .bg-slate-900\/60 { background-color: rgba(15, 23, 42, 0.6); }
 .bg-slate-900\/70 { background-color: rgba(15, 23, 42, 0.7); }
 .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.8); }
-.bg-slate-950\/60 { background-color: rgba(2, 6, 23, 0.6); }
-.bg-slate-950\/70 { background-color: rgba(2, 6, 23, 0.7); }
-.bg-slate-950\/80 { background-color: rgba(2, 6, 23, 0.8); }
-.bg-slate-950\/90 { background-color: rgba(2, 6, 23, 0.9); }
+.bg-slate-900\/90 { background-color: rgba(15, 23, 42, 0.9); }
+.bg-slate-950\/60 { background-color: rgba(4, 8, 20, 0.6); }
+.bg-slate-950\/70 { background-color: rgba(4, 8, 20, 0.7); }
+.bg-slate-950\/80 { background-color: rgba(4, 8, 20, 0.8); }
+.bg-slate-950\/90 { background-color: rgba(4, 8, 20, 0.9); }
+.bg-slate-950\/95 { background-color: rgba(4, 8, 20, 0.95); }
 
+.bg-cyan-500 { background-color: #06b6d4; }
 .bg-cyan-600 { background-color: #0891b2; }
 .bg-cyan-950 { background-color: #082f49; }
+.bg-cyan-950\/30 { background-color: rgba(8, 47, 73, 0.3); }
 .bg-cyan-950\/40 { background-color: rgba(8, 47, 73, 0.4); }
 .bg-cyan-950\/50 { background-color: rgba(8, 47, 73, 0.5); }
 .bg-cyan-950\/60 { background-color: rgba(8, 47, 73, 0.6); }
-.bg-cyan-950\/30 { background-color: rgba(8, 47, 73, 0.3); }
+.bg-cyan-950\/70 { background-color: rgba(8, 47, 73, 0.7); }
+.bg-cyan-950\/80 { background-color: rgba(8, 47, 73, 0.8); }
 .bg-cyan-500\/10 { background-color: rgba(6, 182, 212, 0.1); }
+.bg-cyan-500\/15 { background-color: rgba(6, 182, 212, 0.15); }
+.bg-cyan-500\/20 { background-color: rgba(6, 182, 212, 0.2); }
 
+.bg-emerald-400 { background-color: #34d399; }
+.bg-emerald-500 { background-color: #10b981; }
 .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.1); }
 .bg-emerald-500\/20 { background-color: rgba(16, 185, 129, 0.2); }
 .bg-emerald-950\/50 { background-color: rgba(6, 78, 59, 0.5); }
+.bg-emerald-950\/60 { background-color: rgba(6, 78, 59, 0.6); }
 
+.bg-amber-400 { background-color: #fbbf24; }
+.bg-amber-500 { background-color: #f59e0b; }
 .bg-amber-500\/10 { background-color: rgba(245, 158, 11, 0.1); }
+.bg-amber-500\/20 { background-color: rgba(245, 158, 11, 0.2); }
 .bg-amber-600 { background-color: #d97706; }
+.bg-amber-950\/20 { background-color: rgba(120, 53, 15, 0.2); }
+.bg-amber-950\/30 { background-color: rgba(120, 53, 15, 0.3); }
+.bg-amber-950\/40 { background-color: rgba(120, 53, 15, 0.4); }
+.bg-amber-950\/50 { background-color: rgba(120, 53, 15, 0.5); }
+.bg-amber-950\/60 { background-color: rgba(120, 53, 15, 0.6); }
 
+.bg-purple-500 { background-color: #8b5cf6; }
 .bg-purple-500\/10 { background-color: rgba(139, 92, 246, 0.1); }
+.bg-purple-500\/20 { background-color: rgba(139, 92, 246, 0.2); }
+.bg-purple-950\/30 { background-color: rgba(88, 28, 135, 0.3); }
+.bg-purple-950\/40 { background-color: rgba(88, 28, 135, 0.4); }
 .bg-purple-950\/50 { background-color: rgba(88, 28, 135, 0.5); }
 
+.bg-rose-400 { background-color: #fb7185; }
+.bg-rose-500 { background-color: #f43f5e; }
 .bg-rose-950\/40 { background-color: rgba(76, 5, 25, 0.4); }
+.bg-rose-950\/80 { background-color: rgba(76, 5, 25, 0.8); }
 .bg-red-950\/50 { background-color: rgba(69, 10, 10, 0.5); }
+.bg-yellow-400 { background-color: #facc15; }
+.bg-yellow-500 { background-color: #eab308; }
+.bg-yellow-500\/20 { background-color: rgba(234, 179, 8, 0.2); }
 .bg-yellow-950\/50 { background-color: rgba(66, 32, 6, 0.5); }
-
-.bg-orange-500\/10 { background-color: rgba(249, 115, 22, 0.1); }
-.bg-orange-500\/20 { background-color: rgba(249, 115, 22, 0.2); }
-.bg-orange-950\/20 { background-color: rgba(67, 20, 7, 0.2); }
-.bg-orange-950\/30 { background-color: rgba(67, 20, 7, 0.3); }
-.bg-orange-950\/40 { background-color: rgba(67, 20, 7, 0.4); }
-.bg-orange-950\/50 { background-color: rgba(67, 20, 7, 0.5); }
+.bg-blue-500 { background-color: #3b82f6; }
 
 /* Borders */
 .border-slate-700 { border-color: #334155; }
@@ -325,40 +371,49 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 
 .border-cyan-500\/20 { border-color: rgba(6, 182, 212, 0.2); }
 .border-cyan-500\/30 { border-color: rgba(6, 182, 212, 0.3); }
+.border-cyan-500\/40 { border-color: rgba(6, 182, 212, 0.4); }
 .border-cyan-700\/50 { border-color: rgba(14, 116, 144, 0.5); }
+.border-cyan-700\/60 { border-color: rgba(14, 116, 144, 0.6); }
 .border-cyan-800\/40 { border-color: rgba(21, 94, 117, 0.4); }
 .border-cyan-800\/50 { border-color: rgba(21, 94, 117, 0.5); }
+.border-cyan-800\/60 { border-color: rgba(21, 94, 117, 0.6); }
 .border-cyan-900\/40 { border-color: rgba(22, 78, 99, 0.4); }
+.border-cyan-900\/50 { border-color: rgba(22, 78, 99, 0.5); }
 
 .border-emerald-500\/20 { border-color: rgba(16, 185, 129, 0.2); }
 .border-emerald-500\/30 { border-color: rgba(16, 185, 129, 0.3); }
+.border-emerald-500\/40 { border-color: rgba(16, 185, 129, 0.4); }
 .border-emerald-700\/50 { border-color: rgba(4, 120, 87, 0.5); }
 .border-emerald-900\/30 { border-color: rgba(6, 78, 59, 0.3); }
 .border-emerald-900\/40 { border-color: rgba(6, 78, 59, 0.4); }
 .border-emerald-900\/50 { border-color: rgba(6, 78, 59, 0.5); }
 
+.border-amber-500 { border-color: #f59e0b; }
 .border-amber-500\/20 { border-color: rgba(245, 158, 11, 0.2); }
 .border-amber-500\/30 { border-color: rgba(245, 158, 11, 0.3); }
+.border-amber-500\/40 { border-color: rgba(245, 158, 11, 0.4); }
+.border-amber-500\/50 { border-color: rgba(245, 158, 11, 0.5); }
+.border-amber-500\/70 { border-color: rgba(245, 158, 11, 0.7); }
+.border-amber-600\/50 { border-color: rgba(217, 119, 6, 0.5); }
+.border-amber-600\/60 { border-color: rgba(217, 119, 6, 0.6); }
+.border-amber-800\/30 { border-color: rgba(146, 64, 14, 0.3); }
+.border-amber-800\/40 { border-color: rgba(146, 64, 14, 0.4); }
 
 .border-purple-500\/20 { border-color: rgba(139, 92, 246, 0.2); }
 .border-purple-500\/30 { border-color: rgba(139, 92, 246, 0.3); }
+.border-purple-500\/40 { border-color: rgba(139, 92, 246, 0.4); }
+.border-purple-700\/40 { border-color: rgba(126, 34, 206, 0.4); }
 .border-purple-700\/50 { border-color: rgba(126, 34, 206, 0.5); }
 .border-purple-800\/40 { border-color: rgba(107, 33, 168, 0.4); }
 .border-purple-900\/40 { border-color: rgba(88, 28, 135, 0.4); }
 
+.border-rose-500 { border-color: #f43f5e; }
 .border-rose-800\/40 { border-color: rgba(159, 18, 57, 0.4); }
 .border-rose-900\/30 { border-color: rgba(136, 19, 55, 0.3); }
 .border-rose-900\/40 { border-color: rgba(136, 19, 55, 0.4); }
 .border-red-700\/50 { border-color: rgba(185, 28, 28, 0.5); }
+.border-yellow-500\/30 { border-color: rgba(234, 179, 8, 0.3); }
 .border-yellow-700\/50 { border-color: rgba(161, 98, 7, 0.5); }
-
-.border-orange-500 { border-color: #f97316; }
-.border-orange-500\/30 { border-color: rgba(249, 115, 22, 0.3); }
-.border-orange-500\/40 { border-color: rgba(249, 115, 22, 0.4); }
-.border-orange-500\/50 { border-color: rgba(249, 115, 22, 0.5); }
-.border-orange-500\/70 { border-color: rgba(249, 115, 22, 0.7); }
-.border-orange-800\/30 { border-color: rgba(154, 52, 18, 0.3); }
-.border-orange-800\/40 { border-color: rgba(154, 52, 18, 0.4); }
 
 /* Typography & Contrast (WCAG AA Compliant) */
 .text-white { color: #ffffff; }
@@ -377,16 +432,17 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .text-amber-300 { color: #fcd34d; }
 .text-amber-400 { color: #fbbf24; }
 .text-yellow-300 { color: #fde047; }
+.text-yellow-400 { color: #facc15; }
 .text-purple-300 { color: #d8b4fe; }
 .text-purple-400 { color: #c084fc; }
 .text-rose-300 { color: #fda4af; }
 .text-rose-400 { color: #fb7185; }
 .text-red-300 { color: #fca5a5; }
 .text-red-400 { color: #f87171; }
-.text-orange-200\/90 { color: rgba(254, 215, 170, 0.9); }
-.text-orange-300 { color: #fdba74; }
-.text-orange-300\/80 { color: rgba(253, 186, 116, 0.8); }
-.text-orange-400 { color: #fb923c; }
+.text-blue-300 { color: #93c5fd; }
+.text-blue-400 { color: #60a5fa; }
+.text-amber-200\/90 { color: rgba(253, 230, 138, 0.9); }
+.text-amber-300\/80 { color: rgba(252, 211, 77, 0.8); }
 
 .font-bold { font-weight: 700; }
 .font-extrabold { font-weight: 800; }
@@ -405,12 +461,17 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 
 .relative { position: relative; }
 .absolute { position: absolute; }
+.fixed { position: fixed; }
 .sticky { position: sticky; }
 .top-0 { top: 0; }
 .top-4 { top: 1rem; }
+.right-0 { right: 0; }
 .right-4 { right: 1rem; }
+.bottom-0 { bottom: 0; }
 .bottom-4 { bottom: 1rem; }
+.left-0 { left: 0; }
 .left-4 { left: 1rem; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
 .z-10 { z-index: 10; }
 .z-40 { z-index: 40; }
 .overflow-hidden { overflow: hidden; }
@@ -418,12 +479,18 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .overflow-y-auto { overflow-y: auto; }
 .select-none { user-select: none; }
 .pointer-events-none { pointer-events: none; }
+.pointer-events-auto { pointer-events: auto; }
 .cursor-crosshair { cursor: crosshair; }
 .cursor-grab { cursor: grab; }
 .cursor-grabbing { cursor: grabbing; }
-.backdrop-blur { backdrop-filter: blur(8px); }
-.backdrop-blur-md { backdrop-filter: blur(12px); }
+.cursor-pointer { cursor: pointer; }
+.cursor-help { cursor: help; }
+.backdrop-blur { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.backdrop-blur-md { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.backdrop-blur-xl { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2); }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2); }
 .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3); }
 .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4); }
 .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75); }
@@ -438,17 +505,54 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes hazardGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 10px rgba(249, 115, 22, 0.15);
-  }
-  50% {
-    box-shadow: 0 0 28px rgba(249, 115, 22, 0.5), inset 0 0 18px rgba(249, 115, 22, 0.3);
-  }
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* ==========================================================================
-   WORKSPACE LAYOUT ENGINE (Unified Cockpit / Split / Quad / Focus)
+   STAGED LLM ROUTE HAZARD AMBER STYLING (#f59e0b)
+   ========================================================================== */
+@keyframes amberHazardGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.35), inset 0 0 6px rgba(245, 158, 11, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(245, 158, 11, 0.65), inset 0 0 12px rgba(245, 158, 11, 0.3);
+  }
+}
+
+.staged-llm-badge {
+  background: rgba(245, 158, 11, 0.16) !important;
+  border: 1px solid #f59e0b !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+  animation: amberHazardGlow 2.5s infinite ease-in-out;
+}
+
+.staged-llm-node {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(245, 158, 11, 0.06),
+    rgba(245, 158, 11, 0.06) 12px,
+    rgba(245, 158, 11, 0.14) 12px,
+    rgba(245, 158, 11, 0.14) 24px
+  ) !important;
+  border: 2px dashed #f59e0b !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25) !important;
+  animation: amberHazardGlow 3.5s infinite ease-in-out;
+}
+
+/* Glassmorphic Panel Enhancement */
+.bg-slate-900\/80, .bg-slate-900\/90, .bg-slate-950\/80, .bg-slate-950\/90 {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ==========================================================================
+   WORKSPACE LAYOUT ENGINE (Split Cockpit / Max 3D / Focused Module / Unified)
    ========================================================================== */
 
 /* Layout Switcher Buttons */
@@ -508,10 +612,17 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   font-weight: 700;
 }
 .subsystem-pill[data-subsystem="tab-pipeline"].active {
-  background: rgba(249, 115, 22, 0.22) !important;
-  border-color: rgba(249, 115, 22, 0.7) !important;
-  color: #fb923c !important;
-  box-shadow: 0 0 14px rgba(249, 115, 22, 0.4) !important;
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.7) !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.4) !important;
+}
+.subsystem-pill[data-subsystem="tab-cvt"].active,
+.subsystem-pill[data-subsystem="tab-archive"].active {
+  background: rgba(139, 92, 246, 0.22) !important;
+  border-color: rgba(139, 92, 246, 0.6) !important;
+  color: #c084fc !important;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.35) !important;
 }
 
 /* Base Tab Switching System */
@@ -528,8 +639,8 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   display: block !important;
 }
 .workspace-layout-unified #tab-map #worldViewport {
-  height: 52vh !important;
-  min-height: 420px !important;
+  height: 56vh !important;
+  min-height: 440px !important;
 }
 .workspace-layout-unified #subsystemSection {
   display: block !important;
@@ -545,7 +656,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   animation: fadeIn 0.25s ease-out forwards;
 }
 
-/* 2. SPLIT VIEW LAYOUT */
+/* 2. SPLIT COCKPIT VIEW LAYOUT (3D World Left 55% + Telemetry Right 45%) */
 .workspace-layout-split {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -553,7 +664,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 }
 @media (min-width: 1024px) {
   .workspace-layout-split {
-    grid-template-columns: 1.15fr 0.85fr !important;
+    grid-template-columns: 55fr 45fr !important;
     align-items: start;
   }
 }
@@ -561,12 +672,15 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   display: block !important;
 }
 .workspace-layout-split #tab-map #worldViewport {
-  height: 54vh !important;
-  min-height: 400px !important;
+  height: calc(100vh - 180px) !important;
+  min-height: 520px !important;
+}
+.workspace-layout-split #tab-map > .grid {
+  display: none !important; /* Move space to telemetry column */
 }
 .workspace-layout-split #subsystemSection {
   display: block !important;
-  max-height: calc(100vh - 160px);
+  max-height: calc(100vh - 180px);
   overflow-y: auto;
   padding-right: 6px;
 }
@@ -613,11 +727,13 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 }
 .workspace-layout-quad #tab-economy,
 .workspace-layout-quad #tab-library,
-.workspace-layout-quad #tab-pipeline {
+.workspace-layout-quad #tab-pipeline,
+.workspace-layout-quad #tab-cvt,
+.workspace-layout-quad #tab-archive {
   display: block !important;
   max-height: 44vh;
   overflow-y: auto;
-  background: rgba(11, 17, 32, 0.75);
+  background: rgba(14, 21, 38, 0.75);
   border: 1px solid #1e293b;
   border-radius: 0.75rem;
   padding: 1rem;
@@ -628,13 +744,13 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   display: none !important;
 }
 
-/* 4. FOCUS MODULE MODE */
+/* 4. FOCUS MODULE MODE (Single Subsystem Deep-Dive) */
 .workspace-layout-focus.focus-spatial #tab-map {
   display: block !important;
 }
 .workspace-layout-focus.focus-spatial #tab-map #worldViewport {
-  height: 76vh !important;
-  min-height: 580px !important;
+  height: 80vh !important;
+  min-height: 600px !important;
 }
 .workspace-layout-focus.focus-spatial #subsystemSection {
   display: none !important;
@@ -656,6 +772,37 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   animation: fadeIn 0.25s ease-out forwards;
 }
 
+/* 5. FULLSCREEN MAX 3D THEATER MODE */
+.workspace-layout-theater #tab-map {
+  display: block !important;
+}
+.workspace-layout-theater #tab-map #worldViewport,
+.viewport-maximized {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  z-index: 9999 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.workspace-layout-theater #subsystemSection {
+  display: none !important;
+}
+.viewport-maximized #threeContainer {
+  height: 100vh !important;
+  min-height: 100vh !important;
+}
+.viewport-maximized #worldMapCanvas {
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
 /* Cross-Module Reactive Synchronization Animations */
 @keyframes syncPulseRing {
   0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.8); }
@@ -674,31 +821,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   border-left: 3px solid #06b6d4 !important;
 }
 
-/* Max View / Fullscreen Theater Mode */
-.viewport-maximized {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100vw !important;
-  z-index: 9999 !important;
-  border-radius: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-.viewport-maximized #threeContainer {
-  height: 100vh !important;
-  min-height: 100vh !important;
-}
-.viewport-maximized #worldMapCanvas {
-  height: 100vh !important;
-  max-height: 100vh !important;
-}
-
-/* .hidden utility — sets display:none; used for elements not managed by tab-pane */
+/* .hidden utility */
 .hidden { display: none !important; }
 .block  { display: block; }
 
@@ -706,9 +829,13 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 @media (min-width: 640px) {
   .sm\\:inline { display: inline !important; }
   .sm\\:block  { display: block !important; }
+  .sm\\:hidden { display: none !important; }
 }
 @media (min-width: 768px) {
   .md\\:flex { display: flex !important; }
+}
+@media (min-width: 1024px) {
+  .lg\\:inline { display: inline !important; }
 }
 
 @keyframes fadeIn {
@@ -732,10 +859,26 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   box-shadow: 0 0 12px rgba(6, 182, 212, 0.25) !important;
 }
 .nav-tab[data-tab="tab-pipeline"].active {
-  background: rgba(249, 115, 22, 0.22) !important;
-  border-color: rgba(249, 115, 22, 0.7) !important;
-  color: #fb923c !important;
-  box-shadow: 0 0 14px rgba(249, 115, 22, 0.4) !important;
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.7) !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.4) !important;
+}
+.nav-tab[data-tab="tab-cvt"].active,
+.nav-tab[data-tab="tab-archive"].active {
+  background: rgba(139, 92, 246, 0.22) !important;
+  border-color: rgba(139, 92, 246, 0.6) !important;
+  color: #c084fc !important;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.35) !important;
+}
+
+/* Speed Controls (1x, 2x, 5x, 10x) */
+.btn-speed {
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.btn-speed.active {
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.35);
 }
 
 /* Camera Bookmarks & View Mode Toggles */
@@ -781,7 +924,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   align-items: center;
   justify-content: space-between;
   padding: 0.45rem 0.65rem;
-  background: rgba(2, 6, 23, 0.5);
+  background: rgba(4, 8, 20, 0.5);
   border: 1px solid #1e293b;
   border-radius: 0.5rem;
   transition: all 0.2s ease;
@@ -797,7 +940,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   align-items: center;
   justify-content: space-between;
   padding: 0.35rem 0.5rem;
-  background: rgba(2, 6, 23, 0.4);
+  background: rgba(4, 8, 20, 0.4);
   border: 1px solid rgba(30, 41, 59, 0.5);
   border-radius: 0.375rem;
 }
@@ -805,7 +948,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 /* Rule Items List */
 .rule-card {
   padding: 0.75rem;
-  background: rgba(2, 6, 23, 0.6);
+  background: rgba(4, 8, 20, 0.6);
   border: 1px solid #1e293b;
   border-radius: 0.625rem;
   transition: all 0.2s ease;
@@ -820,17 +963,30 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
 }
 
-/* STAGED LLM HAZARD STYLING (High Contrast Invariant) */
-.hazard-striped {
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(249, 115, 22, 0.05),
-    rgba(249, 115, 22, 0.05) 10px,
-    rgba(249, 115, 22, 0.12) 10px,
-    rgba(249, 115, 22, 0.12) 20px
-  );
-  border: 2px dashed #f97316 !important;
-  animation: hazardGlow 3s infinite ease-in-out;
+/* CVTArchive Niche Cards */
+.niche-card {
+  background: rgba(4, 8, 20, 0.75);
+  border: 1px solid #1e293b;
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.niche-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+.niche-card.active {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.35);
+  background: rgba(6, 182, 212, 0.08);
+}
+
+/* Multi-Tier Composite Crafting DAG Node Styling */
+.dag-node {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.dag-node:hover {
+  transform: scale(1.03);
 }
 
 /* Pipeline SVG Node Styling */
@@ -853,7 +1009,7 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 #threeContainer {
   width: 100%;
   height: 100%;
-  min-height: 580px;
+  min-height: 540px;
   display: block;
 }
 #threeContainer canvas {
@@ -861,6 +1017,50 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   height: 100% !important;
   outline: none;
   display: block;
+}
+
+/* ==========================================================================
+   SLIDING INTERACTIVE INSPECTOR DRAWER
+   ========================================================================== */
+.inspector-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  max-width: 95vw;
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.75);
+}
+.inspector-drawer.drawer-open {
+  transform: translateX(0);
+}
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 15, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.drawer-backdrop.backdrop-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Drawer Tab Switcher */
+.drawer-tab {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.drawer-tab:hover {
+  background: rgba(30, 41, 59, 0.6);
+  color: #ffffff;
 }
 
 /* Respect Reduced Motion */
