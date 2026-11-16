@@ -46,6 +46,34 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       timer: null
     },
 
+    // Dedicated Cinematic Spectator Engine
+    spectate: {
+      active: false,
+      roleIndex: 0,
+      roles: ['Farmer', 'Trader', 'Builder', 'Medic', 'Crafter', 'Generalist'],
+      currentShotType: 'CHASE', // 'CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'
+      shotAngleIndex: 0,
+      shotNames: {
+        'CHASE': 'OVER-SHOULDER CHASE CAM',
+        'LOW_ANGLE': 'LOW-ANGLE PAVEMENT DOLLY',
+        'DRONE_ORBIT': 'HIGH 45° DRONE ORBIT',
+        'FRONTAL': 'FRONTAL APPROACH DOLLY'
+      },
+      timer: null,
+      countdownTimer: null,
+      countdownSeconds: 6,
+      orbitAngle: 0,
+      currentAgent: null,
+      agentIndexByRole: {
+        'Farmer': 0,
+        'Trader': 0,
+        'Builder': 0,
+        'Medic': 0,
+        'Crafter': 0,
+        'Generalist': 0
+      }
+    },
+
     // 3D Three.js Engine State
     three: {
       renderer: null,
@@ -160,72 +188,111 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     'tab-audit': 'Phase 2.5 Patent-Grade Source-Audit Certificate (439 Passed / 0 Skipped)'
   };
 
-  // 6-Step Guided Portfolio Workflow Tour
+  // 6-Step Guided Portfolio Workflow Tour (Multi-Role Auto Tour across all colony roles)
   const tourSteps = [
     {
       step: 1,
-      badge: 'PHASE 1.1 SUBSTRATE',
+      badge: 'PHASE 1.1 SUBSTRATE & 1×1 KM MOORE MACHINE',
       title: '1×1 km Spatial Substrate & Deterministic Moore Machine',
-      desc: '10,378 Chunks · 340M Voxels Reconciled · Zero Water Mandate · 98.7% Connected Street Grid',
+      desc: 'Civic Core Aerial Overview · 10,378 Chunks · 340M Voxels Reconciled · Zero Water Mandate · 98.7% Street Grid',
       layout: 'unified',
       subsystem: 'tab-environment',
-      camera: { pos: new THREE.Vector3(530, 85, 680), target: new THREE.Vector3(500, 10, 520) }
+      camera: { pos: new THREE.Vector3(530, 85, 680), target: new THREE.Vector3(500, 10, 520) },
+      action: () => {
+        state.followingAgentId = null;
+      }
     },
     {
       step: 2,
-      badge: 'PHASE 1.2 POPULATION',
-      title: 'Articulated Chebyshev Humanoid Citizens & 8-Drive Homeostasis',
-      desc: '64 Procedural Humanoid Citizens · Hats, Props & Floating Badges · L∞ Augmented Chebyshev Scalarization',
+      badge: 'PHASE 1.2 POPULATION: AGRARIAN CORE',
+      title: 'Population: Agrarian Core (Spectating Farmer)',
+      desc: 'Spectating Farmer Harvesting Wheat & Transporting to Silo · 64 Articulated Chebyshev Humanoids',
       layout: 'unified',
       subsystem: 'tab-environment',
       camera: { pos: new THREE.Vector3(527, 18.5, 547), target: new THREE.Vector3(500, 6.0, 520) },
       action: () => {
-        if (state.agents && state.agents.length > 0) {
-          const ag = state.agents[0];
-          inspectAgent(ag, true);
+        const farmer = (state.agents && state.agents.find(a => a.role === 'Farmer')) || (state.agents && state.agents[0]);
+        if (farmer) {
+          inspectAgent(farmer, true, false);
           if (state.three && state.three.camera && state.three.controls) {
             const camOffset = 38 / Math.SQRT2;
-            state.three.camTargetPos = new THREE.Vector3(ag.position.x - camOffset, 18.5, ag.position.z - camOffset);
-            state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 6.0, ag.position.z);
+            state.three.camTargetPos = new THREE.Vector3(farmer.position.x - camOffset, 18.5, farmer.position.z - camOffset);
+            state.three.camLookAtPos = new THREE.Vector3(farmer.position.x, 6.0, farmer.position.z);
           }
         }
       }
     },
     {
       step: 3,
-      badge: 'PHASE 1.3 ECONOMY',
-      title: 'Agora Continuous Double-Auction Market & Lorenz Wealth Curve',
-      desc: 'Midpoint Clearing · Striped Awnings & Commodity Crates · Gini = 0.284 · Living Manuals',
+      badge: 'PHASE 1.3 AGORA MARKET & DOUBLE-AUCTION',
+      title: 'Agora Market & Double-Auction (Spectating Trader)',
+      desc: 'Spectating Trader Bidding & Merchant Stalls · Continuous Midpoint Clearing · Lorenz Wealth Curve (Gini = 0.284)',
       layout: 'unified',
       subsystem: 'tab-economy',
-      camera: { pos: new THREE.Vector3(550, 75, 760), target: new THREE.Vector3(550, 12, 650) }
+      camera: { pos: new THREE.Vector3(550, 75, 760), target: new THREE.Vector3(550, 12, 650) },
+      action: () => {
+        const trader = (state.agents && state.agents.find(a => a.role === 'Trader')) || (state.agents && state.agents.find(a => a.role === 'Farmer'));
+        if (trader) {
+          inspectAgent(trader, true, false);
+          if (state.three && state.three.camera && state.three.controls) {
+            const camOffset = 38 / Math.SQRT2;
+            state.three.camTargetPos = new THREE.Vector3(trader.position.x - camOffset, 18.5, trader.position.z - camOffset);
+            state.three.camLookAtPos = new THREE.Vector3(trader.position.x, 6.0, trader.position.z);
+          }
+        }
+      }
     },
     {
       step: 4,
-      badge: 'PHASE 1.4 - 1.5 RULE STORE',
-      title: 'Verified CapabilityPackage DAG & gVisor Sandbox Containment',
-      desc: 'Composite Crafting DAG (Wood+Stone -> Handle+Blade -> Axe) · Cryptographic Proof · Zero Host Escapes',
+      badge: 'PHASE 1.4 CIVIC ENGINEERING & FORGING',
+      title: 'Civic Engineering & Forging (Spectating Builder & Crafter)',
+      desc: 'Spectating Builder Constructing Portico & Crafter at Workshop · Verified Capability DAG · gVisor Sandbox',
       layout: 'unified',
       subsystem: 'tab-library',
-      camera: { pos: new THREE.Vector3(500, 220, 840), target: new THREE.Vector3(500, 30, 500) }
+      camera: { pos: new THREE.Vector3(500, 220, 840), target: new THREE.Vector3(500, 30, 500) },
+      action: () => {
+        const builder = (state.agents && (state.agents.find(a => a.role === 'Builder') || state.agents.find(a => a.role === 'Crafter'))) || (state.agents && state.agents[2]);
+        if (builder) {
+          inspectAgent(builder, true, false);
+          if (state.three && state.three.camera && state.three.controls) {
+            const camOffset = 38 / Math.SQRT2;
+            state.three.camTargetPos = new THREE.Vector3(builder.position.x - camOffset, 18.5, builder.position.z - camOffset);
+            state.three.camLookAtPos = new THREE.Vector3(builder.position.x, 6.0, builder.position.z);
+          }
+        }
+      }
     },
     {
       step: 5,
-      badge: 'PHASE 2.3 CVT-MAP-ELITES',
-      title: 'CVTArchive 5D Niche Matrix & 10 Voronoi Centroids',
-      desc: '5D Behavioral Descriptors · 10 Centroids · Elite Fitness Tracking · Niche Coverage',
+      badge: 'PHASE 2.3 HEALTHCARE & COMMONS',
+      title: 'Healthcare & Commons (Spectating Medic & Generalist)',
+      desc: 'Spectating Medic at Hospital Trauma & Generalist at Conservatory · CVTArchive 5D Niche Matrix',
       layout: 'unified',
       subsystem: 'tab-cvt',
-      camera: { pos: new THREE.Vector3(120, 90, 550), target: new THREE.Vector3(50, 15, 500) }
+      camera: { pos: new THREE.Vector3(120, 90, 550), target: new THREE.Vector3(50, 15, 500) },
+      action: () => {
+        const medic = (state.agents && (state.agents.find(a => a.role === 'Medic') || state.agents.find(a => a.role === 'Generalist'))) || (state.agents && state.agents[3]);
+        if (medic) {
+          inspectAgent(medic, true, false);
+          if (state.three && state.three.camera && state.three.controls) {
+            const camOffset = 38 / Math.SQRT2;
+            state.three.camTargetPos = new THREE.Vector3(medic.position.x - camOffset, 18.5, medic.position.z - camOffset);
+            state.three.camLookAtPos = new THREE.Vector3(medic.position.x, 6.0, medic.position.z);
+          }
+        }
+      }
     },
     {
       step: 6,
       badge: 'ARCHITECTURE MANDATE',
-      title: 'Decoupled Topology & STAGED LLM Route in Hazard Amber',
+      title: 'Verified Capability DAG & STAGED LLM Route in Hazard Amber',
       desc: 'Zero Runtime Inference Evaluated · Deterministic Core in Emerald/Cyan · Staged LLM Route in Hazard Amber',
       layout: 'unified',
       subsystem: 'tab-pipeline',
-      camera: { pos: new THREE.Vector3(500, 560, 1200), target: new THREE.Vector3(500, 0, 500) }
+      camera: { pos: new THREE.Vector3(500, 560, 1200), target: new THREE.Vector3(500, 0, 500) },
+      action: () => {
+        state.followingAgentId = null;
+      }
     }
   ];
 
@@ -244,6 +311,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     initTabs();
     initSubsystemDock();
     initTourEngine();
+    initSpectatorEngine();
     initKeyboardShortcuts();
     init2DMapCanvas();
     initCensusControls();
@@ -1942,8 +2010,73 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       avatar.group.position.set(avatar.currentPos.x, 0, avatar.currentPos.z);
     });
 
-    // 2. Third-Person Follow Camera Mode (Comfortably frames 6.3m avatar & 11.9m billboard badge)
-    if (state.followingAgentId && camera && controls) {
+    // 2. Camera Direction: Dedicated Cinematic Spectator Mode or Third-Person Follow Cam
+    if (state.spectate && state.spectate.active && camera && controls) {
+      const followed = state.three.agentMeshes.find(a => a.data.id === state.followingAgentId)
+        || (state.spectate.currentAgent && state.three.agentMeshes.find(a => a.data.id === state.spectate.currentAgent.id));
+      if (followed) {
+        const heading = followed.group.rotation.y || 0;
+        const posX = followed.currentPos.x;
+        const posZ = followed.currentPos.z;
+        let targetCamX, targetCamY, targetCamZ;
+        let lookAtTarget;
+
+        switch (state.spectate.currentShotType) {
+          case 'LOW_ANGLE': {
+            // Low-Angle Pavement Dolly: Distance 26m, height 9.0m, looking at y = 4.5m (dramatic street tracking perspective)
+            const dist = 26.0;
+            const angle = heading + 0.35;
+            targetCamX = posX - Math.sin(angle) * dist;
+            targetCamY = 9.0;
+            targetCamZ = posZ - Math.cos(angle) * dist;
+            lookAtTarget = new THREE.Vector3(posX, 4.5, posZ);
+            break;
+          }
+          case 'DRONE_ORBIT': {
+            // High 45° Drone Orbit: Distance 60m, height 32m, looking at y = 7.0m, orbiting slowly around the active citizen and surrounding architecture
+            state.spectate.orbitAngle = (state.spectate.orbitAngle || 0) + 0.005;
+            const dist = 60.0;
+            targetCamX = posX + Math.cos(state.spectate.orbitAngle) * dist;
+            targetCamY = 32.0;
+            targetCamZ = posZ + Math.sin(state.spectate.orbitAngle) * dist;
+            lookAtTarget = new THREE.Vector3(posX, 7.0, posZ);
+            break;
+          }
+          case 'FRONTAL': {
+            // Frontal Approach Dolly: Moving ahead of the citizen as they walk forward along the avenue
+            const dist = 30.0;
+            targetCamX = posX + Math.sin(heading) * dist;
+            targetCamY = 13.0;
+            targetCamZ = posZ + Math.cos(heading) * dist;
+            lookAtTarget = new THREE.Vector3(posX, 5.5, posZ);
+            break;
+          }
+          case 'CHASE':
+          default: {
+            // Over-Shoulder Chase Cam: Distance 38m, height 18.5m, looking at y = 6.0m (overhead billboard perfectly visible with full headroom)
+            const dist = 38.0;
+            targetCamX = posX - Math.sin(heading) * dist;
+            targetCamY = 18.5;
+            targetCamZ = posZ - Math.cos(heading) * dist;
+            lookAtTarget = new THREE.Vector3(posX, 6.0, posZ);
+            break;
+          }
+        }
+
+        const targetCamVec = new THREE.Vector3(targetCamX, targetCamY, targetCamZ);
+        if (camera.position.distanceTo(targetCamVec) > 120) {
+          camera.position.copy(targetCamVec).add(new THREE.Vector3(0, 8, 0));
+        }
+        camera.position.lerp(targetCamVec, 0.07);
+        controls.target.lerp(lookAtTarget, 0.07);
+
+        // Update live spectator position badge in HUD
+        const elPos = document.getElementById('spectatePositionBadge');
+        if (elPos) {
+          elPos.textContent = `POS: X ${Math.round(posX)}m · Z ${Math.round(posZ)}m`;
+        }
+      }
+    } else if (state.followingAgentId && camera && controls) {
       const followed = state.three.agentMeshes.find(a => a.data.id === state.followingAgentId);
       if (followed) {
         const heading = followed.group.rotation.y;
@@ -2530,6 +2663,14 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         if (cur) inspectAgent(cur, false, false);
       }
 
+      if (state.spectate && state.spectate.active && state.spectate.currentAgent) {
+        const liveAgent = state.agents.find(a => a.id === state.spectate.currentAgent.id);
+        if (liveAgent) {
+          state.spectate.currentAgent = liveAgent;
+          updateSpectatorHUD(liveAgent);
+        }
+      }
+
       if (typeof window.evolzenRenderCensus === 'function') {
         window.evolzenRenderCensus();
       }
@@ -2797,6 +2938,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
           case 'shield':
             tweenCamera(new THREE.Vector3(500, 240, 840), new THREE.Vector3(500, 30, 500));
             break;
+          case 'spectate':
+            toggleSpectatorMode();
+            break;
         }
       });
     });
@@ -3036,6 +3180,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const text = document.getElementById('tourAutoText');
 
     if (state.tour.autoPlay) {
+      if (state.spectate && state.spectate.active) {
+        stopSpectatorMode();
+      }
       if (icon) icon.textContent = '⏸';
       if (text) text.textContent = 'Pause Tour';
       if (btn) btn.className = 'px-2.5 py-1 rounded bg-amber-950/70 hover:bg-amber-900/90 text-amber-300 border border-amber-600/50 flex items-center gap-1 transition-all font-mono font-bold';
@@ -3072,6 +3219,231 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (step.action) step.action();
   }
 
+  // =========================================================================
+  // Dedicated Cinematic Spectator Engine (state.spectate)
+  // =========================================================================
+  function initSpectatorEngine() {
+    const btnSpectate = document.getElementById('btnSpectateMode');
+    const btnExit = document.getElementById('btnExitSpectate');
+    const btnNextAngle = document.getElementById('btnSpectateNextAngle');
+    const btnNextAgent = document.getElementById('btnSpectateNextAgent');
+    const bookmarkBtns = document.querySelectorAll('.btn-spectate, [data-focus="spectate"]');
+
+    if (btnSpectate) {
+      btnSpectate.addEventListener('click', toggleSpectatorMode);
+    }
+    if (btnExit) {
+      btnExit.addEventListener('click', stopSpectatorMode);
+    }
+    if (btnNextAngle) {
+      btnNextAngle.addEventListener('click', cycleSpectatorShot);
+    }
+    if (btnNextAgent) {
+      btnNextAgent.addEventListener('click', () => {
+        state.spectate.countdownSeconds = 6;
+        updateSpectatorCountdown(6);
+        transitionSpectatorTarget(false);
+      });
+    }
+
+    bookmarkBtns.forEach(btn => {
+      if (btn !== btnSpectate) {
+        btn.addEventListener('click', toggleSpectatorMode);
+      }
+    });
+  }
+
+  function toggleSpectatorMode() {
+    if (state.spectate && state.spectate.active) {
+      stopSpectatorMode();
+    } else {
+      startSpectatorMode();
+    }
+  }
+
+  function startSpectatorMode() {
+    if (state.spectate.active) return;
+    state.spectate.active = true;
+
+    // Pause Auto Tour if active to prevent competing camera transitions
+    if (state.tour.autoPlay) {
+      toggleAutoTour();
+    }
+
+    // Switch view to 3D if in 2D map mode
+    if (state.viewMode !== '3d') {
+      setViewMode('3d');
+    }
+
+    // Reveal Cinematic Letterbox Overlay
+    const overlay = document.getElementById('spectateLetterboxOverlay');
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        overlay.classList.add('opacity-100');
+      });
+    }
+
+    // Update Spectate Mode button visual states
+    const btn = document.getElementById('btnSpectateMode');
+    const icon = document.getElementById('spectateIcon');
+    const text = document.getElementById('spectateText');
+    if (btn) {
+      btn.className = 'btn-spectate px-2.5 py-1 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-500/80 flex items-center gap-1.5 transition-all font-mono font-bold shadow-lg shadow-rose-900/40 active';
+    }
+    if (icon) icon.textContent = '⏹';
+    if (text) text.textContent = 'Exit Spectate';
+
+    // Start immediately with the first role
+    transitionSpectatorTarget(true);
+
+    // Setup 6-second auto-transition timer with 1s countdown in HUD
+    state.spectate.countdownSeconds = 6;
+    updateSpectatorCountdown(6);
+
+    if (state.spectate.countdownTimer) clearInterval(state.spectate.countdownTimer);
+    state.spectate.countdownTimer = setInterval(() => {
+      if (!state.spectate.active) return;
+      state.spectate.countdownSeconds--;
+      if (state.spectate.countdownSeconds <= 0) {
+        state.spectate.countdownSeconds = 6;
+        transitionSpectatorTarget(false);
+      }
+      updateSpectatorCountdown(state.spectate.countdownSeconds);
+    }, 1000);
+  }
+
+  function stopSpectatorMode() {
+    state.spectate.active = false;
+
+    if (state.spectate.countdownTimer) clearInterval(state.spectate.countdownTimer);
+    state.spectate.countdownTimer = null;
+
+    // Hide letterbox overlay with fade out
+    const overlay = document.getElementById('spectateLetterboxOverlay');
+    if (overlay) {
+      overlay.classList.remove('opacity-100');
+      overlay.classList.add('opacity-0');
+      setTimeout(() => {
+        if (!state.spectate.active) overlay.classList.add('hidden');
+      }, 400);
+    }
+
+    // Revert button styling
+    const btn = document.getElementById('btnSpectateMode');
+    const icon = document.getElementById('spectateIcon');
+    const text = document.getElementById('spectateText');
+    if (btn) {
+      btn.className = 'btn-spectate px-2.5 py-1 rounded bg-purple-950/70 hover:bg-purple-900/90 text-purple-300 border border-purple-600/50 flex items-center gap-1.5 transition-all font-mono font-bold shadow-sm';
+    }
+    if (icon) icon.textContent = '🎬';
+    if (text) text.textContent = 'Spectate Mode';
+  }
+
+  function cycleSpectatorShot() {
+    const SHOT_TYPES = ['CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'];
+    state.spectate.shotAngleIndex = (state.spectate.shotAngleIndex + 1) % SHOT_TYPES.length;
+    state.spectate.currentShotType = SHOT_TYPES[state.spectate.shotAngleIndex];
+
+    const elShot = document.getElementById('spectateShotType');
+    if (elShot) {
+      elShot.textContent = state.spectate.shotNames[state.spectate.currentShotType] || 'OVER-SHOULDER CHASE CAM';
+    }
+  }
+
+  function updateSpectatorCountdown(sec) {
+    const el = document.getElementById('spectateTimerCountdown');
+    if (el) el.textContent = `${sec}s`;
+  }
+
+  function transitionSpectatorTarget(isInitial = false) {
+    if (!state.agents || state.agents.length === 0) return;
+
+    if (!isInitial) {
+      // Automatic 6-second cycle across roles: Farmer -> Trader -> Builder -> Medic -> Crafter -> Generalist -> next
+      state.spectate.roleIndex = (state.spectate.roleIndex + 1) % state.spectate.roles.length;
+      // Cycle through 4 dynamic camera shot angles
+      const SHOT_TYPES = ['CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'];
+      state.spectate.shotAngleIndex = (state.spectate.shotAngleIndex + 1) % SHOT_TYPES.length;
+      state.spectate.currentShotType = SHOT_TYPES[state.spectate.shotAngleIndex];
+    } else {
+      state.spectate.roleIndex = 0;
+      state.spectate.shotAngleIndex = 0;
+      state.spectate.currentShotType = 'CHASE';
+    }
+
+    const currentRole = state.spectate.roles[state.spectate.roleIndex];
+    let matchingAgents = state.agents.filter(a => a.role === currentRole);
+    if (!matchingAgents || matchingAgents.length === 0) {
+      matchingAgents = state.agents;
+    }
+
+    const roleAgentIdx = (state.spectate.agentIndexByRole[currentRole] || 0);
+    const selectedAgent = matchingAgents[roleAgentIdx % matchingAgents.length];
+    state.spectate.agentIndexByRole[currentRole] = roleAgentIdx + 1;
+
+    state.spectate.currentAgent = selectedAgent;
+    inspectAgent(selectedAgent, true, false);
+
+    if (state.spectate.currentShotType === 'DRONE_ORBIT') {
+      state.spectate.orbitAngle = Math.random() * Math.PI * 2;
+    }
+
+    updateSpectatorHUD(selectedAgent);
+  }
+
+  function updateSpectatorHUD(agent) {
+    if (!agent) return;
+
+    const elName = document.getElementById('spectateCitizenName');
+    const elRole = document.getElementById('spectateCitizenRole');
+    const elActivity = document.getElementById('spectateCitizenActivity');
+    const elShot = document.getElementById('spectateShotType');
+    const elPos = document.getElementById('spectatePositionBadge');
+    const elVital = document.getElementById('spectateVitalBadge');
+
+    if (elName) elName.textContent = agent.name || agent.id;
+    if (elRole) {
+      elRole.textContent = `(${agent.role || 'Citizen'})`;
+      const roleColors = {
+        Farmer: 'text-emerald-400',
+        Trader: 'text-amber-400',
+        Builder: 'text-yellow-400',
+        Medic: 'text-rose-400',
+        Crafter: 'text-purple-400',
+        Generalist: 'text-cyan-400'
+      };
+      elRole.className = `${roleColors[agent.role] || 'text-cyan-400'} font-bold`;
+    }
+
+    if (elActivity) {
+      const act = getAgentDisplayActivity(agent);
+      elActivity.textContent = act.toUpperCase();
+    }
+
+    if (elShot) {
+      elShot.textContent = state.spectate.shotNames[state.spectate.currentShotType] || 'OVER-SHOULDER CHASE CAM';
+    }
+
+    if (elPos && agent.position) {
+      elPos.textContent = `POS: X ${Math.round(agent.position.x)}m · Z ${Math.round(agent.position.z)}m`;
+    }
+
+    if (elVital) {
+      let energy = 95;
+      let hydration = 92;
+      if (agent.vitals) {
+        energy = Math.round((agent.vitals.energy || 0.95) * 100);
+        hydration = Math.round((agent.vitals.hydration || 0.9) * 100);
+      } else if (agent.drives) {
+        energy = Math.round((1 - (agent.drives.exhaustion || 0.05)) * 100);
+        hydration = Math.round((1 - (agent.drives.thirst || 0.08)) * 100);
+      }
+      elVital.textContent = `ENERGY: ${energy}% · HYDRATION: ${hydration}%`;
+    }
+  }
+
   function initKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
@@ -3092,6 +3464,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         setLayoutMode('focus');
       } else if (key === 't') {
         nextTourStep();
+      } else if (key === 'c') {
+        toggleSpectatorMode();
+      } else if (e.key === 'Escape') {
+        if (state.spectate && state.spectate.active) {
+          stopSpectatorMode();
+        }
       }
     });
   }
