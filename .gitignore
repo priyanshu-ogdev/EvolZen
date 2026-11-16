@@ -21,6 +21,8 @@ env/
 venv/
 ENV/
 uv.lock.bak
+node_modules/
+package-lock.json.bak
 
 # Environment variables & local secrets
 .env

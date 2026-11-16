@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#04050a"/><stop offset=".5" stop-color="#0b1024"/><stop offset="1" stop-color="#04050a"/>
+</linearGradient>
+<linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/>
+<animateTransform attributeName="gradientTransform" type="translate" from="-1 0" to="1 0" dur="3s" repeatCount="indefinite"/>
+</linearGradient>
+</defs>
+<style>
+.t{font:900 92px 'Segoe UI',Arial,sans-serif;fill:url(#shine);letter-spacing:10px}
+.s{font:600 26px 'Segoe UI',Arial,sans-serif;fill:#94a3b8;letter-spacing:5px}
+.c{font:700 24px ui-monospace,Menlo,monospace;fill:#fbbf24;letter-spacing:3px}
+.vox{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.scan{animation:scan 5s linear infinite}
+@keyframes scan{from{transform:translateY(-30px)}to{transform:translateY(450px)}}
+.blink{animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+</style>
+<rect width="1200" height="420" fill="url(#bg)"/>
+<rect class="scan" width="1200" height="3" fill="#22d3ee" opacity=".35"/>
+<g>
+<rect class="vox" x="40"  y="320" width="36" height="60"  fill="#ef4444" style="animation-delay:0s"/>
+<rect class="vox" x="88"  y="290" width="36" height="90"  fill="#f59e0b" style="animation-delay:.1s"/>
+<rect class="vox" x="136" y="240" width="36" height="140" fill="#22c55e" style="animation-delay:.2s"/>
+<rect class="vox" x="184" y="310" width="36" height="70"  fill="#3b82f6" style="animation-delay:.3s"/>
+<rect class="vox" x="232" y="270" width="36" height="110" fill="#a78bfa" style="animation-delay:.4s"/>
+<rect class="vox" x="280" y="220" width="36" height="160" fill="#eab308" style="animation-delay:.5s"/>
+<rect class="vox" x="328" y="300" width="36" height="80"  fill="#14b8a6" style="animation-delay:.6s"/>
+<rect class="vox" x="376" y="260" width="36" height="120" fill="#f472b6" style="animation-delay:.7s"/>
+<rect class="vox" x="424" y="285" width="36" height="95"  fill="#94a3b8" style="animation-delay:.8s"/>
+<rect class="vox" x="472" y="230" width="36" height="150" fill="#84cc16" style="animation-delay:.9s"/>
+<rect class="vox" x="520" y="315" width="36" height="65"  fill="#ef4444" style="animation-delay:1s"/>
+<rect class="vox" x="568" y="280" width="36" height="100" fill="#3b82f6" style="animation-delay:1.1s"/>
+<rect class="vox" x="616" y="250" width="36" height="130" fill="#f59e0b" style="animation-delay:1.2s"/>
+<rect class="vox" x="664" y="305" width="36" height="75"  fill="#22c55e" style="animation-delay:1.3s"/>
+<rect class="vox" x="712" y="265" width="36" height="115" fill="#a78bfa" style="animation-delay:1.4s"/>
+<rect class="vox" x="760" y="235" width="36" height="145" fill="#14b8a6" style="animation-delay:1.5s"/>
+<rect class="vox" x="808" y="295" width="36" height="85"  fill="#eab308" style="animation-delay:1.6s"/>
+<rect class="vox" x="856" y="255" width="36" height="125" fill="#f472b6" style="animation-delay:1.7s"/>
+<rect class="vox" x="904" y="285" width="36" height="95"  fill="#84cc16" style="animation-delay:1.8s"/>
+<rect class="vox" x="952" y="225" width="36" height="155" fill="#3b82f6" style="animation-delay:1.9s"/>
+<rect class="vox" x="1000" y="310" width="36" height="70" fill="#ef4444" style="animation-delay:2s"/>
+<rect class="vox" x="1048" y="275" width="36" height="105" fill="#94a3b8" style="animation-delay:2.1s"/>
+<rect class="vox" x="1096" y="245" width="36" height="135" fill="#22c55e" style="animation-delay:2.2s"/>
+<rect class="vox" x="1144" y="320" width="36" height="60" fill="#f59e0b" style="animation-delay:2.3s"/>
+</g>
+<g class="vox" style="animation-delay:1.2s">
+<rect x="1050" y="60" width="18" height="60" fill="#ef4444"/><rect x="1026" y="84" width="66" height="14" fill="#ef4444"/>
+</g>
+<text class="t" x="60" y="130">EVOLZEN</text>
+<text class="s" x="64" y="175">1×1 KM PARALLEL UNIVERSE • STRICT-VOXEL SUBSTRATE</text>
+<text class="c" x="64" y="215">WORLD MADE BY SHREYAN MITRA</text>
+<rect x="470" y="196" width="14" height="24" fill="#fbbf24" class="blink"/>
+<rect x="64" y="196" width="400" height="26" fill="#04050a">
+<animate attributeName="width" from="400" to="0" dur="2s" fill="freeze"/>
+</rect>
+</svg>

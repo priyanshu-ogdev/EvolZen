@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVOLZEN // 1×1 KM Parallel Universe & Multi-Agent Infrastructure</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Native ES Module Import Map for Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/": "./vendor/"
+    }
+  }
+  </script>
+</head>
+<body class="bg-void text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-black">
+
+  <!-- ========================================================================= -->
+  <!-- Top Marquee & Certification Ticker                                        -->
+  <!-- ========================================================================= -->
+  <div class="ticker-bar border-b border-cyan-900/40 bg-slate-950/90 text-xs py-1.5 px-4 font-mono flex items-center justify-between text-cyan-400 overflow-hidden select-none" role="region" aria-label="System Certification Ticker">
+    <div class="flex items-center gap-3 shrink-0">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold tracking-wider text-[11px]">
+        <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        SOURCE-AUDIT CERTIFIED
+      </span>
+      <span class="text-slate-600">|</span>
+      <span class="text-slate-300">SEED: <span class="text-amber-400 font-bold">42</span></span>
+    </div>
+
+    <div class="ticker-content flex items-center gap-6 whitespace-nowrap overflow-hidden text-[11px]">
+      <span class="flex items-center gap-1.5 text-slate-200">
+        <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        10,378 CHUNKS
+      </span>
+      <span class="text-slate-700">•</span>
+      <span class="flex items-center gap-1.5 text-slate-200">
+        <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+        340,066,304 VOXELS RECONCILED
+      </span>
+      <span class="text-slate-700">•</span>
+      <span class="flex items-center gap-1.5 text-rose-400 font-bold">
+        <svg class="w-3 h-3 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+        WATER = 0 BY MANDATE
+      </span>
+      <span class="text-slate-700">•</span>
+      <span class="flex items-center gap-1.5 text-slate-200">
+        <svg class="w-3 h-3 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        345/345 HOUSES WIRED
+      </span>
+      <span class="text-slate-700">•</span>
+      <span class="flex items-center gap-1.5 text-slate-200">
+        <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        64 POPULATION (CHEYSBEV CORE)
+      </span>
+      <span class="text-slate-700">•</span>
+      <span class="flex items-center gap-1.5 text-orange-400 font-bold">
+        <svg class="w-3.5 h-3.5 text-orange-400 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        LLM ROUTE: STAGED / ZERO INFERENCE
+      </span>
+      <span class="text-slate-700">•</span>
+      <span class="text-cyan-300 font-mono">WORLD ARCHITECT: SHREYAN MITRA</span>
+    </div>
+
+    <div class="hidden md:flex items-center gap-2 text-slate-400 text-[11px] shrink-0">
+      <span>NODE: <span class="text-emerald-400 font-mono">v26.13</span></span>
+      <span class="text-slate-700">|</span>
+      <span>MODE: <span class="text-cyan-400 font-mono">HERMETIC EVAL</span></span>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Main Header & Simulation Cockpit                                         -->
+  <!-- ========================================================================= -->
+  <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand & Project Identity -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-mono font-black text-cyan-400 text-lg">
+            EZ
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-extrabold tracking-tight text-white font-mono flex items-center gap-2">
+              EVOLZEN <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-sans tracking-wider uppercase font-semibold">PARALLEL UNIVERSE 2.0</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">1×1 km Strict-Voxel Substrate & Multi-Agent Infrastructure Demonstration</p>
+        </div>
+      </div>
+
+      <!-- Live Simulation Tick Controls -->
+      <div class="flex items-center gap-3 bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2 shadow-inner">
+        <div class="flex items-center gap-2.5 pr-3 border-r border-slate-800">
+          <span class="text-[10px] uppercase tracking-wider text-slate-400 font-mono">CLOCK</span>
+          <span id="currentTickBadge" class="text-sm font-mono font-bold text-cyan-400">TICK #142</span>
+        </div>
+
+        <div class="flex items-center gap-1.5" role="toolbar" aria-label="Simulation Controls">
+          <button id="btnPlayPause" class="btn-ctrl px-3 py-1 text-xs rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-1.5 transition-all" title="Toggle Simulation Play/Pause">
+            <span id="playIcon">▶</span> <span id="playText">RUN</span>
+          </button>
+          <button id="btnStep1" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 1 Tick">+1</button>
+          <button id="btnStep5" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 5 Ticks">+5</button>
+          <button id="btnStep25" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 25 Ticks">+25</button>
+          <button id="btnReset" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 font-mono transition-all" title="Reset World Simulation">RESET</button>
+        </div>
+      </div>
+
+      <!-- Quick Subsystem Status Indicators -->
+      <div class="hidden xl:flex items-center gap-2 text-xs font-mono">
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>INVARIANTS: <strong class="text-emerald-400">100%</strong></span>
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          <span>GINI: <strong class="text-amber-400" id="badgeGini">0.284</strong></span>
+        </span>
+        <span class="px-2.5 py-1 rounded-lg bg-orange-950/40 border border-orange-500/40 text-orange-400 font-bold flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+          <span>LLM: STAGED</span>
+        </span>
+      </div>
+
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="max-w-7xl mx-auto mt-3 flex items-center gap-1 overflow-x-auto no-scrollbar border-t border-slate-800/60 pt-2 text-xs font-medium" role="tablist" aria-label="Dashboard Sections">
+      <button class="nav-tab active flex items-center gap-2 px-3 py-1.5 rounded-lg text-cyan-400 bg-cyan-950/40 border border-cyan-800/50" data-tab="tab-map" role="tab" aria-selected="true" aria-controls="tab-map">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
+        <span>3D World & Substrate</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-environment" role="tab" aria-selected="false" aria-controls="tab-environment">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Environment Logic & Invariants</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-economy" role="tab" aria-selected="false" aria-controls="tab-economy">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        <span>Market Economy & Wealth</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-library" role="tab" aria-selected="false" aria-controls="tab-library">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        <span>Verified Rule Library (gVisor)</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-orange-400 hover:text-orange-300 hover:bg-orange-950/30 border border-transparent hover:border-orange-500/30" data-tab="tab-pipeline" role="tab" aria-selected="false" aria-controls="tab-pipeline">
+        <svg class="w-3.5 h-3.5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" y1="9" x2="6" y2="21"></line></svg>
+        <span>Architecture & Staged LLM Route</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-audit" role="tab" aria-selected="false" aria-controls="tab-audit">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15l-2 5l9-11h-7l2-5l-9 11h7z"></path></svg>
+        <span>Source-Audit Certificate</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- Tab Contents Container                                                    -->
+  <!-- ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 lg:px-8 py-5">
+
+    <!-- ======================================================================= -->
+    <!-- TAB 1: 3D WORLD SPATIAL SUBSTRATE OVERHAUL                              -->
+    <!-- ======================================================================= -->
+    <section id="tab-map" class="tab-pane active space-y-4" role="tabpanel" aria-labelledby="tab-map">
+      
+      <!-- 3D Overhaul Top Controls & Camera Director -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3 rounded-xl shadow-lg">
+        
+        <!-- View Mode Switcher -->
+        <div class="flex items-center gap-2">
+          <div class="flex rounded-lg bg-slate-950 p-1 border border-slate-800 text-xs font-mono">
+            <button id="btnView3D" class="view-mode-btn active px-3 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+              <span>3D OVERHAUL VIEW</span>
+            </button>
+            <button id="btnView2D" class="view-mode-btn px-3 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+              <span>2D ORTHOGRAPHIC MAP</span>
+            </button>
+          </div>
+
+          <span class="text-slate-700 hidden sm:inline">|</span>
+
+          <!-- Day/Night Toggle -->
+          <button id="btnToggleDayNight" class="px-2.5 py-1 text-xs rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Lighting Mode">
+            <span id="lightIcon">🌙</span> <span id="lightLabel">Night Bloom</span>
+          </button>
+
+          <!-- Max View Theater Toggle -->
+          <button id="btnMaxView" class="px-2.5 py-1 text-xs rounded-lg bg-slate-950 border border-cyan-800/60 text-cyan-300 hover:bg-cyan-950/60 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Fullscreen Max Theater">
+            <span id="maxViewIcon">⛶</span> <span id="maxViewLabel">Max View</span>
+          </button>
+        </div>
+
+        <!-- Demonstration Camera Bookmarks -->
+        <div class="flex items-center gap-1.5 text-xs font-mono overflow-x-auto no-scrollbar py-0.5">
+          <span class="text-[10px] uppercase text-slate-500 font-bold mr-1">DEMO FOCUS:</span>
+          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="orbital">🌐 Orbital Pan</button>
+          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="civic">🏛️ Civic & Agora</button>
+          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="farms">🌾 West Farms</button>
+          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="houses">🏡 Houses (345)</button>
+          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-800/40" data-focus="shield">🛡️ gVisor Shield</button>
+        </div>
+
+      </div>
+
+      <!-- Full-Width Interactive 3D / 2D Max Viewport -->
+      <div class="w-full flex flex-col gap-3">
+
+        <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group shadow-2xl transition-all duration-300" id="worldViewport" style="height:76vh;min-height:580px;">
+          
+          <!-- 3D Three.js WebGL Container -->
+          <div id="threeContainer" class="w-full h-full cursor-grab active:cursor-grabbing block"></div>
+
+          <!-- 2D Canvas Fallback Container -->
+          <canvas id="worldMapCanvas" width="1000" height="1000" class="w-full h-full cursor-crosshair object-contain hidden"></canvas>
+          
+          <!-- Floating Zoom / Control Overlay (for 2D map) -->
+          <div id="map2dControls" class="absolute top-4 right-4 flex flex-col gap-1.5 bg-slate-950/80 backdrop-blur border border-slate-800 p-1.5 rounded-lg shadow-lg hidden z-10">
+            <button id="mapZoomIn" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-base font-bold flex items-center justify-center transition-all">+</button>
+            <button id="mapZoomOut" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-base font-bold flex items-center justify-center transition-all">−</button>
+            <button id="mapZoomReset" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center justify-center transition-all">1x</button>
+          </div>
+
+          <!-- 3D Overlay Telemetry HUD -->
+          <div class="absolute bottom-4 left-4 bg-slate-950/90 backdrop-blur border border-cyan-800/50 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex items-center gap-3 shadow-xl z-10">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span>COORD: <strong id="mouseCoords" class="text-white">X: 500m · Z: 500m</strong></span>
+            </div>
+            <span class="text-slate-600">|</span>
+            <div>
+              <span>SECTOR: <strong id="sectorName" class="text-amber-400">Central Civic Anchor</strong></span>
+            </div>
+            <span class="text-slate-600">|</span>
+            <div class="hidden sm:block">
+              <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400">64 Active</strong></span>
+            </div>
+          </div>
+
+          <!-- Instructions badge overlay -->
+          <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur border border-slate-800/80 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 select-none pointer-events-none z-10">
+            <span>🖱️ Drag: Rotate 3D Camera · Scroll: Zoom · Click: Inspect</span>
+          </div>
+
+        </div>
+
+        <!-- Bottom Layer Toggles & 3D Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 p-2.5 rounded-xl text-xs font-mono">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] uppercase text-slate-500 font-bold mr-1">LAYERS:</span>
+            <button class="layer-toggle active px-2.5 py-1 rounded bg-yellow-950/50 text-yellow-300 border border-yellow-700/50" data-layer="houses">Houses (345)</button>
+            <button class="layer-toggle active px-2.5 py-1 rounded bg-red-950/50 text-red-300 border border-red-700/50" data-layer="civic">Civic Core (6)</button>
+            <button class="layer-toggle active px-2.5 py-1 rounded bg-emerald-950/50 text-emerald-300 border border-emerald-700/50" data-layer="farms">West Farms (10)</button>
+            <button class="layer-toggle active px-2.5 py-1 rounded bg-cyan-950/50 text-cyan-300 border border-cyan-700/50" data-layer="agents">64 Agents</button>
+            <button class="layer-toggle active px-2.5 py-1 rounded bg-purple-950/50 text-purple-300 border border-purple-700/50" data-layer="shield">gVisor Shield</button>
+          </div>
+          
+          <span class="text-slate-400 text-[11px] italic">
+            * 3D Overhaul View: 1×1 km Substrate · 345 Wired Houses · 64 Multi-Agent Chebyshev Avatars
+          </span>
+        </div>
+      </div>
+
+      <!-- Spatial Telemetry & Inspector Panel (3-Column Layout Below Max Viewport) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- Selected Element Detail Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-xl">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span id="selectedIcon" class="text-base text-cyan-400">🏡</span>
+              <h3 id="selectedTitle" class="text-xs font-bold font-mono text-white truncate max-w-[200px]">House #001 · Ranch Archetype</h3>
+            </div>
+            <span id="selectedTypeBadge" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">TYPE 0</span>
+          </div>
+
+          <div class="mt-3 space-y-2 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Position & Extent:</span>
+              <span id="selectedCoord" class="font-mono text-cyan-300">X: 114m · Z: 14m (14×10m)</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Floors & Elevation:</span>
+              <span id="selectedFloors" class="font-mono text-slate-200">1 Floor · 4.0m Height</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Wall / Roof Signature:</span>
+              <span id="selectedMaterials" class="font-mono text-amber-300">VINYL (Yellow) / ROOF (Grey)</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Street Network Connection:</span>
+              <span id="selectedStreetConn" class="font-mono text-emerald-400">CONNECTED (Walkway 1.2m)</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Sub-Panel (Furnishing Manifest OR Agent Homeostatic Radar) -->
+          <div class="mt-3 pt-3 border-t border-slate-800">
+            <h4 id="subPanelTitle" class="text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-2">Furnishing Manifest (Voxel Interior)</h4>
+            <div id="furnishingPills" class="flex flex-wrap gap-1.5 text-[11px] font-mono">
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🛋️ Sofa (FAB)</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">📺 CRT TV (TV)</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🍳 Stove / Range</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🛏️ Oak Bed</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🚪 Hinged Door</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 House Archetypes Breakdown -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+            <span>Housing Archetypes Distribution (345)</span>
+            <span class="text-cyan-400 font-bold">100% WIRED</span>
+          </h3>
+          
+          <div id="archetypeList" class="space-y-2 text-xs">
+            <!-- Dynamically rendered archetype bars -->
+          </div>
+        </div>
+
+        <!-- Material Census Palette (Top Materials) -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+            <span>Material Census (24 IDs)</span>
+            <span class="text-rose-400 font-bold">WATER = 0</span>
+          </h3>
+
+          <div id="materialPaletteList" class="max-h-56 overflow-y-auto space-y-1.5 pr-1 text-[11px] font-mono">
+            <!-- Dynamically populated palette items -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 2: ENVIRONMENT LOGIC & INVARIANTS                                  -->
+    <!-- ======================================================================= -->
+    <section id="tab-environment" class="tab-pane space-y-5" role="tabpanel" aria-labelledby="tab-environment">
+      
+      <!-- Top Overview Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl font-bold shrink-0">
+            ✓
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 font-mono">INVARIANT GUARDIAN</span>
+            <div class="text-base font-bold text-white font-mono">100% CONSERVED</div>
+            <span class="text-[10px] text-emerald-400">Zero matter/currency leaks</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl shrink-0">
+            🌾
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 font-mono">WEST FARM BELT</span>
+            <div class="text-base font-bold text-white font-mono">10 CROP BELTS</div>
+            <span class="text-[10px] text-cyan-400">5,600 crop cells active</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl shrink-0">
+            🏛️
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 font-mono">CIVIC CENTERS</span>
+            <div class="text-base font-bold text-white font-mono">6 CORE ANCHORS</div>
+            <span class="text-[10px] text-amber-400">Hospital, School, Market, Fire</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl shrink-0">
+            🔒
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 font-mono">STORAGE INTEGRITY</span>
+            <div class="text-base font-bold text-white font-mono">SHA-256 HASH</div>
+            <span class="text-[10px] text-purple-400">DuckDB transition ledger</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ecological Location Pools & Renewal Rates -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <h3 class="text-xs font-mono uppercase tracking-wider text-white mb-3 flex items-center justify-between">
+          <span>Ecological Sector Stocks & Renewal Dynamics</span>
+          <span class="text-xs text-slate-400 font-sans">Autonomous regeneration per tick</span>
+        </h3>
+
+        <div id="locationPoolsGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Resource Curves & Invariant Verification Matrix -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-8 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-white mb-3">Resource Replenishment & Consumption Time-Series</h3>
+          <div class="h-60 relative">
+            <canvas id="resourceChartCanvas" class="w-full h-full"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-mono uppercase tracking-wider text-white mb-3">Invariant Conservation Audit</h3>
+            <div class="space-y-2 text-xs font-mono">
+              <div class="p-2 rounded bg-slate-950/70 border border-emerald-900/50 flex justify-between items-center">
+                <span class="text-slate-300">Matter Conservation</span>
+                <span class="text-emerald-400 font-bold">✓ PASS (Δ = 0)</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/70 border border-emerald-900/50 flex justify-between items-center">
+                <span class="text-slate-300">Currency Conservation</span>
+                <span class="text-emerald-400 font-bold">✓ PASS (1,280 C)</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/70 border border-emerald-900/50 flex justify-between items-center">
+                <span class="text-slate-300">Zero Negative Balances</span>
+                <span class="text-emerald-400 font-bold">✓ PASS (0 Found)</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/70 border border-emerald-900/50 flex justify-between items-center">
+                <span class="text-slate-300">Strict Monotonic Clock</span>
+                <span class="text-emerald-400 font-bold">✓ PASS (t &lt; t+1)</span>
+              </div>
+              <div class="p-2 rounded bg-slate-950/70 border border-emerald-900/50 flex justify-between items-center">
+                <span class="text-slate-300">DuckDB Hash Chaining</span>
+                <span class="text-emerald-400 font-bold">✓ PASS (Chain Intact)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-4 p-3 bg-cyan-950/30 border border-cyan-800/40 rounded-lg text-[11px] text-cyan-300">
+            <strong>Formal Invariant Proof:</strong> Every outcome logged through <code>SocialSandboxEngine</code> is independently re-derivable from <code>(state, action, ex_input, seed)</code> alone without hidden mutable state.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 3: MARKET ECONOMY & SOCIAL STRUCTURE                               -->
+    <!-- ======================================================================= -->
+    <section id="tab-economy" class="tab-pane space-y-5" role="tabpanel" aria-labelledby="tab-economy">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Order Book Depth & Clearing (Left 7 cols) -->
+        <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+              <div>
+                <h3 class="text-xs font-mono uppercase tracking-wider text-white">Agora Continuous Double-Auction Order Book</h3>
+                <span class="text-[11px] text-amber-400 font-mono">Commodity: FOOD_GRAIN · Midpoint Clearing</span>
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-slate-400 font-mono">SPREAD: <span class="text-emerald-400 font-bold">0.60 C</span></span>
+                <div class="text-xs text-slate-400 font-mono">LAST: <span class="text-white font-bold">10.80 C</span></div>
+              </div>
+            </div>
+
+            <!-- Double Auction Order Book Ladder -->
+            <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+              <!-- Bids (Buyers) -->
+              <div class="bg-slate-950/60 p-3 rounded-lg border border-emerald-900/30">
+                <div class="text-emerald-400 font-bold pb-2 border-b border-emerald-900/40 mb-2 flex justify-between text-[11px]">
+                  <span>BID (BUY)</span> <span>QTY</span> <span>AGENT</span>
+                </div>
+                <div id="bidsTableBody" class="space-y-1.5">
+                  <!-- Populated via JS -->
+                </div>
+              </div>
+
+              <!-- Asks (Sellers) -->
+              <div class="bg-slate-950/60 p-3 rounded-lg border border-rose-900/30">
+                <div class="text-rose-400 font-bold pb-2 border-b border-rose-900/40 mb-2 flex justify-between text-[11px]">
+                  <span>ASK (SELL)</span> <span>QTY</span> <span>AGENT</span>
+                </div>
+                <div id="asksTableBody" class="space-y-1.5">
+                  <!-- Populated via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-2.5 bg-slate-950 rounded-lg text-xs text-slate-400 border border-slate-800 flex justify-between">
+            <span>Market Efficiency: <strong class="text-emerald-400">96.8%</strong></span>
+            <span>24h Cleared Volume: <strong class="text-white">342 units</strong></span>
+            <span>Escrow Treasury: <strong class="text-amber-400">340 C</strong></span>
+          </div>
+        </div>
+
+        <!-- Wealth Inequality & Lorenz Curve (Right 5 cols) -->
+        <div class="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+              <h3 class="text-xs font-mono uppercase tracking-wider text-white">Wealth Distribution (Lorenz Curve)</h3>
+              <span class="text-xs px-2.5 py-0.5 rounded font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                GINI: <span id="giniValue">0.284</span>
+              </span>
+            </div>
+
+            <!-- Canvas Lorenz Curve -->
+            <div class="h-48 relative bg-slate-950 rounded-lg border border-slate-800/80 p-2">
+              <canvas id="lorenzCanvas" class="w-full h-full"></canvas>
+            </div>
+          </div>
+
+          <div class="mt-3 text-xs text-slate-400 space-y-1 font-mono">
+            <div class="flex justify-between">
+              <span>HHI Specialization Index:</span>
+              <span class="text-cyan-400 font-bold">0.218 (Balanced Division of Labor)</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Circulating Currency:</span>
+              <span class="text-amber-400 font-bold">1,280 C</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Taxation & Public Reserve:</span>
+              <span class="text-slate-200">5% Redistribution Floor</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Living Cultural Manuals (Cultural Transmission) -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <h3 class="text-xs font-mono uppercase tracking-wider text-white mb-3 flex items-center justify-between">
+          <span>Living Cultural Manuals (Parent-to-Offspring Knowledge Transmission)</span>
+          <span class="text-xs text-purple-400 font-mono">Phase 1.3 Knowledge Propagation</span>
+        </h3>
+
+        <div id="manualsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 4: VERIFIED RULE LIBRARY                                           -->
+    <!-- ======================================================================= -->
+    <section id="tab-library" class="tab-pane space-y-5" role="tabpanel" aria-labelledby="tab-library">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Rules Catalog List (Left 5 cols) -->
+        <div class="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-xl p-4 shadow-xl flex flex-col">
+          <div class="pb-3 border-b border-slate-800 mb-3 flex items-center justify-between">
+            <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300">Verified Rule Entries</h3>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono font-bold">APPEND-ONLY DUCKDB</span>
+          </div>
+
+          <div id="ruleItemsList" class="space-y-2 overflow-y-auto max-h-[500px] pr-1">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Code Viewer & Verification Evidence (Right 7 cols) -->
+        <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+              <div>
+                <h3 id="viewerRuleTitle" class="text-sm font-bold text-white font-mono">rule_gather_crop_v2</h3>
+                <span id="viewerRuleName" class="text-xs text-slate-400">West Farm Belt Harvest & Reinvestment</span>
+              </div>
+              <span id="viewerStatusBadge" class="text-[11px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">ACTIVE</span>
+            </div>
+
+            <!-- gVisor Sandbox Containment Verification Banner -->
+            <div class="mb-3 p-2.5 rounded-lg bg-slate-950 border border-purple-900/40 text-xs font-mono flex items-center justify-between text-purple-300">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+                <span>SANDBOX: <strong>gVisor Container Isolation (OCI)</strong></span>
+              </span>
+              <span class="text-emerald-400">CEILING: 128 MB · TIMEOUT: 2.0s</span>
+            </div>
+
+            <!-- Python AST Code Display -->
+            <div class="relative bg-slate-950 rounded-xl p-3.5 border border-slate-800 font-mono text-xs overflow-x-auto shadow-inner text-cyan-300">
+              <pre><code id="viewerCodeBlock">def predict(state, action, ex_input, seed):
+    ...</code></pre>
+            </div>
+          </div>
+
+          <!-- Cryptographic Verification Evidence Details -->
+          <div class="mt-4 pt-3 border-t border-slate-800 grid grid-cols-3 gap-3 text-xs font-mono">
+            <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">EVIDENCE ID</span>
+              <span id="viewerEvidenceId" class="text-purple-300 font-bold">evi_5f81a7b2901c</span>
+            </div>
+            <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">FALSE PROMOTION RATE</span>
+              <span id="viewerFalsePromo" class="text-emerald-400 font-bold">&lt; 0.002</span>
+            </div>
+            <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">TESTED TRANSITIONS</span>
+              <span id="viewerTransitions" class="text-white font-bold">480 Transitions</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 5: SYSTEM PIPELINE & STAGED LLM ROUTE                              -->
+    <!-- ======================================================================= -->
+    <section id="tab-pipeline" class="tab-pane space-y-5" role="tabpanel" aria-labelledby="tab-pipeline">
+      
+      <!-- Architectural Mandate Warning Banner -->
+      <div class="bg-gradient-to-r from-orange-950/50 via-slate-900 to-slate-900 border-l-4 border-orange-500 rounded-xl p-4 shadow-xl flex items-start gap-3.5">
+        <svg class="w-6 h-6 text-orange-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <div class="space-y-1">
+          <h3 class="text-xs font-bold text-orange-400 font-mono uppercase tracking-wider">
+            Architectural Invariant: Zero Runtime LLM Inference by Design
+          </h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            This live evaluation dashboard showcases deterministic physics, formal conservation invariants, and exact-match verification. 
+            The <strong>Cognitive LLM / Agent Route</strong> is intentionally decoupled and highlighted below in 
+            <span class="text-orange-400 font-bold">HAZARD ORANGE</span> to reflect that no non-deterministic neural inference runs in this live dashboard.
+            Agent decisions in the current substrate run strictly on the <strong>Phase 1.2 Augmented Chebyshev Homeostatic Core</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Pipeline Node Visualizer Canvas / Flow -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <h3 class="text-xs font-mono uppercase tracking-wider text-white mb-3">Infrastructure Dataflow & Subsystem Topology</h3>
+        
+        <div class="relative bg-slate-950 rounded-xl p-4 border border-slate-800 overflow-x-auto min-h-[340px] flex items-center justify-center">
+          <svg id="pipelineSvg" viewBox="0 0 1000 340" class="w-full max-w-5xl h-auto" aria-label="System Architecture Pipeline Graph">
+            <!-- Rendered dynamically by app.js -->
+          </svg>
+        </div>
+      </div>
+
+      <!-- Comparative Subsystem Analysis Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        
+        <!-- Active Verified Subsystem 1 -->
+        <div class="bg-slate-900/80 border border-cyan-900/40 rounded-xl p-4 shadow">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <span class="text-xs font-mono text-cyan-400 font-bold">Voxel Substrate & Moore Machine</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono font-bold">ACTIVE</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-2.5 leading-relaxed">
+            10,378 chunks, 340M voxels, 25cm resolution. Fully deterministic execution with zero water and 98.7% connected street network.
+          </p>
+        </div>
+
+        <!-- Active Verified Subsystem 2 -->
+        <div class="bg-slate-900/80 border border-purple-900/40 rounded-xl p-4 shadow">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <span class="text-xs font-mono text-purple-400 font-bold">gVisor Sandbox & Rule Library</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono font-bold">ACTIVE</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-2.5 leading-relaxed">
+            Append-only DuckDB store. All candidate rules run under hermetic gVisor sandbox container ceilings (128 MB RAM, 2.0s wall-clock).
+          </p>
+        </div>
+
+        <!-- THE INCOMPLETE / STAGED LLM ROUTE (HIGHLIGHTED IN BOLD HAZARD ORANGE) -->
+        <div class="bg-orange-950/20 border-2 border-orange-500/70 rounded-xl p-4 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-12 -top-12 w-24 h-24 bg-orange-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div class="flex items-center justify-between pb-2 border-b border-orange-800/40">
+            <span class="text-xs font-mono text-orange-400 font-bold flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <span>Cognitive LLM / Agent Route</span>
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/50 font-mono font-bold animate-pulse">
+              INCOMPLETE / STAGED
+            </span>
+          </div>
+          <p class="text-xs text-orange-200/90 mt-2.5 font-medium leading-relaxed">
+            Staged for offline evaluation rig. Runtime LLM API calls are disabled by mandate to guarantee zero hallucination, zero token costs, and 100% deterministic reproducibility.
+          </p>
+          <div class="mt-3 pt-2 border-t border-orange-800/30 text-[11px] font-mono text-orange-300/80 flex justify-between">
+            <span>Dashboard Runtime: <strong>0 Tokens</strong></span>
+            <span>Policy: <strong>Chebyshev Core</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 6: SOURCE-AUDIT CERTIFICATION                                      -->
+    <!-- ======================================================================= -->
+    <section id="tab-audit" class="tab-pane space-y-5" role="tabpanel" aria-labelledby="tab-audit">
+      
+      <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h2 class="text-base font-bold font-mono text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15l-2 5l9-11h-7l2-5l-9 11h7z"></path></svg>
+              <span>PATENT-GRADE SOURCE-AUDIT CERTIFICATE</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Executed against source <code>world_voxel_hires.npz</code> and <code>voxel_meta.json</code>.
+            </p>
+          </div>
+          <div class="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold self-start md:self-auto">
+            STATUS: SOURCE-AUDIT CERTIFIED
+          </div>
+        </div>
+
+        <!-- 10-Gate Audit Results Grid -->
+        <div id="auditChecklistGrid" class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div class="mt-6 p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <h4 class="text-xs font-mono uppercase tracking-wider text-slate-400">Independent Local Verification Command:</h4>
+          <code class="block text-cyan-400 bg-slate-900/80 px-3 py-2 rounded-lg border border-slate-800 text-xs">
+            python3 verify_world.py &amp;&amp; python3 audit_source.py
+          </code>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- Footer                                                                    -->
+  <!-- ========================================================================= -->
+  <footer class="border-t border-slate-800/60 bg-slate-950 py-5 text-xs text-slate-500 font-mono text-center">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2">
+      <div>
+        EVOLZEN WORLD SUBSTRATE © 2026 · WORLD MADE BY <span class="text-amber-400 font-bold">SHREYAN MITRA</span>
+      </div>
+      <div>
+        10,378 CHUNKS · 340,066,304 VOXELS RECONCILED · 0 WATER MANDATE
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main ES Module Script with Three.js 3D Overhaul -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
