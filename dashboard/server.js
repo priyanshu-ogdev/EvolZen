@@ -93,6 +93,94 @@ const CIVIC_STRUCTURES = [
 ];
 
 // ---------------------------------------------------------------------------
+// World Time & Diurnal Cycle Engine (Phase 1.1)
+// ---------------------------------------------------------------------------
+
+function getDiurnalPhase(hour) {
+  if (hour >= 5 && hour < 8) return 'DAWN';
+  if (hour >= 8 && hour < 18) return 'DAY';
+  if (hour >= 18 && hour < 21) return 'SUNSET';
+  return 'NIGHT';
+}
+
+function formatTime12(hour, minute) {
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  const ampm = hour < 12 ? 'AM' : 'PM';
+  return `${String(h12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${ampm}`;
+}
+
+function computeWorldTime(hour, minute, day_count) {
+  const phase = getDiurnalPhase(hour);
+  const is_night = (phase === 'NIGHT');
+  const totalMinutes = hour * 60 + minute;
+  const sun_progress = +((totalMinutes / 1440).toFixed(4));
+  const formatted = formatTime12(hour, minute);
+
+  return {
+    hour,
+    minute,
+    day_count,
+    phase,
+    is_night,
+    sun_progress,
+    formatted
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Dynamic Crop Lifecycle & Farm Plots Simulation
+// ---------------------------------------------------------------------------
+
+function getCropGrowthStage(progress) {
+  if (progress >= 85) {
+    return { growth_stage: 3, stage_name: 'GOLDEN_RIPE' };
+  } else if (progress >= 50) {
+    return { growth_stage: 2, stage_name: 'GROWING' };
+  } else if (progress >= 20) {
+    return { growth_stage: 1, stage_name: 'SPROUT' };
+  } else {
+    return { growth_stage: 0, stage_name: 'STUBBLE' };
+  }
+}
+
+function createInitialFarmPlots() {
+  const presetProgress = [100, 85, 60, 35, 100, 90, 20, 75, 100, 45];
+  return Array.from({ length: 10 }, (_, i) => {
+    const p = presetProgress[i] !== undefined ? presetProgress[i] : 50;
+    const stage = getCropGrowthStage(p);
+    return {
+      index: i + 1,
+      x: 48,
+      z: i * 100 + 50,
+      label: `West Farm Belt (Plot #${i + 1})`,
+      growth_stage: stage.growth_stage,
+      stage_name: stage.stage_name,
+      progress: p,
+      last_harvested_by: null,
+      last_harvest_tick: null
+    };
+  });
+}
+
+const FARM_PLOTS = createInitialFarmPlots();
+
+function advanceFarmPlotsGrowth(steps) {
+  if (simState.world_time && simState.world_time.is_night) {
+    return; // Crops do not grow during night hours
+  }
+  for (const plot of FARM_PLOTS) {
+    if (plot.progress < 100) {
+      // Regrows +15-20% per tick during daylight
+      const rate = 15.0 + ((plot.index * 3) % 6);
+      plot.progress = Math.min(100, +(plot.progress + rate * steps).toFixed(1));
+      const stage = getCropGrowthStage(plot.progress);
+      plot.growth_stage = stage.growth_stage;
+      plot.stage_name = stage.stage_name;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 2. Simulated Environment State (Phases 1.1 - 1.2)
 // ---------------------------------------------------------------------------
 let simState = {
@@ -101,6 +189,8 @@ let simState = {
   seed: 42,
   world_version: 'evolzen-v2.0-certified',
   running: false,
+  world_time: computeWorldTime(8, 0, 1),
+  farm_plots: FARM_PLOTS,
   drought: {
     active: false,
     severity: 0.60,
@@ -147,6 +237,36 @@ let simState = {
   ]
 };
 
+function advanceWorldTime(steps) {
+  const wt = simState.world_time || computeWorldTime(8, 0, 1);
+  const totalMinutes = wt.hour * 60 + wt.minute + (15 * steps);
+  const daysToAdd = Math.floor(totalMinutes / 1440);
+  const remainingMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+  const newHour = Math.floor(remainingMinutes / 60);
+  const newMinute = remainingMinutes % 60;
+  const newDay = wt.day_count + daysToAdd;
+
+  simState.world_time = computeWorldTime(newHour, newMinute, newDay);
+  return simState.world_time;
+}
+
+// Active Sleeping Houses Manifest (for 💤 Zzz floating particles)
+function getSleepingHouses() {
+  const sleeping = {};
+  if (typeof simulatedAgents !== 'undefined' && Array.isArray(simulatedAgents)) {
+    for (const a of simulatedAgents) {
+      if (a.action === 'SLEEP_NIGHT') {
+        const houseIdx = a.home_house_index || 1;
+        if (!sleeping[houseIdx]) {
+          sleeping[houseIdx] = [];
+        }
+        sleeping[houseIdx].push(a.id);
+      }
+    }
+  }
+  return sleeping;
+}
+
 // Autoplay Timer & State
 let autoplayTimer = null;
 let autoplayActive = false;
@@ -155,12 +275,6 @@ let autoplayIntervalMs = 850; // Calibrated for smooth, observable pacing
 // ---------------------------------------------------------------------------
 // 2a. Dynamic Multi-Step Markov Routines & Landmark Coordinates
 // ---------------------------------------------------------------------------
-const FARM_PLOTS = Array.from({ length: 10 }, (_, i) => ({
-  index: i + 1,
-  x: 48,
-  z: i * 100 + 50,
-  label: `West Farm Belt (Plot #${i + 1})`
-}));
 
 const MUNICIPAL_SITES = [
   { x: 450, z: 450, label: 'Municipal Hall Foundation' },
@@ -222,6 +336,14 @@ function getAgentActivityDescription(agent) {
     ? Math.hypot(agent.target.x - agent.position.x, agent.target.z - agent.position.z)
     : 0;
   const isEnRoute = dist > (agent.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 6.0);
+
+  // 0. Night sleep routine & dwelling sanctuary
+  if (agent.action === 'SLEEP_NIGHT') {
+    return `Sleeping soundly inside House #${houseIdx}`;
+  }
+  if (agent.action === 'RETIRING_HOME') {
+    return `Retiring to House #${houseIdx} for the night`;
+  }
 
   // 1. Emergency drought withdrawal
   if (agent.action === 'WITHDRAW_INSTITUTION') {
@@ -649,7 +771,8 @@ function setAgentMarkovState(agent, stateName) {
   }
 
   agent.waypoints = generateWaypoints(agent.position, agent.target);
-  agent.activity_text = getAgentActivityDescription(agent);
+  agent.action_description = getAgentActivityDescription(agent);
+  agent.activity_text = agent.action_description;
 }
 
 /**
@@ -848,7 +971,8 @@ function initializeAgents() {
       agentObj.position.z = +(agentObj.target.z + (Math.random() - 0.5) * 8).toFixed(2);
     }
     agentObj.waypoints = generateWaypoints(agentObj.position, agentObj.target);
-    agentObj.activity_text = getAgentActivityDescription(agentObj);
+    agentObj.action_description = getAgentActivityDescription(agentObj);
+    agentObj.activity_text = agentObj.action_description;
 
     agents.push(agentObj);
   }
@@ -995,6 +1119,13 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
       h.food = Math.min(100, +(h.food + 1.5 * steps).toFixed(1));
       break;
     }
+    case 'SLEEP_NIGHT': {
+      // Night sleep vitals recovery: rest rapidly regenerates (+12/tick up to 100), health recovers (+4/tick)
+      h.rest = Math.min(100, +(h.rest + 12.0 * steps).toFixed(1));
+      h.health = Math.min(100, +(h.health + 4.0 * steps).toFixed(1));
+      h.shelter = 100;
+      break;
+    }
     case 'GATHER_CROP': {
       if (a.target && a.target.label && a.target.label.includes('Silo')) {
         // Farmer depositing surplus harvest into Communal Granary Silo
@@ -1009,9 +1140,20 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
           }
         }
       } else {
+        const plotIdx = a.farm_plot_index || 1;
+        const plot = FARM_PLOTS[(plotIdx - 1) % 10];
         const harvestYield = isDrought ? 1.5 : 5.0;
         h.food = Math.min(100, +(h.food + harvestYield * steps).toFixed(1));
         h.tools = Math.max(10, +(h.tools - 0.25 * steps).toFixed(1));
+
+        // When farmers harvest a plot (HARVEST_WHEAT), yield is collected, plot resets to stage 0 (STUBBLE), and begins regrowth
+        if (plot && plot.growth_stage > 0) {
+          plot.progress = 0;
+          plot.growth_stage = 0;
+          plot.stage_name = 'STUBBLE';
+          plot.last_harvested_by = a.id;
+          plot.last_harvest_tick = simState.tick;
+        }
       }
       break;
     }
@@ -1062,6 +1204,16 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
  */
 function applyMetabolicDrift(a, steps, isDrought) {
   const h = a.homeostasis;
+
+  if (a.action === 'SLEEP_NIGHT') {
+    // Night sleep vitals recovery: food/hydration decay drops to 0.1x sleep basal rate
+    const sleepFoodDecay = (isDrought ? 0.65 : 0.18) * 0.1;
+    h.food = Math.max(5, +(h.food - sleepFoodDecay * steps).toFixed(1));
+    const sleepHydrationDecay = 0.15 * 0.1;
+    h.hydration = Math.max(5, +(h.hydration - sleepHydrationDecay * steps).toFixed(1));
+    return;
+  }
+
   if (a.action !== 'REST_HOME') {
     h.rest = Math.max(5, +(h.rest - 0.20 * steps).toFixed(1));
   }
@@ -1102,8 +1254,90 @@ function applyMetabolicDrift(a, steps, isDrought) {
 function simAgentsStep(steps) {
   const isDrought = simState.drought.active;
   const siloReserve = simState.communal_silo.food_reserve;
+  const isNight = Boolean(simState.world_time && simState.world_time.is_night);
 
   for (let a of simulatedAgents) {
+    if (isNight) {
+      // -----------------------------------------------------------------
+      // NIGHT HOURS: All citizens retire to assigned dwelling and sleep
+      // -----------------------------------------------------------------
+      const homeTarget = { x: a.home.x, z: a.home.z, label: `Dwelling #${a.home_house_index}` };
+      const distToHome = Math.hypot(a.home.x - a.position.x, a.home.z - a.position.z);
+      const atHome = distToHome < 6.0;
+
+      if (atHome) {
+        a.action = 'SLEEP_NIGHT';
+        a.target = homeTarget;
+        a.waypoints = [];
+        a.position.x = a.home.x;
+        a.position.z = a.home.z;
+        executeAgentActionReplenishment(a, steps, isDrought);
+        a.action_description = `Sleeping soundly inside House #${a.home_house_index}`;
+        a.activity_text = a.action_description;
+      } else {
+        a.action = 'RETIRING_HOME';
+        a.target = homeTarget;
+        a.action_description = `Retiring to House #${a.home_house_index} for the night`;
+        a.activity_text = a.action_description;
+
+        if (!a.waypoints || a.waypoints.length === 0 || a.waypoints[a.waypoints.length - 1].x !== homeTarget.x) {
+          a.waypoints = generateWaypoints(a.position, homeTarget);
+        }
+
+        let activeWp = a.waypoints[0] || a.target;
+        let dx = activeWp.x - a.position.x;
+        let dz = activeWp.z - a.position.z;
+        let dist = Math.hypot(dx, dz);
+
+        if (dist < 4.0 && a.waypoints.length > 1) {
+          a.waypoints.shift();
+          activeWp = a.waypoints[0];
+          dx = activeWp.x - a.position.x;
+          dz = activeWp.z - a.position.z;
+          dist = Math.hypot(dx, dz);
+        }
+
+        const speed = Math.min(dist, Math.max(28.0, dist * 0.55) * steps);
+        if (dist > 3.0) {
+          const vx = (dx / dist) * speed;
+          const vz = (dz / dist) * speed;
+          a.position.x += vx;
+          a.position.z += vz;
+          a.heading = +(Math.atan2(vz, vx)).toFixed(3);
+        }
+
+        // Re-check distance to home after movement
+        const newDistToHome = Math.hypot(a.home.x - a.position.x, a.home.z - a.position.z);
+        if (newDistToHome < 6.0) {
+          a.action = 'SLEEP_NIGHT';
+          a.position.x = a.home.x;
+          a.position.z = a.home.z;
+          a.waypoints = [];
+          executeAgentActionReplenishment(a, steps, isDrought);
+          a.action_description = `Sleeping soundly inside House #${a.home_house_index}`;
+          a.activity_text = a.action_description;
+        }
+
+        a.position.x = +(Math.max(10, Math.min(990, a.position.x))).toFixed(2);
+        a.position.z = +(Math.max(10, Math.min(990, a.position.z))).toFixed(2);
+      }
+
+      applyMetabolicDrift(a, steps, isDrought);
+      continue;
+    }
+
+    // -----------------------------------------------------------------
+    // DAYLIGHT / DAWN / SUNSET HOURS: Wake up & active Markov routines
+    // -----------------------------------------------------------------
+    if (a.action === 'SLEEP_NIGHT' || a.action === 'RETIRING_HOME') {
+      // Dawn wakeup: transition back to Markov routine refreshed
+      if (a.routine_state === 'REST_PORCH') {
+        advanceAgentMarkovRoutine(a);
+      } else {
+        setAgentMarkovState(a, a.routine_state);
+      }
+    }
+
     const distToTarget = Math.hypot(a.target.x - a.position.x, a.target.z - a.position.z);
     const targetRadius = a.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 4.5;
     const atTarget = distToTarget < targetRadius;
@@ -1201,8 +1435,9 @@ function simAgentsStep(steps) {
     // Apply baseline metabolic drift & homeostatic bounds
     applyMetabolicDrift(a, steps, isDrought);
 
-    // Compute updated plain-English activity text
-    a.activity_text = getAgentActivityDescription(a);
+    // Compute updated plain-English activity text & action description
+    a.action_description = getAgentActivityDescription(a);
+    a.activity_text = a.action_description;
   }
 }
 
@@ -1360,6 +1595,9 @@ function executeSimulationStep(steps) {
   simState.tick += steps;
   simState.step_index += steps * 4;
 
+  // Advance diurnal world time (15 mins per tick)
+  advanceWorldTime(steps);
+
   const locs = simState.locations;
   const isDrought = simState.drought.active;
 
@@ -1369,6 +1607,9 @@ function executeSimulationStep(steps) {
   locs.grove.wood = Math.min(500, Math.max(100, +(locs.grove.wood + locs.grove.renewal_rate * steps * harvestFactor).toFixed(1)));
   locs.quarry.stone = Math.min(450, Math.max(100, +(locs.quarry.stone + locs.quarry.renewal_rate * steps).toFixed(1)));
   locs.west_farms.food = Math.min(800, Math.max(50, +(locs.west_farms.food + locs.west_farms.renewal_rate * steps * harvestFactor).toFixed(1)));
+
+  // Regrow farm crops during daylight
+  advanceFarmPlotsGrowth(steps);
 
   // Update invariant status
   simState.invariants.last_checked_tick = simState.tick;
@@ -1636,7 +1877,9 @@ app.get('/api/world/meta', (req, res) => {
     houses: voxelMeta.houses || [],
     civic_structures: CIVIC_STRUCTURES,
     material_palette: MATERIAL_PALETTE,
-    farm_belts_count: 10
+    farm_belts_count: 10,
+    farm_plots: FARM_PLOTS,
+    world_time: simState.world_time
   });
 });
 
@@ -1644,6 +1887,9 @@ app.get('/api/world/meta', (req, res) => {
 app.get(['/api/environment/state', '/api/sim/state'], (req, res) => {
   res.json({
     ...simState,
+    world_time: simState.world_time,
+    farm_plots: FARM_PLOTS,
+    sleeping_houses: getSleepingHouses(),
     agents: simulatedAgents,
     autoplay: {
       active: autoplayActive,
@@ -1662,6 +1908,9 @@ app.post(['/api/environment/step', '/api/sim/step'], (req, res) => {
     status: 'ok',
     tick: simState.tick,
     step_index: simState.step_index,
+    world_time: simState.world_time,
+    farm_plots: FARM_PLOTS,
+    sleeping_houses: getSleepingHouses(),
     invariants_passed: true,
     locations: simState.locations,
     communal_silo: simState.communal_silo,
@@ -1682,6 +1931,12 @@ app.post(['/api/environment/reset', '/api/sim/reset'], (req, res) => {
   simState.tick = 0;
   simState.step_index = 0;
   simState.running = false;
+  simState.world_time = computeWorldTime(8, 0, 1);
+  const resetPlots = createInitialFarmPlots();
+  for (let i = 0; i < FARM_PLOTS.length; i++) {
+    Object.assign(FARM_PLOTS[i], resetPlots[i]);
+  }
+  simState.farm_plots = FARM_PLOTS;
   simState.drought = {
     active: false,
     severity: 0.60,
@@ -1721,6 +1976,9 @@ app.post(['/api/environment/reset', '/api/sim/reset'], (req, res) => {
     status: 'reset',
     tick: 0,
     step_index: 0,
+    world_time: simState.world_time,
+    farm_plots: FARM_PLOTS,
+    sleeping_houses: getSleepingHouses(),
     drought: simState.drought,
     communal_silo: simState.communal_silo,
     locations: simState.locations,
@@ -1895,6 +2153,8 @@ app.get('/api/agents/roster', (req, res) => {
     roles_distribution: economyState.role_distribution,
     communal_silo: simState.communal_silo,
     drought: simState.drought,
+    world_time: simState.world_time,
+    sleeping_houses: getSleepingHouses(),
     agents: simulatedAgents
   });
 });

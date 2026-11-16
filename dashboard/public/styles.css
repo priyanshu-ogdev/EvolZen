@@ -1884,13 +1884,17 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 }
 
 /* Locked Tabular Numeric Formatting (Zero Layout Jitter) */
-.tabular-nums, .neu-lcd, #currentTickBadge, #badgeGini, #giniValue, #mouseCoords, #chebyshevMetricValue {
+.tabular-nums, .neu-lcd, #currentTickBadge, #badgeGini, #giniValue, #mouseCoords, #chebyshevMetricValue, #worldTimeDisplay, #viewportBottomTime {
   font-variant-numeric: tabular-nums;
 }
 #currentTickBadge {
   min-width: 86px;
   display: inline-block;
   text-align: center;
+}
+#worldTimeDisplay {
+  min-width: 62px;
+  display: inline-block;
 }
 #badgeGini, #giniValue {
   min-width: 44px;
@@ -1905,6 +1909,40 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   min-width: 38px;
   text-align: right;
   display: inline-block;
+}
+
+/* Diurnal World Time & Celestial Phase Badges */
+.diurnal-phase-dawn {
+  background: rgba(249, 115, 22, 0.2) !important;
+  color: #fdba74 !important;
+  border-color: rgba(249, 115, 22, 0.5) !important;
+}
+.diurnal-phase-day {
+  background: rgba(234, 179, 8, 0.2) !important;
+  color: #fde047 !important;
+  border-color: rgba(234, 179, 8, 0.5) !important;
+}
+.diurnal-phase-sunset {
+  background: rgba(244, 63, 94, 0.2) !important;
+  color: #f43f5e !important;
+  border-color: rgba(244, 63, 94, 0.5) !important;
+}
+.diurnal-phase-night {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #a5b4fc !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+/* Floating Crop Harvest Toast Notification */
+.floating-crop-toast {
+  pointer-events: none;
+  animation: floatUpFade 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes floatUpFade {
+  0% { opacity: 0; transform: translateY(0) scale(0.85); }
+  15% { opacity: 1; transform: translateY(-8px) scale(1.05); }
+  80% { opacity: 0.95; transform: translateY(-30px) scale(1.0); }
+  100% { opacity: 0; transform: translateY(-45px) scale(0.95); }
 }
 
 /* Respect Reduced Motion */

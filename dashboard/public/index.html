@@ -125,6 +125,24 @@
           </div>
         </div>
 
+        <!-- Diurnal World Time Clock HUD Widget -->
+        <div id="worldTimeWidget" class="flex items-center gap-2 pr-2.5 border-r border-slate-700/60 select-none" title="Diurnal World Time & Colony Sleep State">
+          <div class="flex items-center gap-1.5">
+            <span id="worldTimePhaseIcon" class="text-amber-400 text-sm">☀️</span>
+            <div class="flex flex-col leading-none">
+              <div class="flex items-center gap-1.5">
+                <span id="worldTimeDisplay" class="font-mono font-black text-white text-xs tabular-nums">08:00 AM</span>
+                <span id="worldTimePhaseBadge" class="text-[9px] font-mono font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">DAY</span>
+              </div>
+              <div class="flex items-center gap-1 mt-0.5 text-[9px] font-mono text-slate-400">
+                <span id="worldTimeDay">DAY 1</span>
+                <span class="text-slate-600">•</span>
+                <span id="worldTimeSleepingCount" class="text-indigo-300 font-bold">0 SLEEPING</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Play/Pause & Speed Buttons -->
         <div class="flex items-center gap-1.5" role="toolbar" aria-label="Simulation Controls">
           <button id="btnPlayPause" class="btn-tactile btn-tactile-cyan px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 active" title="Toggle Simulation Play/Pause (Shortcut: Space)">
@@ -340,6 +358,11 @@
                 <span class="text-slate-600 hidden sm:inline">|</span>
                 <div class="hidden sm:block">
                   <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400 tabular-nums">64 Active</strong></span>
+                </div>
+                <span class="text-slate-600 hidden md:inline">|</span>
+                <div class="hidden md:flex items-center gap-1.5">
+                  <span id="viewportBottomTimeIcon">☀️</span>
+                  <span>TIME: <strong id="viewportBottomTime" class="text-amber-300 tabular-nums">08:00 AM · DAY</strong></span>
                 </div>
               </div>
               

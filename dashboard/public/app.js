@@ -104,6 +104,19 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       farmsGroup: null,
       agentsGroup: null,
       streetLightsGroup: null,
+      celestialGroup: null,
+      sunMesh: null,
+      sunCorona: null,
+      moonMesh: null,
+      starField: null,
+      starMat: null,
+      zzzGroup: null,
+      zzzParticles: [],
+      harvestGroup: null,
+      harvestBadges: [],
+      cropPlots: [],
+      cropStageMats: null,
+      housePositions: {},
       shieldMesh: null,
       agoraRing: null,
       hospitalBeacon: null,
@@ -578,6 +591,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         build3DAgents(scene);
       }
 
+      // Initialize 3D Floating Particle Systems (Zzz Sleep Particles & Crop Harvest Badges)
+      initZzzParticleSystem(scene);
+      initHarvestParticleSystem(scene);
+
       // 7. Event Listeners
       renderer.domElement.addEventListener('mousemove', onThreeMouseMove);
       renderer.domElement.addEventListener('click', onThreeClick);
@@ -619,6 +636,72 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     sun.shadow.camera.bottom = -650;
     scene.add(sun);
     state.three.sunLight = sun;
+
+    // Celestial Bodies: Orbiting Sun Mesh & Moon Mesh + Starfield
+    const celestialGroup = new THREE.Group();
+    state.three.celestialGroup = celestialGroup;
+
+    // 1. Orbiting 3D Sun with Glowing Corona Halo
+    const sunGeo = new THREE.SphereGeometry(18, 20, 20);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xffedd5 });
+    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+    sunMesh.position.set(350, 650, 450);
+
+    const coronaGeo = new THREE.SphereGeometry(26, 16, 16);
+    const coronaMat = new THREE.MeshBasicMaterial({
+      color: 0xf59e0b,
+      transparent: true,
+      opacity: 0.38,
+      wireframe: false
+    });
+    const sunCorona = new THREE.Mesh(coronaGeo, coronaMat);
+    sunMesh.add(sunCorona);
+    celestialGroup.add(sunMesh);
+    state.three.sunMesh = sunMesh;
+    state.three.sunCorona = sunCorona;
+
+    // 2. Orbiting 3D Moon with Silver-Blue Disc & Soft Glow
+    const moonGeo = new THREE.SphereGeometry(14, 20, 20);
+    const moonMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0,
+      roughness: 0.85,
+      metalness: 0.15,
+      emissive: 0x38bdf8,
+      emissiveIntensity: 0.45
+    });
+    const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+    moonMesh.position.set(650, -400, 550);
+    celestialGroup.add(moonMesh);
+    state.three.moonMesh = moonMesh;
+
+    // 3. Starfield Dome with Twinkling Night Stars
+    const starCount = 650;
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0) * 0.48; // Upper celestial dome
+      const rad = 860 + Math.random() * 90;
+      starPositions[i * 3] = 500 + rad * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = 120 + rad * Math.cos(phi);
+      starPositions[i * 3 + 2] = 500 + rad * Math.sin(phi) * Math.sin(theta);
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const starMat = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 2.6,
+      transparent: true,
+      opacity: 0.0,
+      sizeAttenuation: true
+    });
+    const starField = new THREE.Points(starGeo, starMat);
+    celestialGroup.add(starField);
+    state.three.starField = starField;
+    state.three.starMat = starMat;
+
+    scene.add(celestialGroup);
 
     // Hospital Red Cross Point Light (pulsing)
     const hospLight = new THREE.PointLight(0xef4444, 3.2, 120);
@@ -794,19 +877,23 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     scene.add(lightsGroup);
   }
 
-  // West Farm Belts: 10 plots with Golden Crops, Fences, Barns & Silos (Shared Geometries)
+  // West Farm Belts: 10 plots with Dynamic Lifecycle Crops, Fences, Barns & Silos
   function build3DWestFarmBelts(scene) {
     const farmsGroup = new THREE.Group();
     state.three.farmsGroup = farmsGroup;
 
     const soilMat = new THREE.MeshStandardMaterial({ color: 0x271e0c, roughness: 0.95 });
-    const cropMat = new THREE.MeshStandardMaterial({
-      color: 0xfbbf24,
-      roughness: 0.55,
-      emissive: 0xd97706,
-      emissiveIntensity: 0.25
-    });
-    state.three.cropMaterials.push(cropMat);
+
+    // Distinct materials for 4 dynamic crop lifecycle stages:
+    // 0: Stubble (0.15m), 1: Sprout (0.4m), 2: Growing (0.8m), 3: Golden Ripe (1.4m)
+    const cropStageMats = {
+      0: new THREE.MeshStandardMaterial({ color: 0x854d0e, roughness: 0.95 }),
+      1: new THREE.MeshStandardMaterial({ color: 0x84cc16, roughness: 0.7, emissive: 0x14532d, emissiveIntensity: 0.1 }),
+      2: new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6, emissive: 0x15803d, emissiveIntensity: 0.15 }),
+      3: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.55, emissive: 0xd97706, emissiveIntensity: 0.25 })
+    };
+    state.three.cropStageMats = cropStageMats;
+    state.three.cropPlots = [];
 
     const fenceMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
     const barnMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.6 });
@@ -830,12 +917,26 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       bed.receiveShadow = true;
       farmsGroup.add(bed);
 
-      // 2. Golden crop rows
+      // 2. Dynamic crop rows
+      const plotRows = [];
       for (let r = 0; r < 6; r++) {
-        const crop = new THREE.Mesh(cropGeo, cropMat);
+        const crop = new THREE.Mesh(cropGeo, cropStageMats[3]);
         crop.position.set(48, 0.85, z - 28 + r * 11);
+        crop.castShadow = true;
+        crop.receiveShadow = true;
         farmsGroup.add(crop);
+        plotRows.push(crop);
       }
+
+      state.three.cropPlots.push({
+        plotIndex: b,
+        center: new THREE.Vector3(48, 0.85, z),
+        rows: plotRows,
+        currentStage: 3,
+        currentScaleY: 1.08,
+        targetScaleY: 1.08,
+        progress: 100
+      });
 
       // 3. Perimeter fences
       const fNorth = new THREE.Mesh(fenceGeo, fenceMat);
@@ -1271,6 +1372,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       scene.remove(state.three.housesGroup);
       state.three.houseMeshes = [];
       state.three.windowMaterials = [];
+      state.three.housePositions = {};
     }
 
     const housesGroup = new THREE.Group();
@@ -1362,6 +1464,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         x, z, w, d, archId,
         arch
       };
+
+      // Rooftop / chimney emission point for 3D Zzz particle billboards
+      state.three.housePositions[idx + 1] = new THREE.Vector3(x + w / 2, hHeight + 2.2, z + d / 2);
 
       housesGroup.add(houseMesh);
       state.three.houseMeshes.push(houseMesh);
@@ -1778,6 +1883,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (agent.activity_text) return agent.activity_text;
     const house = agent.home_house_index || 1;
     switch (agent.action) {
+      case 'SLEEP_NIGHT': return `Sleeping soundly inside House #${house} 💤`;
+      case 'HARVEST_WHEAT': return `Harvesting golden wheat at West Farm Belt 🌾`;
       case 'GATHER_CROP': return `Harvesting wheat at West Farm Belt (Plot #${(house % 10) + 1})`;
       case 'REST_HOME': return `Resting & recuperating in Dwelling #${house}`;
       case 'WITHDRAW_INSTITUTION': return `Withdrawing emergency grain from Silo`;
@@ -1969,6 +2076,428 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   }
 
   // =========================================================================
+  // 6.5. Diurnal Celestial Lighting, House Sleep Particles & Crop Lifecycles
+  // =========================================================================
+
+  function initZzzParticleSystem(scene) {
+    if (!scene) scene = state.three.scene;
+    if (!scene) return;
+    if (state.three.zzzGroup) {
+      scene.remove(state.three.zzzGroup);
+    }
+    const zzzGroup = new THREE.Group();
+    scene.add(zzzGroup);
+    state.three.zzzGroup = zzzGroup;
+    state.three.zzzParticles = [];
+
+    // Pre-render 3 crisp billboard textures with emojis and glowing styling
+    const zzzTexts = ['💤 Zzz', '💤 z Z', 'Z z z...'];
+    const zzzTextures = zzzTexts.map(text => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 256, 128);
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 12;
+      ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
+      ctx.fillStyle = '#e0f2fe';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 64);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      return tex;
+    });
+
+    // Pre-create pool of 128 floating sprite billboards
+    for (let i = 0; i < 128; i++) {
+      const tex = zzzTextures[i % zzzTextures.length];
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 0.0,
+        depthWrite: false
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.visible = false;
+      zzzGroup.add(sprite);
+
+      state.three.zzzParticles.push({
+        sprite,
+        houseIndex: null,
+        basePos: new THREE.Vector3(),
+        age: (i * 0.03) % 1.0,
+        speed: 0.22 + Math.random() * 0.16,
+        swaySpeed: 1.8 + Math.random() * 1.4,
+        swayAmp: 0.8 + Math.random() * 0.9,
+        swayPhase: Math.random() * Math.PI * 2,
+        maxHeight: 7.5 + Math.random() * 5.0,
+        active: false
+      });
+    }
+  }
+
+  function updateZzzParticles(dt, elapsedTime) {
+    if (!state.three.zzzParticles || state.three.zzzParticles.length === 0) return;
+    const worldTime = state.envState && state.envState.world_time;
+    const isNight = worldTime ? worldTime.is_night : false;
+
+    // Smoothly fade out all particles during daytime
+    if (!isNight) {
+      state.three.zzzParticles.forEach(p => {
+        if (p.sprite.visible) {
+          p.sprite.material.opacity = THREE.MathUtils.lerp(p.sprite.material.opacity, 0, dt * 6);
+          if (p.sprite.material.opacity < 0.02) {
+            p.sprite.visible = false;
+            p.active = false;
+          }
+        }
+      });
+      return;
+    }
+
+    // Determine active sleeping houses
+    let sleepingHouseIndices = [];
+    if (state.envState && state.envState.sleeping_houses && typeof state.envState.sleeping_houses === 'object') {
+      sleepingHouseIndices = Object.keys(state.envState.sleeping_houses)
+        .map(Number)
+        .filter(idx => (state.envState.sleeping_houses[idx] && state.envState.sleeping_houses[idx].length > 0));
+    }
+
+    if (sleepingHouseIndices.length === 0 && state.agents) {
+      const sleepingAgents = state.agents.filter(a => a.action === 'SLEEP_NIGHT' || (isNight && a.home_house_index));
+      const set = new Set();
+      sleepingAgents.forEach(a => {
+        if (a.home_house_index) set.add(a.home_house_index);
+      });
+      sleepingHouseIndices = Array.from(set);
+    }
+
+    if (sleepingHouseIndices.length === 0 && isNight) {
+      sleepingHouseIndices = Array.from({ length: 64 }, (_, i) => i + 1);
+    }
+
+    let pIdx = 0;
+    for (let i = 0; i < sleepingHouseIndices.length && pIdx < state.three.zzzParticles.length; i++) {
+      const hIdx = sleepingHouseIndices[i];
+      let pos = state.three.housePositions[hIdx];
+      if (!pos && state.worldMeta && state.worldMeta.houses && state.worldMeta.houses[hIdx - 1]) {
+        const [hx, hz, hw, hd] = state.worldMeta.houses[hIdx - 1];
+        pos = new THREE.Vector3(hx + hw / 2, 6.0, hz + hd / 2);
+        state.three.housePositions[hIdx] = pos;
+      }
+      if (!pos) continue;
+
+      // Assign up to 2 animated particles per sleeping dwelling
+      for (let k = 0; k < 2 && pIdx < state.three.zzzParticles.length; k++) {
+        const p = state.three.zzzParticles[pIdx++];
+        p.houseIndex = hIdx;
+        p.basePos.copy(pos);
+        p.active = true;
+        p.sprite.visible = true;
+
+        p.age += p.speed * dt;
+        if (p.age >= 1.0) {
+          p.age = 0.0;
+        }
+
+        const t = p.age;
+        // Drift slowly upward into the night sky
+        p.sprite.position.y = p.basePos.y + t * p.maxHeight;
+        // Soft horizontal sway with sin(t)
+        p.sprite.position.x = p.basePos.x + Math.sin(elapsedTime * p.swaySpeed + p.swayPhase) * (p.swayAmp * (0.35 + 0.65 * t));
+        p.sprite.position.z = p.basePos.z + Math.cos(elapsedTime * (p.swaySpeed * 0.7) + p.swayPhase) * (p.swayAmp * 0.35);
+
+        // Sinusoidal opacity fade-in / fade-out envelope
+        const opacity = Math.sin(t * Math.PI) * 0.95;
+        p.sprite.material.opacity = opacity;
+
+        // Gentle scale expansion as particle ascends
+        const s = 1.6 + t * 1.5;
+        p.sprite.scale.set(s * 2.4, s * 1.2, 1.0);
+      }
+    }
+
+    // Hide remaining pool sprites
+    while (pIdx < state.three.zzzParticles.length) {
+      const p = state.three.zzzParticles[pIdx++];
+      if (p.active) {
+        p.active = false;
+        p.sprite.visible = false;
+      }
+    }
+  }
+
+  function initHarvestParticleSystem(scene) {
+    if (!scene) scene = state.three.scene;
+    if (!scene) return;
+    if (state.three.harvestGroup) {
+      scene.remove(state.three.harvestGroup);
+    }
+    const harvestGroup = new THREE.Group();
+    scene.add(harvestGroup);
+    state.three.harvestGroup = harvestGroup;
+    state.three.harvestBadges = [];
+  }
+
+  function triggerHarvestAnimation(plotIndex) {
+    if (!state.three.cropPlots || !state.three.cropPlots[plotIndex]) return;
+    const plot = state.three.cropPlots[plotIndex];
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 80;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 256, 80);
+
+    // Neumorphic dark amber pill
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.90)';
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3.5;
+    drawRoundedRect(ctx, 8, 8, 240, 64, 28, true, true);
+
+    ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
+    ctx.fillStyle = '#fef08a';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('+🌾 Grain Harvest', 128, 40);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 1.0, depthWrite: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(16, 5, 1);
+    sprite.position.set(plot.center.x, 3.5, plot.center.z);
+
+    if (state.three.harvestGroup) {
+      state.three.harvestGroup.add(sprite);
+    } else if (state.three.scene) {
+      state.three.scene.add(sprite);
+    }
+
+    state.three.harvestBadges.push({
+      sprite,
+      baseY: 3.5,
+      timer: 0.0,
+      duration: 2.2
+    });
+  }
+
+  function updateHarvestBadges(dt) {
+    if (!state.three.harvestBadges || state.three.harvestBadges.length === 0) return;
+    for (let i = state.three.harvestBadges.length - 1; i >= 0; i--) {
+      const b = state.three.harvestBadges[i];
+      b.timer += dt;
+      const progress = b.timer / b.duration;
+      if (progress >= 1.0) {
+        if (b.sprite.parent) b.sprite.parent.remove(b.sprite);
+        b.sprite.material.dispose();
+        state.three.harvestBadges.splice(i, 1);
+      } else {
+        b.sprite.position.y = b.baseY + progress * 9.0;
+        b.sprite.material.opacity = Math.max(0, (1.0 - progress) * 1.3);
+        b.sprite.scale.set(16 * (1.0 + progress * 0.2), 5 * (1.0 + progress * 0.2), 1);
+      }
+    }
+  }
+
+  function updateFarmCrops(dt, elapsedTime) {
+    if (!state.three.cropPlots || state.three.cropPlots.length === 0) return;
+    const plotsData = state.envState && state.envState.farm_plots;
+
+    state.three.cropPlots.forEach((plot, b) => {
+      let stage = 3;
+      let progress = 100;
+      if (plotsData && plotsData[b]) {
+        stage = plotsData[b].growth_stage !== undefined ? plotsData[b].growth_stage : 3;
+        progress = plotsData[b].progress !== undefined ? plotsData[b].progress : 100;
+      } else {
+        const cycle = ((state.envState?.tick || 142) + b * 18) % 100;
+        if (cycle < 15) stage = 0;
+        else if (cycle < 45) stage = 1;
+        else if (cycle < 75) stage = 2;
+        else stage = 3;
+      }
+
+      // Detect harvest transition: ripe -> stubble
+      if (plot.currentStage === 3 && stage === 0) {
+        triggerHarvestAnimation(b);
+      }
+      plot.currentStage = stage;
+
+      let targetScaleY = 1.08;
+      switch (stage) {
+        case 0: targetScaleY = 0.115; break; // Stubble 0.15m height
+        case 1: targetScaleY = 0.308; break; // Sprout 0.4m height
+        case 2: targetScaleY = 0.615; break; // Growing 0.8m height
+        case 3: default: targetScaleY = 1.08; break; // Golden Ripe 1.4m height
+      }
+
+      plot.targetScaleY = targetScaleY;
+      plot.currentScaleY = THREE.MathUtils.lerp(plot.currentScaleY, plot.targetScaleY, dt * 5.0);
+
+      const mat = state.three.cropStageMats ? state.three.cropStageMats[stage] : null;
+
+      plot.rows.forEach((row, r) => {
+        row.scale.y = plot.currentScaleY;
+        row.position.y = 0.2 + (1.3 * plot.currentScaleY) / 2;
+        if (mat && row.material !== mat) {
+          row.material = mat;
+        }
+        // Gentle wind sway for ripe (stage 3) and growing (stage 2) wheat
+        if (stage >= 2) {
+          const windSway = Math.sin(elapsedTime * 2.8 + b * 0.9 + r * 0.45) * (stage === 3 ? 0.055 : 0.025);
+          row.rotation.z = windSway;
+        } else {
+          row.rotation.z = 0;
+        }
+      });
+    });
+  }
+
+  function updateDiurnalCelestial(elapsedTime, dt) {
+    const { scene, sunLight, ambientLight, sunMesh, sunCorona, moonMesh, starMat, streetLightsGroup, windowMaterials } = state.three;
+    if (!scene || !sunLight || !ambientLight) return;
+
+    const worldTime = (state.envState && state.envState.world_time) || {
+      hour: 8,
+      minute: 0,
+      phase: 'DAY',
+      is_night: false,
+      sun_progress: 0.33,
+      formatted: '08:00 AM',
+      day_count: 1
+    };
+
+    const hours = (worldTime.hour !== undefined ? worldTime.hour : 8) + (worldTime.minute || 0) / 60;
+
+    // Celestial Orbit around world center (500, 500)
+    const orbitProgress = (hours - 6.0) / 24.0;
+    const angle = orbitProgress * Math.PI * 2;
+    const R = 850;
+
+    const sunX = 500 + Math.cos(angle) * R;
+    const sunY = Math.sin(angle) * R;
+    const sunZ = 500 + Math.sin(angle * 0.5) * 180;
+
+    const moonAngle = angle + Math.PI;
+    const moonX = 500 + Math.cos(moonAngle) * R;
+    const moonY = Math.sin(moonAngle) * R;
+    const moonZ = 500 + Math.sin(moonAngle * 0.5) * 180;
+
+    if (sunMesh) {
+      sunMesh.position.set(sunX, Math.max(-120, sunY), sunZ);
+      sunMesh.visible = sunY > -100;
+    }
+    if (sunCorona) {
+      sunCorona.scale.setScalar(1.0 + Math.sin(elapsedTime * 2.2) * 0.08);
+    }
+    if (moonMesh) {
+      moonMesh.position.set(moonX, Math.max(-120, moonY), moonZ);
+      moonMesh.visible = moonY > -100;
+    }
+
+    // Diurnal Phase Atmospheric Lighting
+    let bgTargetHex = 0x081528;
+    let fogTargetHex = 0x081528;
+    let ambientTargetHex = 0x94a3b8;
+    let ambientTargetIntensity = 2.2;
+    let dirTargetHex = 0xffffff;
+    let dirTargetIntensity = 2.9;
+    let windowEmissiveHex = 0x0e7490;
+    let windowEmissiveIntensity = 0.2;
+    let streetLightsVisible = false;
+    let starOpacity = 0.0;
+
+    if (hours >= 5.0 && hours < 8.0) {
+      // 1. Sunrise / Dawn (05:00-08:00): Warm amber/peach morning light, soft dawn fog
+      const t = (hours - 5.0) / 3.0;
+      const dawnBg = new THREE.Color(0x1e1b4b).lerp(new THREE.Color(0x431407), Math.min(1, t * 1.5)).lerp(new THREE.Color(0x081528), Math.max(0, (t - 0.5) * 2));
+      bgTargetHex = dawnBg.getHex();
+      fogTargetHex = bgTargetHex;
+      ambientTargetHex = new THREE.Color(0x78350f).lerp(new THREE.Color(0xfb923c), t).getHex();
+      ambientTargetIntensity = 1.2 + t * 0.9;
+      dirTargetHex = new THREE.Color(0xfdba74).lerp(new THREE.Color(0xffedd5), t).getHex();
+      dirTargetIntensity = 1.8 + t * 0.9;
+      windowEmissiveHex = 0xfef08a;
+      windowEmissiveIntensity = Math.max(0.2, (1.0 - t) * 0.7);
+      streetLightsVisible = t < 0.5;
+      starOpacity = Math.max(0, (0.4 - t) * 2.0);
+    } else if (hours >= 8.0 && hours < 17.5) {
+      // 2. High Noon / Day (08:00-17:30): Bright clean daylight (#ffffff), high sun angle, crisp shadows
+      bgTargetHex = 0x081528;
+      fogTargetHex = 0x081528;
+      ambientTargetHex = 0x94a3b8;
+      ambientTargetIntensity = 2.2;
+      dirTargetHex = 0xffffff;
+      dirTargetIntensity = 2.9;
+      windowEmissiveHex = 0x0e7490;
+      windowEmissiveIntensity = 0.2;
+      streetLightsVisible = false;
+      starOpacity = 0.0;
+    } else if (hours >= 17.5 && hours < 20.5) {
+      // 3. Sunset / Golden Hour (17:30-20:30): Rich crimson/golden glow (#f97316), long dramatic shadows
+      const t = (hours - 17.5) / 3.0;
+      const sunsetBg = new THREE.Color(0x081528).lerp(new THREE.Color(0x7f1d1d), Math.min(1, t * 1.3)).lerp(new THREE.Color(0x020617), Math.max(0, (t - 0.6) * 2.5));
+      bgTargetHex = sunsetBg.getHex();
+      fogTargetHex = bgTargetHex;
+      ambientTargetHex = new THREE.Color(0xf97316).lerp(new THREE.Color(0x312e81), t).getHex();
+      ambientTargetIntensity = 2.0 - t * 0.9;
+      dirTargetHex = new THREE.Color(0xf97316).lerp(new THREE.Color(0xf43f5e), t * 0.5).getHex();
+      dirTargetIntensity = 2.6 - t * 1.2;
+      windowEmissiveHex = 0xfef08a;
+      windowEmissiveIntensity = 0.25 + t * 0.55;
+      streetLightsVisible = t > 0.45;
+      starOpacity = Math.max(0, (t - 0.35) * 1.5);
+    } else {
+      // 4. Night (20:30-05:00): Deep midnight indigo (#020617), soft cool moonlight (#38bdf8), street lamps illuminate, house windows glow with warm interior light
+      bgTargetHex = 0x020617;
+      fogTargetHex = 0x020617;
+      ambientTargetHex = 0x1e293b;
+      ambientTargetIntensity = 0.95;
+      dirTargetHex = 0x38bdf8;
+      dirTargetIntensity = 1.35;
+      windowEmissiveHex = 0xfef08a;
+      windowEmissiveIntensity = 0.8;
+      streetLightsVisible = true;
+      starOpacity = 0.85;
+    }
+
+    // Smooth lerp scene background & fog
+    scene.background.lerp(new THREE.Color(bgTargetHex), 0.08);
+    if (scene.fog) scene.fog.color.lerp(new THREE.Color(fogTargetHex), 0.08);
+
+    ambientLight.color.lerp(new THREE.Color(ambientTargetHex), 0.08);
+    ambientLight.intensity = THREE.MathUtils.lerp(ambientLight.intensity, ambientTargetIntensity, 0.08);
+
+    sunLight.color.lerp(new THREE.Color(dirTargetHex), 0.08);
+    sunLight.intensity = THREE.MathUtils.lerp(sunLight.intensity, dirTargetIntensity, 0.08);
+
+    // Directional light tracks Sun when high, Moon when Sun is below horizon
+    if (sunY > 0) {
+      sunLight.position.set(sunX, Math.max(60, sunY), sunZ);
+    } else {
+      sunLight.position.set(moonX, Math.max(60, moonY), moonZ);
+    }
+
+    if (starMat) {
+      starMat.opacity = THREE.MathUtils.lerp(starMat.opacity, starOpacity, 0.06);
+    }
+
+    if (streetLightsGroup) {
+      streetLightsGroup.visible = streetLightsVisible;
+    }
+
+    if (windowMaterials && windowMaterials.length > 0) {
+      windowMaterials.forEach(m => {
+        m.emissive.lerp(new THREE.Color(windowEmissiveHex), 0.08);
+        m.emissiveIntensity = THREE.MathUtils.lerp(m.emissiveIntensity, windowEmissiveIntensity, 0.08);
+      });
+    }
+  }
+
+  // =========================================================================
   // 7. Simulation Stepping & Smooth Lerping Animation Loop
   // =========================================================================
   function animateThree() {
@@ -1979,6 +2508,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const dt = Math.min(rawDt, 0.1);
     const elapsedTime = state.three.clock.getElapsedTime();
     const { controls, renderer, scene, camera, shieldMesh, agoraRing, hospitalBeacon, fireSirenLight, camTargetPos, camLookAtPos } = state.three;
+
+    // 0. Diurnal Celestial Sun/Moon, Sleep Particles, Crop Lifecycle & Harvest Badges
+    updateDiurnalCelestial(elapsedTime, dt);
+    updateZzzParticles(dt, elapsedTime);
+    updateFarmCrops(dt, elapsedTime);
+    updateHarvestBadges(dt);
 
     // 1. Smooth Agent Walking, Sinusoidal Oscillation & Torso Bobbing
     const baseWalkSpeed = 12 * state.simSpeedFactor;
@@ -2703,12 +3238,15 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         });
       }
       const data = await res.json();
-      if (data.tick !== undefined && state.envState) {
-        state.envState.tick = data.tick;
+      if (data && state.envState) {
+        if (data.tick !== undefined) state.envState.tick = data.tick;
         if (data.locations) state.envState.locations = data.locations;
         if (data.communal_silo) state.envState.communal_silo = data.communal_silo;
         if (data.drought) state.envState.drought = data.drought;
         if (data.step_index !== undefined) state.envState.step_index = data.step_index;
+        if (data.world_time) state.envState.world_time = data.world_time;
+        if (data.sleeping_houses) state.envState.sleeping_houses = data.sleeping_houses;
+        if (data.farm_plots) state.envState.farm_plots = data.farm_plots;
       }
       if (data.order_book && state.economyState) {
         state.economyState.order_book = data.order_book;
@@ -2881,6 +3419,102 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (!state.envState) return;
     const badge = document.getElementById('currentTickBadge');
     if (badge) badge.textContent = `TICK #${state.envState.tick || 142}`;
+
+    // Diurnal World Time & Sleep Manifest Telemetry
+    const worldTime = state.envState.world_time || {
+      hour: 8,
+      minute: 0,
+      phase: 'DAY',
+      is_night: false,
+      formatted: '08:00 AM',
+      day_count: 1
+    };
+
+    const elTimeClock = document.getElementById('worldTimeClock') || document.getElementById('worldTimeDisplay');
+    if (elTimeClock) {
+      elTimeClock.textContent = worldTime.formatted || '08:00 AM';
+    }
+
+    const elPhaseBadge = document.getElementById('worldTimePhaseBadge');
+    if (elPhaseBadge) {
+      const phase = worldTime.phase || (worldTime.is_night ? 'NIGHT' : 'DAY');
+      elPhaseBadge.textContent = phase;
+      elPhaseBadge.className = 'text-[9px] font-mono font-black px-1.5 py-0.5 rounded border transition-colors';
+      switch (phase) {
+        case 'DAWN':
+          elPhaseBadge.classList.add('diurnal-phase-dawn');
+          break;
+        case 'SUNSET':
+          elPhaseBadge.classList.add('diurnal-phase-sunset');
+          break;
+        case 'NIGHT':
+          elPhaseBadge.classList.add('diurnal-phase-night');
+          break;
+        case 'DAY':
+        default:
+          elPhaseBadge.classList.add('diurnal-phase-day');
+          break;
+      }
+    }
+
+    const elPhaseIcon = document.getElementById('worldTimePhaseIcon');
+    if (elPhaseIcon) {
+      let icon = '☀️';
+      switch (worldTime.phase) {
+        case 'DAWN': icon = '🌅'; break;
+        case 'SUNSET': icon = '🌇'; break;
+        case 'NIGHT': icon = '🌙'; break;
+        case 'DAY': default: icon = '☀️'; break;
+      }
+      elPhaseIcon.textContent = icon;
+    }
+
+    const elDay = document.getElementById('worldTimeDay');
+    if (elDay) {
+      elDay.textContent = `DAY ${worldTime.day_count || 1}`;
+    }
+
+    // Calculate sleeping citizens count
+    let sleepingCount = 0;
+    if (state.envState.sleeping_houses && typeof state.envState.sleeping_houses === 'object') {
+      for (const h in state.envState.sleeping_houses) {
+        sleepingCount += (state.envState.sleeping_houses[h] || []).length;
+      }
+    } else if (state.agents) {
+      sleepingCount = state.agents.filter(a => a.action === 'SLEEP_NIGHT').length;
+      if (sleepingCount === 0 && worldTime.is_night) {
+        sleepingCount = state.agents.length || 64;
+      }
+    } else if (worldTime.is_night) {
+      sleepingCount = 64;
+    }
+
+    const elSleeping = document.getElementById('worldTimeSleepingCount');
+    if (elSleeping) {
+      elSleeping.textContent = `${sleepingCount} SLEEPING`;
+      if (worldTime.is_night) {
+        elSleeping.className = 'text-indigo-300 font-bold';
+      } else {
+        elSleeping.className = 'text-slate-400 font-normal';
+      }
+    }
+
+    // Viewport bottom telemetry time
+    const elBottomTime = document.getElementById('viewportBottomTime');
+    if (elBottomTime) {
+      elBottomTime.textContent = `${worldTime.formatted || '08:00 AM'} · ${worldTime.phase || 'DAY'}`;
+    }
+    const elBottomIcon = document.getElementById('viewportBottomTimeIcon');
+    if (elBottomIcon) {
+      let icon = '☀️';
+      switch (worldTime.phase) {
+        case 'DAWN': icon = '🌅'; break;
+        case 'SUNSET': icon = '🌇'; break;
+        case 'NIGHT': icon = '🌙'; break;
+        case 'DAY': default: icon = '☀️'; break;
+      }
+      elBottomIcon.textContent = icon;
+    }
   }
 
   // =========================================================================

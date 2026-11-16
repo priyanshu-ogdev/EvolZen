@@ -234,6 +234,58 @@ async function runTests() {
     assert.strictEqual(stateAfterReset.data.agents.length, 64, 'Agents must be reinitialized');
     console.log('✓ Complete simulation reset verified across tick, drought, communal silo, and economy');
 
+    // 10. Diurnal 24-Hour World Time, Night Sleep & Dynamic Crop Lifecycle
+    console.log('\n--- 10. Testing World Time, Night Sleep & Crop Lifecycle ---');
+    const resetForDiurnal = await request('POST', '/api/environment/reset');
+    assert.strictEqual(resetForDiurnal.status, 200);
+    assert.ok(resetForDiurnal.data.world_time, 'world_time must exist in reset response');
+    assert.strictEqual(resetForDiurnal.data.world_time.hour, 8, 'Initial hour should be 8');
+    assert.strictEqual(resetForDiurnal.data.world_time.minute, 0, 'Initial minute should be 0');
+    assert.strictEqual(resetForDiurnal.data.world_time.day_count, 1, 'Initial day_count should be 1');
+    assert.strictEqual(resetForDiurnal.data.world_time.phase, 'DAY', 'Initial phase should be DAY');
+    assert.strictEqual(resetForDiurnal.data.world_time.is_night, false, 'Initial is_night should be false');
+    assert.strictEqual(resetForDiurnal.data.world_time.formatted, '08:00 AM');
+    assert.ok(resetForDiurnal.data.farm_plots && resetForDiurnal.data.farm_plots.length === 10, '10 farm plots must exist');
+    console.log(`✓ World time clock genesis verified: ${resetForDiurnal.data.world_time.formatted} (${resetForDiurnal.data.world_time.phase})`);
+
+    // Step 52 ticks (52 * 15m = 780m = 13h -> 8:00 AM + 13h = 21:00 / 09:00 PM NIGHT)
+    for (let i = 0; i < 52; i++) {
+      await request('POST', '/api/environment/step', { steps: 1 });
+    }
+    const nightState = await request('GET', '/api/environment/state');
+    assert.strictEqual(nightState.data.world_time.hour, 21, 'Hour should be 21');
+    assert.strictEqual(nightState.data.world_time.phase, 'NIGHT', 'Phase must be NIGHT');
+    assert.strictEqual(nightState.data.world_time.is_night, true, 'is_night must be true');
+    console.log(`✓ Advanced to night: ${nightState.data.world_time.formatted} (${nightState.data.world_time.phase}, is_night=${nightState.data.world_time.is_night})`);
+
+    // Allow agents a few night steps to arrive home and enter sleep
+    for (let i = 0; i < 6; i++) {
+      await request('POST', '/api/environment/step', { steps: 1 });
+    }
+    const sleepingState = await request('GET', '/api/environment/state');
+    assert.ok(sleepingState.data.sleeping_houses, 'sleeping_houses manifest must be returned');
+    const sleepingHouseKeys = Object.keys(sleepingState.data.sleeping_houses);
+    assert.ok(sleepingHouseKeys.length > 0, 'At least one house must have sleeping occupants at night');
+    const sleepingAgents = sleepingState.data.agents.filter(a => a.action === 'SLEEP_NIGHT');
+    assert.ok(sleepingAgents.length > 0, 'Agents should enter SLEEP_NIGHT action');
+    assert.ok(sleepingAgents[0].action_description.includes('Sleeping soundly inside House #'), 'Sleep description must match specification');
+    console.log(`✓ Sleeping manifest verified: ${sleepingAgents.length} agents asleep across ${sleepingHouseKeys.length} dwellings`);
+
+    // Step into Dawn (advance 32 ticks: 32 * 15m = 8 hours -> 05:30 AM DAWN)
+    for (let i = 0; i < 32; i++) {
+      await request('POST', '/api/environment/step', { steps: 1 });
+    }
+    const dawnState = await request('GET', '/api/environment/state');
+    assert.strictEqual(dawnState.data.world_time.phase, 'DAWN', 'Phase should be DAWN');
+    assert.strictEqual(dawnState.data.world_time.is_night, false, 'is_night should be false');
+    const awakeAgents = dawnState.data.agents.filter(a => a.action !== 'SLEEP_NIGHT');
+    assert.strictEqual(awakeAgents.length, 64, 'All agents must wake up at dawn and resume routines');
+    console.log(`✓ Dawn wakeup verified: ${dawnState.data.world_time.formatted} (all 64 agents awake and active)`);
+
+    // Verify Farm plot crop stages & daylight regrowth
+    assert.ok(dawnState.data.farm_plots.every(p => p.growth_stage >= 0 && p.growth_stage <= 3), 'All plots must have valid growth stages 0-3');
+    console.log(`✓ Dynamic crop lifecycle verified across 10 farm plots`);
+
     console.log('\n🎉 ALL BACKEND VERIFICATION CHECKS PASSED SUCCESSFULLY!\n');
   } finally {
     server.close();
