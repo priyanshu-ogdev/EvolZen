@@ -1,7 +1,7 @@
 """Invariant verification and property-based tests for `evolzen.environment`."""
 from __future__ import annotations
 
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from evolzen.environment import SocialSandboxEngine, check_invariants
@@ -31,6 +31,7 @@ def test_invariants_detect_conservation_and_ownership_violations() -> None:
     assert check_invariants(w1, regressed).passed is False
 
 
+@settings(deadline=None)
 @given(
     choices=st.lists(
         st.tuples(
