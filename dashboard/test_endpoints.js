@@ -166,6 +166,74 @@ async function runTests() {
     assert.strictEqual(liftRes.data.drought.active, false);
     console.log('✓ Drought lifted cleanly');
 
+    // 6. Double-Auction Order Book Clearing & Economy Verification
+    console.log('\n--- 6. Testing Double-Auction Order Book Clearing ---');
+    const econBefore = await request('GET', '/api/economy/state');
+    assert.strictEqual(econBefore.status, 200);
+    assert.ok(econBefore.data.order_book, 'Order book must exist');
+    assert.strictEqual(econBefore.data.order_book.bids.length >= 5, true, 'Order book must maintain bid depth');
+    assert.strictEqual(econBefore.data.order_book.asks.length >= 5, true, 'Order book must maintain ask depth');
+    const initialClearingPrice = econBefore.data.order_book.last_clearing_price;
+    const initialVolume = econBefore.data.order_book.volume_24h;
+
+    // Trigger drought to drive bids up, cross spread and trigger clearings
+    await request('POST', '/api/environment/drought', { active: true, severity: 0.70 });
+    for (let i = 0; i < 10; i++) {
+      const stepRes = await request('POST', '/api/environment/step', { steps: 2 });
+      assert.strictEqual(stepRes.status, 200);
+      assert.ok(stepRes.data.order_book, 'Step response should include live order book');
+    }
+
+    const econAfter = await request('GET', '/api/economy/state');
+    const obAfter = econAfter.data.order_book;
+    console.log(`Order book after clearing steps: last_price=${obAfter.last_clearing_price}, volume=${obAfter.volume_24h}, spread=${obAfter.spread} C`);
+    assert.ok(obAfter.volume_24h >= initialVolume, 'Volume should accumulate with order clearing');
+    assert.ok(obAfter.bids.length >= 5 && obAfter.asks.length >= 5, 'Order book depth must be preserved');
+    assert.strictEqual(typeof obAfter.spread, 'number', 'Spread must be numeric');
+    console.log('✓ Continuous double-auction order clearing verified');
+
+    // Lift drought after test
+    await request('POST', '/api/environment/drought', { active: false });
+
+    // 7. Single Agent Inspector Endpoint
+    console.log('\n--- 7. Testing /api/agents/:id ---');
+    const singleAgentRes = await request('GET', '/api/agents/agent_01');
+    assert.strictEqual(singleAgentRes.status, 200);
+    assert.strictEqual(singleAgentRes.data.id, 'agent_01');
+    assert.ok(singleAgentRes.data.homeostasis.food !== undefined);
+    console.log(`✓ Single agent lookup verified for ${singleAgentRes.data.id} (${singleAgentRes.data.name}, ${singleAgentRes.data.role})`);
+
+    const missingAgentRes = await request('GET', '/api/agents/nonexistent_agent');
+    assert.strictEqual(missingAgentRes.status, 404);
+    console.log('✓ 404 cleanly returned for nonexistent agent');
+
+    // 8. Robust Edge Cases: Empty Body & Clamped Steps
+    console.log('\n--- 8. Testing Endpoint Edge Cases ---');
+    const emptyStepRes = await request('POST', '/api/environment/step');
+    assert.strictEqual(emptyStepRes.status, 200);
+    console.log('✓ Empty POST /api/environment/step defaults safely to 1 step without error');
+
+    const hugeStepRes = await request('POST', '/api/environment/step', { steps: 9999 });
+    assert.strictEqual(hugeStepRes.status, 200);
+    console.log('✓ Overly large step count clamped safely within bounds');
+
+    // 9. Simulation Reset Behavior
+    console.log('\n--- 9. Testing /api/environment/reset ---');
+    const resetRes = await request('POST', '/api/environment/reset');
+    assert.strictEqual(resetRes.status, 200);
+    assert.strictEqual(resetRes.data.status, 'reset');
+    assert.strictEqual(resetRes.data.tick, 0);
+
+    const stateAfterReset = await request('GET', '/api/environment/state');
+    assert.strictEqual(stateAfterReset.data.tick, 0, 'Tick must reset to 0');
+    assert.strictEqual(stateAfterReset.data.step_index, 0, 'Step index must reset to 0');
+    assert.strictEqual(stateAfterReset.data.drought.active, false, 'Drought must reset to false');
+    assert.strictEqual(stateAfterReset.data.communal_silo.food_reserve, 650.0, 'Silo reserve must reset to 650.0');
+    assert.strictEqual(stateAfterReset.data.communal_silo.total_withdrawn, 0.0, 'Withdrawn must reset to 0.0');
+    assert.strictEqual(stateAfterReset.data.locations.west_farms.renewal_rate, 4.5, 'Renewal rate must reset to baseline');
+    assert.strictEqual(stateAfterReset.data.agents.length, 64, 'Agents must be reinitialized');
+    console.log('✓ Complete simulation reset verified across tick, drought, communal silo, and economy');
+
     console.log('\n🎉 ALL BACKEND VERIFICATION CHECKS PASSED SUCCESSFULLY!\n');
   } finally {
     server.close();

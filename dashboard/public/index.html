@@ -309,6 +309,7 @@
           <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="orbital">🌐 Orbital Pan</button>
           <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="civic">🏛️ Civic & Agora</button>
           <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="farms">🌾 West Farms</button>
+          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-800/40" data-focus="silo">🌾 Granary Silo</button>
           <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="houses">🏡 Houses (345)</button>
           <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-800/40" data-focus="shield">🛡️ gVisor Shield</button>
           <button class="cam-bookmark px-2.5 py-1 rounded bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-700/50" data-focus="agent">👤 Follow Agent</button>
@@ -928,8 +929,8 @@
                     <span class="text-[11px] text-amber-400 font-mono">Commodity: FOOD_GRAIN · Midpoint Clearing</span>
                   </div>
                   <div class="text-right">
-                    <span class="text-xs text-slate-400 font-mono">SPREAD: <span class="text-emerald-400 font-bold">0.60 C</span></span>
-                    <div class="text-xs text-slate-400 font-mono">LAST: <span class="text-white font-bold">10.80 C</span></div>
+                    <span class="text-xs text-slate-400 font-mono">SPREAD: <span id="orderBookSpread" class="text-emerald-400 font-bold">0.60 C</span></span>
+                    <div class="text-xs text-slate-400 font-mono">LAST: <span id="orderBookLastPrice" class="text-white font-bold">10.80 C</span></div>
                   </div>
                 </div>
 
@@ -1688,7 +1689,7 @@
       });
 
       // Drought shock button animation feedback
-      const btnDrought = document.getElementById('btnDroughtShock');
+      const btnDrought = document.getElementById('btnDrought') || document.getElementById('btnDroughtShock');
       if (btnDrought) {
         btnDrought.addEventListener('click', () => {
           btnDrought.classList.add('bg-rose-950/80', 'border-rose-500', 'text-rose-300');

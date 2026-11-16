@@ -464,6 +464,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       controls.maxPolarAngle = Math.PI / 2.04;
       controls.minDistance = 15;
       controls.maxDistance = 2100;
+      controls.addEventListener('start', () => {
+        state.three.camTargetPos = null;
+        state.three.camLookAtPos = null;
+        state.followingAgentId = null;
+      });
       state.three.controls = controls;
 
       // 5. Lighting Setup
@@ -1856,6 +1861,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   }
 
   function syncAgentMeshes() {
+    if ((!state.three.agentMeshes || state.three.agentMeshes.length === 0) && state.three.scene && state.agents && state.agents.length > 0) {
+      build3DAgents(state.three.scene);
+      return;
+    }
     state.three.agentMeshes.forEach(avatar => {
       const match = state.agents.find(a => a.id === avatar.data.id);
       if (match) {
@@ -1873,7 +1882,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     requestAnimationFrame(animateThree);
     if (state.three.isContextLost) return;
 
-    const dt = state.three.clock.getDelta();
+    const rawDt = state.three.clock.getDelta();
+    const dt = Math.min(rawDt, 0.1);
     const elapsedTime = state.three.clock.getElapsedTime();
     const { controls, renderer, scene, camera, shieldMesh, agoraRing, hospitalBeacon, fireSirenLight, camTargetPos, camLookAtPos } = state.three;
 
@@ -2376,10 +2386,14 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   }
 
   function initDroughtControl() {
-    const btnDrought = document.getElementById('btnDroughtShock') || document.getElementById('btnDrought') || document.getElementById('btnTriggerDrought');
-    if (btnDrought) {
-      btnDrought.addEventListener('click', triggerDroughtShock);
-    }
+    const droughtButtons = [
+      document.getElementById('btnDrought'),
+      document.getElementById('btnDroughtShock'),
+      document.getElementById('btnTriggerDrought')
+    ].filter(Boolean);
+    droughtButtons.forEach(btn => {
+      btn.addEventListener('click', triggerDroughtShock);
+    });
   }
 
   async function triggerDroughtShock() {
@@ -2487,6 +2501,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         state.envState.tick = data.tick;
         if (data.locations) state.envState.locations = data.locations;
         if (data.communal_silo) state.envState.communal_silo = data.communal_silo;
+        if (data.drought) state.envState.drought = data.drought;
+        if (data.step_index !== undefined) state.envState.step_index = data.step_index;
+      }
+      if (data.order_book && state.economyState) {
+        state.economyState.order_book = data.order_book;
+        renderOrderBook();
       }
       if (data.agents && data.agents.length > 0) {
         state.agents = data.agents;
@@ -2745,6 +2765,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
             break;
           case 'farms':
             tweenCamera(new THREE.Vector3(80, 95, 620), new THREE.Vector3(50, 10, 500));
+            break;
+          case 'silo':
+          case 'granary':
+            tweenCamera(new THREE.Vector3(520, 75, 730), new THREE.Vector3(520, 15, 620));
             break;
           case 'hospital':
             tweenCamera(new THREE.Vector3(450, 65, 630), new THREE.Vector3(450, 18, 550));
@@ -3363,6 +3387,15 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         </div>
       `;
     }).join('');
+
+    const spreadEl = document.getElementById('orderBookSpread');
+    const lastPriceEl = document.getElementById('orderBookLastPrice');
+    if (spreadEl && state.economyState.order_book.spread !== undefined) {
+      spreadEl.textContent = `${Number(state.economyState.order_book.spread).toFixed(2)} C`;
+    }
+    if (lastPriceEl && state.economyState.order_book.last_clearing_price !== undefined) {
+      lastPriceEl.textContent = `${Number(state.economyState.order_book.last_clearing_price).toFixed(2)} C`;
+    }
   }
 
   function renderLorenzCurve() {

@@ -208,7 +208,7 @@ function calculateGini(wealths) {
   return Math.round((sumDiffs / (2 * n * totalSum)) * 1000) / 1000;
 }
 
-const agentWealths = generateAgentWealths();
+let agentWealths = generateAgentWealths();
 
 const AGENT_NAMES = [
   'Caelen', 'Lyra', 'Aiden', 'Seren', 'Theron', 'Kael', 'Elena', 'Dorian',
@@ -451,9 +451,12 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
       // Withdraw food from communal granary silo
       if (simState.communal_silo.food_reserve > 0) {
         const withdrawAmt = Math.min(12.0 * steps, simState.communal_silo.food_reserve);
-        simState.communal_silo.food_reserve = +(simState.communal_silo.food_reserve - withdrawAmt).toFixed(2);
+        simState.communal_silo.food_reserve = Math.max(0, +(simState.communal_silo.food_reserve - withdrawAmt).toFixed(2));
         simState.communal_silo.total_withdrawn = +(simState.communal_silo.total_withdrawn + withdrawAmt).toFixed(2);
         h.food = Math.min(100, +(h.food + withdrawAmt * 1.6).toFixed(1));
+        if (simState.communal_silo.food_reserve <= 0) {
+          simState.communal_silo.status = 'DEPLETED_BUFFER';
+        }
       }
       break;
     }
@@ -474,6 +477,9 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
           +(simState.communal_silo.food_reserve + deposit).toFixed(2)
         );
         simState.communal_silo.total_recycled = +(simState.communal_silo.total_recycled + deposit).toFixed(2);
+        if (simState.communal_silo.food_reserve > 0) {
+          simState.communal_silo.status = 'ACTIVE_BUFFER';
+        }
       }
       break;
     }
@@ -538,6 +544,9 @@ function applyMetabolicDrift(a, steps, isDrought) {
         +(simState.communal_silo.food_reserve + surplus * 0.5).toFixed(2)
       );
       simState.communal_silo.total_recycled = +(simState.communal_silo.total_recycled + surplus * 0.5).toFixed(2);
+      if (simState.communal_silo.food_reserve > 0) {
+        simState.communal_silo.status = 'ACTIVE_BUFFER';
+      }
       h.currency = 5.0;
     }
     // Rejuvenate living successor cohort
@@ -569,19 +578,31 @@ function simAgentsStep(steps) {
       // Arrived at destination site: execute homeostatic replenishment
       executeAgentActionReplenishment(a, steps, isDrought);
       
-      // Once replenished, transition back to work or dwelling
-      if (a.action === 'REST_HOME' && a.homeostasis.rest >= 90) {
+      // Once replenished, transition back to work, dwelling, or urgent drive
+      const h = a.homeostasis;
+      const isReplenished = (
+        (a.action === 'REST_HOME' && h.rest >= 85) ||
+        (a.action === 'WITHDRAW_INSTITUTION' && (h.food >= 80 || siloReserve <= 0)) ||
+        (a.action === 'GATHER_CROP' && (h.food >= 85 || isDrought)) ||
+        (a.action === 'HYDRATE' && h.hydration >= 85) ||
+        (a.action === 'MEDIC_CARE' && h.health >= 85) ||
+        (a.action === 'CRAFT_TOOL' && h.tools >= 85) ||
+        (a.action === 'CIVIC_TRANSMISSION' && h.kinship >= 85) ||
+        (['CONSTRUCT', 'AUCTION_BID', 'CIVIC_REST'].includes(a.action) && decision.urgency !== 'ROUTINE')
+      );
+
+      if (isReplenished || decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL') {
         a.target = { ...decision.target };
         a.action = decision.action;
-        a.waypoints = generateWaypoints(a.position, a.target);
-      } else if (a.action === 'WITHDRAW_INSTITUTION' && (a.homeostasis.food >= 85 || siloReserve <= 0)) {
-        const roleInfo = ROLES.find(r => r.name === a.role) || ROLES[0];
-        a.target = { ...roleInfo.target };
-        a.action = roleInfo.action;
         a.waypoints = generateWaypoints(a.position, a.target);
       }
     } else if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL' && a.action !== 'WITHDRAW_INSTITUTION') {
       // Emergency redirection to communal granary silo
+      a.target = { ...decision.target };
+      a.action = decision.action;
+      a.waypoints = generateWaypoints(a.position, a.target);
+    } else if (a.action === 'WITHDRAW_INSTITUTION' && (siloReserve <= 0 || !isDrought)) {
+      // Silo exhausted or drought lifted while en route
       a.target = { ...decision.target };
       a.action = decision.action;
       a.waypoints = generateWaypoints(a.position, a.target);
@@ -633,6 +654,153 @@ function simAgentsStep(steps) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 3. Economy & Double-Auction Market State (Phase 1.3)
+// ---------------------------------------------------------------------------
+
+const INITIAL_ORDER_BOOK = {
+  commodity: 'FOOD_GRAIN',
+  spread: 0.60,
+  last_clearing_price: 10.80,
+  volume_24h: 342,
+  bids: [
+    { price: 10.50, quantity: 45, agent: 'agent_14', role: 'Builder' },
+    { price: 10.30, quantity: 60, agent: 'agent_22', role: 'Crafter' },
+    { price: 10.00, quantity: 80, agent: 'agent_07', role: 'Generalist' },
+    { price: 9.75, quantity: 110, agent: 'agent_31', role: 'Medic' },
+    { price: 9.50, quantity: 150, agent: 'agent_48', role: 'Builder' }
+  ],
+  asks: [
+    { price: 11.10, quantity: 40, agent: 'agent_03', role: 'Farmer' },
+    { price: 11.30, quantity: 55, agent: 'agent_19', role: 'Farmer' },
+    { price: 11.60, quantity: 75, agent: 'agent_42', role: 'Trader' },
+    { price: 11.90, quantity: 90, agent: 'agent_08', role: 'Farmer' },
+    { price: 12.20, quantity: 130, agent: 'agent_55', role: 'Trader' }
+  ]
+};
+
+let economyState = {
+  gini_coefficient: calculateGini(agentWealths),
+  total_currency_circulation: 1280,
+  institutional_reserves: 340,
+  hhi_specialization: 0.218,
+  role_distribution: {
+    'Farmer': 18,
+    'Builder': 12,
+    'Crafter': 10,
+    'Trader': 8,
+    'Medic': 4,
+    'Generalist': 12
+  },
+  order_book: JSON.parse(JSON.stringify(INITIAL_ORDER_BOOK)),
+  living_manuals: [
+    {
+      situation_key: 'harvest_distribution',
+      author: 'founder_0',
+      generation: 1,
+      subscribers: 28,
+      confidence: 0.94,
+      rule_ref: 'rule_gather_crop_v2',
+      summary: 'Distribute 30% yield to local granary; hold 70% for Agora trade clearing.'
+    },
+    {
+      situation_key: 'winter_shelter_allocation',
+      author: 'agent_12',
+      generation: 2,
+      subscribers: 44,
+      confidence: 0.98,
+      rule_ref: 'rule_residential_rest_v1',
+      summary: 'Prioritize Ranch & Bungalow single-floor heating when temperature drops below 2°C.'
+    },
+    {
+      situation_key: 'double_auction_arbitrage',
+      author: 'agent_42',
+      generation: 3,
+      subscribers: 16,
+      confidence: 0.89,
+      rule_ref: 'rule_market_double_auction_v1',
+      summary: 'Maintain ask spread at <= 5% above moving average during high-volume ticks.'
+    }
+  ]
+};
+
+/**
+ * Continuous Double-Auction Order Book Clearance (Phase 1.3 Hayekian dynamic pricing).
+ * Matches crossing bids and asks (bid >= ask) at midpoint price and replenishes market depth.
+ */
+function clearOrderBook(steps) {
+  const ob = economyState.order_book;
+  if (!ob) return;
+
+  const isDrought = simState.drought.active;
+  const basePrice = isDrought ? 13.50 : 10.80;
+  const marketAgents = simulatedAgents.filter(a => a.action === 'AUCTION_BID');
+
+  // Dynamic price adjustment: drought scarcity increases grain bids
+  for (let b of ob.bids) {
+    if (isDrought) {
+      b.price = +(b.price + 0.08 * steps).toFixed(2);
+    } else if (b.price > 11.20) {
+      b.price = +(b.price - 0.05 * steps).toFixed(2);
+    }
+  }
+  for (let a of ob.asks) {
+    if (isDrought) {
+      a.price = +(a.price + 0.04 * steps).toFixed(2);
+    } else if (a.price > 11.60) {
+      a.price = +(a.price - 0.03 * steps).toFixed(2);
+    }
+  }
+
+  ob.bids.sort((a, b) => b.price - a.price);
+  ob.asks.sort((a, b) => a.price - b.price);
+
+  // Match crossing orders (bid >= ask)
+  while (ob.bids.length > 0 && ob.asks.length > 0 && ob.bids[0].price >= ob.asks[0].price) {
+    const bestBid = ob.bids[0];
+    const bestAsk = ob.asks[0];
+    const matchedQty = Math.min(bestBid.quantity, bestAsk.quantity);
+    const clearingPrice = +((bestBid.price + bestAsk.price) / 2.0).toFixed(2);
+
+    ob.last_clearing_price = clearingPrice;
+    ob.volume_24h = (ob.volume_24h || 0) + matchedQty;
+
+    bestBid.quantity -= matchedQty;
+    bestAsk.quantity -= matchedQty;
+
+    if (bestBid.quantity <= 0) ob.bids.shift();
+    if (bestAsk.quantity <= 0) ob.asks.shift();
+  }
+
+  // Replenish bids depth to at least 5
+  while (ob.bids.length < 5) {
+    const nextAgent = marketAgents.length > 0
+      ? marketAgents[Math.floor(Math.random() * marketAgents.length)].id
+      : `agent_${String(Math.floor(Math.random() * 64) + 1).padStart(2, '0')}`;
+    const lowestBid = ob.bids.length > 0 ? ob.bids[ob.bids.length - 1].price : (basePrice - 0.50);
+    const newPrice = +(Math.max(6.0, lowestBid - (0.15 + Math.random() * 0.30))).toFixed(2);
+    const newQty = Math.floor(30 + Math.random() * 90);
+    ob.bids.push({ price: newPrice, quantity: newQty, agent: nextAgent, role: 'Trader' });
+  }
+
+  // Replenish asks depth to at least 5
+  while (ob.asks.length < 5) {
+    const nextAgent = marketAgents.length > 0
+      ? marketAgents[Math.floor(Math.random() * marketAgents.length)].id
+      : `agent_${String(Math.floor(Math.random() * 64) + 1).padStart(2, '0')}`;
+    const highestAsk = ob.asks.length > 0 ? ob.asks[ob.asks.length - 1].price : (basePrice + 0.50);
+    const newPrice = +(highestAsk + (0.15 + Math.random() * 0.30)).toFixed(2);
+    const newQty = Math.floor(30 + Math.random() * 90);
+    ob.asks.push({ price: newPrice, quantity: newQty, agent: nextAgent, role: 'Farmer' });
+  }
+
+  ob.bids.sort((a, b) => b.price - a.price);
+  ob.asks.sort((a, b) => a.price - b.price);
+  if (ob.bids.length > 0 && ob.asks.length > 0) {
+    ob.spread = +(Math.max(0.01, ob.asks[0].price - ob.bids[0].price)).toFixed(2);
+  }
+}
+
 /**
  * Execute one atomic step of the deterministic Moore Machine simulation.
  */
@@ -666,77 +834,12 @@ function executeSimulationStep(steps) {
     simState.history.shift();
   }
 
+  // Dynamic double-auction order book matching & clearing
+  clearOrderBook(steps);
+
   // Update agent positions & Chebyshev homeostasis
   simAgentsStep(steps);
 }
-
-// ---------------------------------------------------------------------------
-// 3. Economy & Double-Auction Market State (Phase 1.3)
-// ---------------------------------------------------------------------------
-
-let economyState = {
-  gini_coefficient: calculateGini(agentWealths),
-  total_currency_circulation: 1280,
-  institutional_reserves: 340,
-  hhi_specialization: 0.218,
-  role_distribution: {
-    'Farmer': 18,
-    'Builder': 12,
-    'Crafter': 10,
-    'Trader': 8,
-    'Medic': 4,
-    'Generalist': 12
-  },
-  order_book: {
-    commodity: 'FOOD_GRAIN',
-    spread: 0.60,
-    last_clearing_price: 10.80,
-    volume_24h: 342,
-    bids: [
-      { price: 10.50, quantity: 45, agent: 'agent_14', role: 'Builder' },
-      { price: 10.30, quantity: 60, agent: 'agent_22', role: 'Crafter' },
-      { price: 10.00, quantity: 80, agent: 'agent_07', role: 'Generalist' },
-      { price: 9.75, quantity: 110, agent: 'agent_31', role: 'Medic' },
-      { price: 9.50, quantity: 150, agent: 'agent_48', role: 'Builder' }
-    ],
-    asks: [
-      { price: 11.10, quantity: 40, agent: 'agent_03', role: 'Farmer' },
-      { price: 11.30, quantity: 55, agent: 'agent_19', role: 'Farmer' },
-      { price: 11.60, quantity: 75, agent: 'agent_42', role: 'Trader' },
-      { price: 11.90, quantity: 90, agent: 'agent_08', role: 'Farmer' },
-      { price: 12.20, quantity: 130, agent: 'agent_55', role: 'Trader' }
-    ]
-  },
-  living_manuals: [
-    {
-      situation_key: 'harvest_distribution',
-      author: 'founder_0',
-      generation: 1,
-      subscribers: 28,
-      confidence: 0.94,
-      rule_ref: 'rule_gather_crop_v2',
-      summary: 'Distribute 30% yield to local granary; hold 70% for Agora trade clearing.'
-    },
-    {
-      situation_key: 'winter_shelter_allocation',
-      author: 'agent_12',
-      generation: 2,
-      subscribers: 44,
-      confidence: 0.98,
-      rule_ref: 'rule_residential_rest_v1',
-      summary: 'Prioritize Ranch & Bungalow single-floor heating when temperature drops below 2°C.'
-    },
-    {
-      situation_key: 'double_auction_arbitrage',
-      author: 'agent_42',
-      generation: 3,
-      subscribers: 16,
-      confidence: 0.89,
-      rule_ref: 'rule_market_double_auction_v1',
-      summary: 'Maintain ask spread at <= 5% above moving average during high-volume ticks.'
-    }
-  ]
-};
 
 // ---------------------------------------------------------------------------
 // 4. Verified Rule Library (Phase 1.5)
@@ -989,6 +1092,7 @@ app.get('/api/world/meta', (req, res) => {
 app.get(['/api/environment/state', '/api/sim/state'], (req, res) => {
   res.json({
     ...simState,
+    agents: simulatedAgents,
     autoplay: {
       active: autoplayActive,
       interval_ms: autoplayIntervalMs
@@ -998,7 +1102,8 @@ app.get(['/api/environment/state', '/api/sim/state'], (req, res) => {
 
 // Step Environment Simulation (Deterministic, returns updated agents immediately)
 app.post(['/api/environment/step', '/api/sim/step'], (req, res) => {
-  const steps = Math.min(Math.max(parseInt(req.body.steps || 1, 10), 1), 50);
+  const body = req.body || {};
+  const steps = Math.min(Math.max(parseInt(body.steps || 1, 10) || 1, 1), 50);
   executeSimulationStep(steps);
 
   res.json({
@@ -1009,6 +1114,7 @@ app.post(['/api/environment/step', '/api/sim/step'], (req, res) => {
     locations: simState.locations,
     communal_silo: simState.communal_silo,
     drought: simState.drought,
+    order_book: economyState.order_book,
     active_agents: simulatedAgents.length,
     agents: simulatedAgents
   });
@@ -1023,6 +1129,7 @@ app.post(['/api/environment/reset', '/api/sim/reset'], (req, res) => {
   }
   simState.tick = 0;
   simState.step_index = 0;
+  simState.running = false;
   simState.drought = {
     active: false,
     severity: 0.60,
@@ -1044,9 +1151,30 @@ app.post(['/api/environment/reset', '/api/sim/reset'], (req, res) => {
     market_square: { name: 'Agora Market', capacity: 150, agents: 24, food: 190, wood: 160, stone: 110, renewal_rate: 1.5 },
     west_farms: { name: 'West Farm Belt', capacity: 200, agents: 18, food: 620, wood: 80, stone: 45, renewal_rate: 4.5 }
   };
+  simState.invariants.last_checked_tick = 0;
   simState.history = [{ tick: 0, food: 700, wood: 650, stone: 500, gini: 0.281, communal_silo: 650 }];
+  simState.events = [
+    {
+      tick: 0,
+      timestamp: new Date().toISOString(),
+      type: 'SIM_RESET',
+      message: 'Simulation reset to genesis tick 0 with clean state.'
+    }
+  ];
+  economyState.order_book = JSON.parse(JSON.stringify(INITIAL_ORDER_BOOK));
+  agentWealths = generateAgentWealths();
+  economyState.gini_coefficient = calculateGini(agentWealths);
   simulatedAgents = initializeAgents();
-  res.json({ status: 'reset', tick: 0, agents: simulatedAgents });
+  res.json({
+    status: 'reset',
+    tick: 0,
+    step_index: 0,
+    drought: simState.drought,
+    communal_silo: simState.communal_silo,
+    locations: simState.locations,
+    order_book: economyState.order_book,
+    agents: simulatedAgents
+  });
 });
 
 // Autoplay Background Ticking API (Configurable interval e.g. 500ms - 2000ms)
@@ -1060,18 +1188,19 @@ app.get(['/api/environment/autoplay', '/api/sim/autoplay'], (req, res) => {
 });
 
 app.post(['/api/environment/autoplay', '/api/sim/autoplay'], (req, res) => {
-  const newInterval = req.body.interval_ms || req.body.interval;
+  const body = req.body || {};
+  const newInterval = body.interval_ms || body.interval;
   if (newInterval !== undefined) {
     autoplayIntervalMs = Math.max(100, Math.min(5000, parseInt(newInterval, 10) || 850));
   }
   
   let shouldBeActive = autoplayActive;
-  if (req.body.toggle) {
+  if (body.toggle) {
     shouldBeActive = !autoplayActive;
-  } else if (req.body.active !== undefined) {
-    shouldBeActive = Boolean(req.body.active);
-  } else if (req.body.enabled !== undefined) {
-    shouldBeActive = Boolean(req.body.enabled);
+  } else if (body.active !== undefined) {
+    shouldBeActive = Boolean(body.active);
+  } else if (body.enabled !== undefined) {
+    shouldBeActive = Boolean(body.enabled);
   } else if (newInterval !== undefined && !autoplayActive) {
     shouldBeActive = true;
   }
@@ -1113,36 +1242,40 @@ app.get(['/api/environment/drought', '/api/sim/drought'], (req, res) => {
 });
 
 app.post(['/api/environment/drought', '/api/sim/drought'], (req, res) => {
+  const body = req.body || {};
   let activate = true;
-  if (req.body.active !== undefined) {
-    activate = Boolean(req.body.active);
-  } else if (req.body.toggle) {
+  if (body.active !== undefined) {
+    activate = Boolean(body.active);
+  } else if (body.toggle) {
     activate = !simState.drought.active;
   }
 
-  const severity = req.body.severity !== undefined ? Math.max(0.1, Math.min(0.95, parseFloat(req.body.severity))) : 0.60;
+  const severity = body.severity !== undefined ? Math.max(0.1, Math.min(0.95, parseFloat(body.severity))) : 0.60;
 
   if (activate) {
+    const wasActive = simState.drought.active;
     simState.drought.active = true;
     simState.drought.severity = severity;
-    simState.drought.started_tick = simState.tick;
+    if (!wasActive) {
+      simState.drought.started_tick = simState.tick;
 
-    // Apply 60% resource scarcity shock across locations
-    const mult = 1.0 - severity; // 0.40 remaining for 0.60 shock
-    const locs = simState.locations;
-    for (const key of Object.keys(locs)) {
-      locs[key].food = Math.max(5, +(locs[key].food * mult).toFixed(1));
-      locs[key].renewal_rate = Math.max(0.2, +(locs[key].renewal_rate * mult).toFixed(2));
-    }
+      // Apply 60% resource scarcity shock across locations
+      const mult = 1.0 - severity; // 0.40 remaining for 0.60 shock
+      const locs = simState.locations;
+      for (const key of Object.keys(locs)) {
+        locs[key].food = Math.max(5, +(locs[key].food * mult).toFixed(1));
+        locs[key].renewal_rate = Math.max(0.2, +(locs[key].renewal_rate * mult).toFixed(2));
+      }
 
-    // Immediate household food stress across agent population to trigger emergency withdrawals
-    for (let a of simulatedAgents) {
-      a.homeostasis.food = Math.max(15, +(a.homeostasis.food * 0.70).toFixed(1));
-      // Immediate emergency redirection to communal granary silos
-      if (simState.communal_silo.food_reserve > 0) {
-        a.target = { x: 520, z: 620, label: 'Communal Granary Silo' };
-        a.action = 'WITHDRAW_INSTITUTION';
-        a.waypoints = generateWaypoints(a.position, a.target);
+      // Immediate household food stress across agent population to trigger emergency withdrawals
+      for (let a of simulatedAgents) {
+        a.homeostasis.food = Math.max(15, +(a.homeostasis.food * 0.70).toFixed(1));
+        // Immediate emergency redirection to communal granary silos
+        if (simState.communal_silo.food_reserve > 0) {
+          a.target = { x: 520, z: 620, label: 'Communal Granary Silo' };
+          a.action = 'WITHDRAW_INSTITUTION';
+          a.waypoints = generateWaypoints(a.position, a.target);
+        }
       }
     }
 
@@ -1172,6 +1305,16 @@ app.post(['/api/environment/drought', '/api/sim/drought'], (req, res) => {
     simState.locations.quarry.renewal_rate = 2.1;
     simState.locations.market_square.renewal_rate = 1.5;
     simState.locations.west_farms.renewal_rate = 4.5;
+
+    // Reset agents that were withdrawing from silos back to their primary vocational duties
+    for (let a of simulatedAgents) {
+      if (a.action === 'WITHDRAW_INSTITUTION') {
+        const roleInfo = ROLES.find(r => r.name === a.role) || ROLES[0];
+        a.target = { ...roleInfo.target };
+        a.action = roleInfo.action;
+        a.waypoints = generateWaypoints(a.position, a.target);
+      }
+    }
 
     const evt = {
       tick: simState.tick,
@@ -1204,6 +1347,15 @@ app.get('/api/agents/roster', (req, res) => {
     drought: simState.drought,
     agents: simulatedAgents
   });
+});
+
+// Single Agent Inspector Endpoint
+app.get('/api/agents/:id', (req, res) => {
+  const agent = simulatedAgents.find(a => a.id === req.params.id);
+  if (!agent) {
+    return res.status(404).json({ error: 'Agent not found', id: req.params.id });
+  }
+  res.json(agent);
 });
 
 // Economy & Double-Auction Market State
