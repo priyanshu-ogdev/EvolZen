@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11, <3.13"
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 's390x' and sys_platform == 'darwin' and extra != 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu'",
@@ -47,7 +47,7 @@ dependencies = [
     { name = "safetensors" },
     { name = "torch", version = "2.13.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-7-evolzen-gpu'" },
     { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f5/b5/1d3ed029ac71d3f2961346829a268da923698e9fd63f218f78841f216bfd/accelerate-1.15.0.tar.gz", hash = "sha256:5654f8c5eaa0d4fa68b33e287a97765da6849bf6d51dcac874e73fbbddfb6134", size = 422615, upload-time = "2026-09-09T13:04:49.078Z" }
@@ -411,7 +411,7 @@ name = "cffi"
 version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser", marker = "implementation_name != 'PyPy' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "pycparser", marker = "implementation_name != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9e/ef/008a1939e372c06329a3fce4279c02f328488f3526744906eeec3da7ad5f/cffi-2.1.1.tar.gz", hash = "sha256:dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be", size = 530807, upload-time = "2026-08-03T21:21:18.939Z" }
 wheels = [
@@ -540,7 +540,7 @@ name = "colorful"
 version = "0.5.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/82/31/109ef4bedeb32b4202e02ddb133162457adc4eb890a9ed9c05c9dd126ed0/colorful-0.5.8.tar.gz", hash = "sha256:bb16502b198be2f1c42ba3c52c703d5f651d826076817185f0294c1a549a7445", size = 209361, upload-time = "2025-10-29T11:53:21.663Z" }
 wheels = [
@@ -606,7 +606,7 @@ name = "cryptography"
 version = "50.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "platform_python_implementation != 'PyPy' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "cffi", marker = "platform_python_implementation != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9d/af/182eb91b0df3fe75c4d9f26fe70684569566745f6ba7e5c9c73a862c5252/cryptography-50.0.2.tar.gz", hash = "sha256:7b46165bb56eb4704e2eaaf86f3c940d19154535d9b0ca7d6d590b04060e00d5", size = 880623, upload-time = "2026-09-30T15:30:04.884Z" }
 wheels = [
@@ -827,43 +827,43 @@ wheels = [
 
 [package.optional-dependencies]
 cublas = [
-    { name = "nvidia-cublas", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-cuda-nvrtc", version = "13.0.88", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cublas", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cuda-nvrtc", version = "13.0.88", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 cudart = [
-    { name = "nvidia-cuda-runtime", version = "13.0.96", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cuda-runtime", version = "13.0.96", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 cufft = [
-    { name = "nvidia-cufft", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cufft", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 cufile = [
-    { name = "nvidia-cufile", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cufile", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 cupti = [
-    { name = "nvidia-cuda-cupti", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cuda-cupti", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 curand = [
-    { name = "nvidia-curand", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-curand", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 cusolver = [
-    { name = "nvidia-cublas", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-cusolver", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-cusparse", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cublas", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cusolver", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cusparse", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 cusparse = [
-    { name = "nvidia-cusparse", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cusparse", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 nvjitlink = [
-    { name = "nvidia-nvjitlink", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 nvrtc = [
-    { name = "nvidia-cuda-nvrtc", version = "13.0.88", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cuda-nvrtc", version = "13.0.88", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 nvtx = [
-    { name = "nvidia-nvtx", marker = "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'aarch64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'linux' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvtx", marker = "(platform_machine == 'aarch64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 
 [[package]]
@@ -1632,8 +1632,8 @@ name = "httpcore2"
 version = "2.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11", marker = "sys_platform != 'emscripten' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "truststore", marker = "sys_platform != 'emscripten' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "h11" },
+    { name = "truststore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c0/61/afa9d6b7452f9eca73f73d45324eb0bb52f098fd5e6049bf6b8263be9b4e/httpcore2-2.16.0.tar.gz", hash = "sha256:c72cd0413563b17e1cd8354677dff887466f8ec2551679759e93126534428643", size = 69886, upload-time = "2026-10-21T07:09:45.31Z" }
 wheels = [
@@ -1694,11 +1694,11 @@ name = "httpx2"
 version = "2.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "anyio", marker = "sys_platform != 'emscripten' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "httpcore2", marker = "sys_platform != 'emscripten' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "httpx2-jsfetch", marker = "(python_full_version >= '3.12' and sys_platform == 'emscripten') or (python_full_version < '3.12' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "anyio", marker = "sys_platform != 'emscripten'" },
+    { name = "httpcore2", marker = "sys_platform != 'emscripten'" },
+    { name = "httpx2-jsfetch", marker = "python_full_version >= '3.12' and sys_platform == 'emscripten'" },
     { name = "idna" },
-    { name = "truststore", marker = "sys_platform != 'emscripten' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "truststore", marker = "sys_platform != 'emscripten'" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/43/73/5ca2cedf5e4e50423d1c258877865a6b62793633b561c58499f8aeb33b7e/httpx2-2.16.0.tar.gz", hash = "sha256:0d54c98128e8f2ff7fbbde0fca8c359e5f032edeaaaac443cdb7f31f685bcd7f", size = 103116, upload-time = "2026-10-21T07:09:46.348Z" }
@@ -1723,7 +1723,7 @@ dependencies = [
     { name = "click" },
     { name = "filelock" },
     { name = "fsspec" },
-    { name = "hf-xet", marker = "platform_machine == 'AMD64' or platform_machine == 'ARM64' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "hf-xet", marker = "platform_machine == 'AMD64' or platform_machine == 'ARM64' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'" },
     { name = "httpx2" },
     { name = "packaging" },
     { name = "pyyaml" },
@@ -2128,8 +2128,8 @@ name = "loguru"
 version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "win32-setctime", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "win32-setctime", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559, upload-time = "2024-12-06T11:20:56.608Z" }
 wheels = [
@@ -2281,7 +2281,7 @@ version = "1.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "ghp-import" },
     { name = "jinja2" },
     { name = "markdown" },
@@ -2573,7 +2573,7 @@ version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ast-serialize" },
-    { name = "librt", marker = "platform_python_implementation != 'PyPy' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "librt", marker = "platform_python_implementation != 'PyPy'" },
     { name = "mypy-extensions" },
     { name = "pathspec" },
     { name = "typing-extensions" },
@@ -2969,7 +2969,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.10.2.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'win32' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cublas-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
@@ -3025,7 +3025,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'win32' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1f/37/c50d2b2f2c07e146776389e3080f4faf70bcc4fa6e19d65bb54ca174ebc3/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d16079550df460376455cba121db6564089176d9bac9e4f360493ca4741b22a6", size = 200164144, upload-time = "2024-11-20T17:40:58.288Z" },
@@ -3095,9 +3095,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'win32' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-cusparse-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'win32' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'win32' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cublas-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-cusparse-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/93/17/dbe1aa865e4fdc7b6d4d0dd308fdd5aaab60f939abfc0ea1954eac4fb113/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:0ce237ef60acde1efc457335a2ddadfd7610b892d94efee7b776c64bb1cac9e0", size = 157833628, upload-time = "2024-10-01T17:05:05.591Z" },
@@ -3125,7 +3125,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'emscripten' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'win32' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/eb/6681efd0aa7df96b4f8067b3ce7246833dd36830bb4cec8896182773db7d/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d25b62fb18751758fe3c93a4a08eff08effedfe4edf1c6bb5afd0890fe88f887", size = 216451147, upload-time = "2024-11-20T17:44:18.055Z" },
@@ -3679,7 +3679,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "python-dateutil" },
-    { name = "tzdata", marker = "sys_platform == 'emscripten' or sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "tzdata", marker = "sys_platform == 'emscripten' or sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/55/b1/a10c0d1a7e3ce44eb42635771004aa503e3b9ddde0bd39c524dda65f7eff/pandas-3.1.0.tar.gz", hash = "sha256:ecb9b2d8a817b1e1ba1fdb90c0abe9eab31b4fdf2562b7a56b86ac66ace17e49", size = 5933421, upload-time = "2026-10-22T11:57:03.087Z" }
 wheels = [
@@ -3734,7 +3734,7 @@ dependencies = [
     { name = "safetensors" },
     { name = "torch", version = "2.13.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-7-evolzen-gpu'" },
     { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "tqdm" },
     { name = "transformers" },
@@ -4272,7 +4272,7 @@ name = "pytest"
 version = "9.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "iniconfig" },
     { name = "packaging" },
     { name = "pluggy" },
@@ -4711,27 +4711,27 @@ wheels = [
 
 [[package]]
 name = "ruff"
-version = "0.17.2"
+version = "0.17.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ae/58/690cf56da80c8f2c8bf12042b6017beac2c34fe961f65420bcb3fb7fac38/ruff-0.17.2.tar.gz", hash = "sha256:84d632402d14c23b488f941db23712d6736a013225162062d34558c3f3c780eb", size = 5333400, upload-time = "2026-10-22T18:38:00.181Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/0e/3d154514b5bad104f7e1c13169c2d09aa9959fccdc06eb47610ccdfa83ed/ruff-0.17.4.tar.gz", hash = "sha256:f32d178b50e826e00f6c6c1be3f56333068acb9b67fe167143527fa9b81e890d", size = 5357750, upload-time = "2026-11-05T18:52:17.638Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/98/b8/8b6d69c57e8fe1cc6af1aa7493b72a1a5b5a8afe34694e302025441729d4/ruff-0.17.2-py3-none-linux_armv6l.whl", hash = "sha256:96a65e755d8dba094707fb23ab602111d9a31ec2835b3a6992a1914a8fcb211e", size = 10183857, upload-time = "2026-10-22T18:37:14.956Z" },
-    { url = "https://files.pythonhosted.org/packages/e8/61/12cc2ff7b2fa90a268ce1e2162c23aaf76e601d22623f6a31b0eeaa764b0/ruff-0.17.2-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:39c5b55c960515cdb32be16e69efb5734c589c06a0eb38a22694524a336b889d", size = 10210904, upload-time = "2026-10-22T18:37:17.985Z" },
-    { url = "https://files.pythonhosted.org/packages/e8/7c/b8850a8e4ad29f64a827dd6c6902db4a9aa538fb2b9eef4e26084001a3bb/ruff-0.17.2-py3-none-macosx_11_0_arm64.whl", hash = "sha256:92a80d2f44584dabb0189b3a6c393e37e525e04942838482010575cb81945be7", size = 9408439, upload-time = "2026-10-22T18:37:20.964Z" },
-    { url = "https://files.pythonhosted.org/packages/b7/b6/6a64fae86ca5e5e29d5adc311e5481de726cedf9aee607435a16c31c442a/ruff-0.17.2-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b7d0906677d89bbf3cf73cde64b5bbe2ab35df3ae43e49ee2627301e91265bac", size = 10047078, upload-time = "2026-10-22T18:37:23.717Z" },
-    { url = "https://files.pythonhosted.org/packages/10/19/23d376547715175aa1bd46df48df6aacc7c6439d9daf19cac15975180aa5/ruff-0.17.2-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7cfd783590edf2b77317882631900f6a13ea2e8eacefe6ebf2370d2715299160", size = 9990478, upload-time = "2026-10-22T18:37:26.584Z" },
-    { url = "https://files.pythonhosted.org/packages/93/6c/34cda32cbe13adac5c6b291a307a5570d8ebd37c0c86339f0fe628e55632/ruff-0.17.2-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:122258f6ecde0e0dd1bb60b24263c3edde4338caf723fca711cc729f9bfd414a", size = 10673624, upload-time = "2026-10-22T18:37:29.767Z" },
-    { url = "https://files.pythonhosted.org/packages/bf/10/5d762a4dbc851d8bb47863cf3a28a61bf31c804d393b70d891fac899f5d1/ruff-0.17.2-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:7f8fba429d6ac4128ab29cfb8fa6240d2fa671d04adf7f84d3b22fc7b6b6bea4", size = 11351797, upload-time = "2026-10-22T18:37:32.535Z" },
-    { url = "https://files.pythonhosted.org/packages/3f/04/a0e92a81faf5c81c1c98d4374c8401734ccf2b8cca7d0170cb0fec08c6e2/ruff-0.17.2-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:583bd67bb9e7061dd09bc46a0a884bae2bbd214dbcd48e509813612619683869", size = 10949414, upload-time = "2026-10-22T18:37:35.501Z" },
-    { url = "https://files.pythonhosted.org/packages/c3/d8/59894cf630d2d86882457a2a6a0a1533410c5c805bfbac6f6eb4b5aef69d/ruff-0.17.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c60f93fec7142dba5b8f487f94bf2f6231dae24dc11e4c48648347c8b0720004", size = 10528000, upload-time = "2026-10-22T18:37:37.88Z" },
-    { url = "https://files.pythonhosted.org/packages/ab/95/d6e30c51e851d37e10762ad91fa1e76ddaad998589b5667962a3cfbc9edd/ruff-0.17.2-py3-none-manylinux_2_31_riscv64.whl", hash = "sha256:c555a877f8f41447e318101cfefea9bf12dfa9f82eedf90c376e57e069f917d0", size = 10571779, upload-time = "2026-10-22T18:37:40.444Z" },
-    { url = "https://files.pythonhosted.org/packages/f4/5a/a7e1d74fb464250137d3d4eca645d323536533b672004d04ee0e46e0caf3/ruff-0.17.2-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:ba405cbd5ec7bda1f555d5e52be1fd68d02608d4d95d24591bdac92cfacb579f", size = 10051707, upload-time = "2026-10-22T18:37:42.812Z" },
-    { url = "https://files.pythonhosted.org/packages/6e/f2/02fca29ca7999380f0350a7212fe755c11ab9c22d61327356cce8decdbc6/ruff-0.17.2-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:8c21b4ab24485358f17291a4f8dc5399b834e963b8efedd920fe4fdb02081bb4", size = 9998227, upload-time = "2026-10-22T18:37:45.224Z" },
-    { url = "https://files.pythonhosted.org/packages/d1/00/55aa604a093dfdc1526e570fae0bb7d37a2221c7b4728d5f080b2add16ba/ruff-0.17.2-py3-none-musllinux_1_2_i686.whl", hash = "sha256:5875a16b0de70b43cb81eabea5ae5e8f5d1b2fd1b5e6ed07f80cfe5019d0bd5a", size = 10377692, upload-time = "2026-10-22T18:37:47.704Z" },
-    { url = "https://files.pythonhosted.org/packages/e4/5a/a7a640f47bb906ec8fa233ea84319d503e6dee02b59e3901bd312ebd1f9b/ruff-0.17.2-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:2d086be452eed686aa51271ecf2cbe5037956517cc6ee39a17b4489ac12f8bbe", size = 10790587, upload-time = "2026-10-22T18:37:50.191Z" },
-    { url = "https://files.pythonhosted.org/packages/2c/d4/c3b74e1b4808438ea7f14bb914478025e2d51261f60774a54a0fa222ec46/ruff-0.17.2-py3-none-win32.whl", hash = "sha256:6bce7d1f5165701ae18f5df85c65afe78cddfa6c5fb4b9bdb0014d60388f3edd", size = 9870537, upload-time = "2026-10-22T18:37:52.486Z" },
-    { url = "https://files.pythonhosted.org/packages/1c/9a/c7da96c2c96d20704cf9027f7a5121da272a8c05f1d1531ba949e3b3df04/ruff-0.17.2-py3-none-win_amd64.whl", hash = "sha256:1b59d447f197bef9ef48a22ba1a6016137753c6099e9bac9c36eb566e422424c", size = 10282826, upload-time = "2026-10-22T18:37:55.2Z" },
-    { url = "https://files.pythonhosted.org/packages/81/60/a3604c79cb02777b6cb84da894104021986f06c4bc41375102cc95049a32/ruff-0.17.2-py3-none-win_arm64.whl", hash = "sha256:195ad918027f817c119310ca89a42d347887dfc28934aaa869325e9c5dc9d962", size = 9827036, upload-time = "2026-10-22T18:37:58.031Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/61/c83c78bbb6108f6c6270a106cf12b54175f4f42da088b9bb880f18e31289/ruff-0.17.4-py3-none-linux_armv6l.whl", hash = "sha256:2b08c4ff98dc234f4a3871a3105353b922fa875ea1073ca31001eb8c06bb4d89", size = 10252195, upload-time = "2026-11-05T18:51:36.594Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/12/dd158708378866e8b53e145a465dbc51a7cccb9fa197a74d67eaedde7234/ruff-0.17.4-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:13e781c3c5f663e7fba737eaaeb70dd943dd55171daf316afb25cd5268cfe0c7", size = 10266044, upload-time = "2026-11-05T18:51:39.502Z" },
+    { url = "https://files.pythonhosted.org/packages/28/32/89a94a8eb11fd505a381ae6f04e190d038d9958695209dc1786ce5cfcda3/ruff-0.17.4-py3-none-macosx_11_0_arm64.whl", hash = "sha256:7ed2f416349944f908f9574215994602242b0836844eba48eec61473033afca0", size = 9432227, upload-time = "2026-11-05T18:51:41.968Z" },
+    { url = "https://files.pythonhosted.org/packages/58/de/a392dc38b215798ae72e639d228b7f6c02d826a95d1c0ad7c4c0ee49ef5b/ruff-0.17.4-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8ea6e0017c785f7282092b11e46338e4ebed1b9e575ebf2e55a8a1eda968241a", size = 10136900, upload-time = "2026-11-05T18:51:44.562Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/8f/a880f60f42005f6ffdf58f77af34c7ee327000b5607f48a2f6a69d8b242c/ruff-0.17.4-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7e061dcc0933c7031a616ac8d66ac540309b2aa21ab558101a8f53e9ac7a1185", size = 10051245, upload-time = "2026-11-05T18:51:46.7Z" },
+    { url = "https://files.pythonhosted.org/packages/09/55/98844264108af7d5ec27ca3a9cd5a989094ca657a14599c4b69a537a0e9a/ruff-0.17.4-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f99e95a1515161138be3cbd1b06c06e739d8feb38ade35564556999fffc3686e", size = 10704341, upload-time = "2026-11-05T18:51:49.228Z" },
+    { url = "https://files.pythonhosted.org/packages/28/a2/5edf97659c3ac7c73f978003bd314936f671037fdac6b978e9de3e4b2b65/ruff-0.17.4-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:5f28cf0dd37cb172fa5a8d2e92e6ada3a9dbd0609f094ed24039929eef0b7524", size = 11394465, upload-time = "2026-11-05T18:51:51.534Z" },
+    { url = "https://files.pythonhosted.org/packages/f2/8f/51371ae856b2bef4d15a044a574695fbc0f6ae63aafa42a2a22428070fb6/ruff-0.17.4-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:6b21c771b296888e8a35c6f48555f4b44e4483f61675d6ed51810a5203469ce6", size = 10988262, upload-time = "2026-11-05T18:51:53.91Z" },
+    { url = "https://files.pythonhosted.org/packages/af/1b/62874f14c7873f27c7887d2b1ea41de990e14ba9518801ffe8eacb5d51a6/ruff-0.17.4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2cd025509b2e15721b426fc70fd946d71f43b3db3b08e946dfec2d696d911690", size = 10572829, upload-time = "2026-11-05T18:51:56.129Z" },
+    { url = "https://files.pythonhosted.org/packages/98/30/860b9dae67432b16b88558a9cb2d3194825fa62838f8b9cc49f5d9022095/ruff-0.17.4-py3-none-manylinux_2_31_riscv64.whl", hash = "sha256:49b77f7b3921669466882a4881168801bdb06ec2cd83fb936049016cf5fdece1", size = 10617545, upload-time = "2026-11-05T18:51:58.172Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/08/781a4b41a1c83fd6e30fea610d6502a6f94e49cf94693fd37bdcbc6bfe11/ruff-0.17.4-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:e3b84eb74f260d1c2dbd236fd9d4c011d4fdd0a52bdf8aea57a10e3a1b71fca5", size = 10111955, upload-time = "2026-11-05T18:52:00.59Z" },
+    { url = "https://files.pythonhosted.org/packages/3c/e9/94b1c7b677120f30839254518924f73a8157e9bcfa200edcd5796fecdb99/ruff-0.17.4-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:20e43d7a08e712e33067ba887e6574546c79bd4831596ce8f16803ac7ff9ad90", size = 10058355, upload-time = "2026-11-05T18:52:03.61Z" },
+    { url = "https://files.pythonhosted.org/packages/27/5f/a825910b9f309336dc33cb8c0774126662c1d2f765699b3e0a1bd538d01f/ruff-0.17.4-py3-none-musllinux_1_2_i686.whl", hash = "sha256:0d1f4848fd2ec0499be4046db9b7dfcc952666885f00233cc7033515282556a8", size = 10415932, upload-time = "2026-11-05T18:52:06.264Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/b8/0796468423413ea4df1a6e2442ae26cf49b8f7dda0eecf246e0d5d0dde54/ruff-0.17.4-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:6007e7f3a0e55b0fbdb947af69cf24c21b4928df6be8ef3e767c69b5ccccf496", size = 10826033, upload-time = "2026-11-05T18:52:08.675Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/ab/d8e407669ffe5014429baf780c2df47e001968a6e4c17f615e2e7b13a9ba/ruff-0.17.4-py3-none-win32.whl", hash = "sha256:3971a78cba76298b284c8321e6d40d93045ed348bec5c369d85099efc97fb7cf", size = 9931993, upload-time = "2026-11-05T18:52:11.169Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/15/42af8a72d8946e3c9efd2bbf6641e462b6832783b0d043d63ef5b280ba7f/ruff-0.17.4-py3-none-win_amd64.whl", hash = "sha256:67c5a894fc054cf41f75f7afa24815de5a74329d97634126c2a1015740ff4e8c", size = 10292922, upload-time = "2026-11-05T18:52:13.436Z" },
+    { url = "https://files.pythonhosted.org/packages/68/9e/f1dbffcfb8ff25dadbc21f87a8b73c3848abe4abada9d4b08ccef8bec40c/ruff-0.17.4-py3-none-win_arm64.whl", hash = "sha256:181ae38a9a8fb94925bf7d0794327b48d7fd7f4b50cfd84c0e999cc09ef8d131", size = 9889396, upload-time = "2026-11-05T18:52:15.549Z" },
 ]
 
 [[package]]
@@ -4766,8 +4766,8 @@ dependencies = [
     { name = "joblib" },
     { name = "narwhals" },
     { name = "numpy" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "threadpoolctl" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d2/eb/eaf5e07fcc0da7149b0e084f24e54edd7441b9a89ce7e034032ae97fe3a0/scikit_learn-1.9.1.tar.gz", hash = "sha256:629cada3e33e2b9bf376cdc7614a47a4140b8aedc1d836579e359736fbd82977", size = 7786908, upload-time = "2026-09-10T18:34:04.679Z" }
@@ -4804,7 +4804,7 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu'",
 ]
 dependencies = [
-    { name = "numpy", marker = "python_full_version < '3.12' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "numpy" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7a/97/5a3609c4f8d58b039179648e62dd220f89864f56f7357f5d4f45c29eb2cc/scipy-1.17.1.tar.gz", hash = "sha256:95d8e012d8cb8816c226aef832200b1d45109ed4464303e997c5b13122b297c0", size = 30573822, upload-time = "2026-02-23T00:26:24.851Z" }
 wheels = [
@@ -4852,7 +4852,7 @@ resolution-markers = [
     "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu'",
 ]
 dependencies = [
-    { name = "numpy", marker = "python_full_version >= '3.12' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "numpy" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7e/74/66de6258867beb2ef08f35f9f2ac017a52cacd5081714d239ff1a442d458/scipy-1.18.1.tar.gz", hash = "sha256:52c4b7422442aba924d03ad4019852b08a92e64ea187b933135687bfe2747307", size = 30781235, upload-time = "2026-08-21T23:28:50.599Z" }
 wheels = [
@@ -4876,12 +4876,12 @@ dependencies = [
     { name = "huggingface-hub" },
     { name = "numpy" },
     { name = "scikit-learn" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "tokenizers" },
     { name = "torch", version = "2.13.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-7-evolzen-gpu'" },
     { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
+    { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "tqdm" },
     { name = "transformers" },
@@ -5244,8 +5244,8 @@ dependencies = [
     { name = "filelock", marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "fsspec", marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "jinja2", marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (python_full_version >= '3.12' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (python_full_version < '3.12' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "setuptools", marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "sympy", marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "typing-extensions", marker = "(sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
@@ -5270,19 +5270,19 @@ resolution-markers = [
 dependencies = [
     { name = "cuda-bindings", version = "13.4.4", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "cuda-toolkit", version = "13.0.3.0", source = { registry = "https://pypi.org/simple" }, extra = ["cublas", "cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "filelock", marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
-    { name = "fsspec", marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
-    { name = "jinja2", marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
+    { name = "filelock", marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "fsspec", marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "jinja2", marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "nvidia-cudnn-cu13", marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "nvidia-cusparselt-cu13", marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "nvidia-nccl-cu13", marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "nvidia-nvshmem-cu13", marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "setuptools", marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
-    { name = "sympy", marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
+    { name = "setuptools", marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "sympy", marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "triton", version = "3.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "typing-extensions", marker = "(extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu')" },
+    { name = "typing-extensions", marker = "(extra != 'extra-7-evolzen-cpu' and extra != 'extra-7-evolzen-gpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/9b/fd1cd143a7bda5abc1fc352ed7b431f6f52aa3c454293211a33656db2cb5/torch-2.14.1-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:b6074b130fd26bc50f5d171f07dfed70db22dd0c354ab34767729249f9e0f042", size = 127281154, upload-time = "2026-09-30T17:43:58.328Z" },
@@ -5311,8 +5311,8 @@ dependencies = [
     { name = "filelock", marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "fsspec", marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "jinja2", marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (python_full_version >= '3.12' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (python_full_version < '3.12' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu') or (sys_platform == 'darwin' and extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "setuptools", marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "sympy", marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
     { name = "typing-extensions", marker = "(sys_platform != 'darwin' and extra == 'extra-7-evolzen-cpu') or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
@@ -5404,7 +5404,7 @@ name = "tqdm"
 version = "4.70.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0d/ea/b2a5bd54b28a324dae8211928b2d730b6547500342c7e6c6dea08bd0a485/tqdm-4.70.1.tar.gz", hash = "sha256:cefd0eca11b2a37a3aee776544d4f4ae913f02688135b5556b8788dfa474afc4", size = 171846, upload-time = "2026-09-11T07:25:16.601Z" }
 wheels = [
@@ -5508,7 +5508,7 @@ version = "0.27.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-7-evolzen-cpu' and extra == 'extra-7-evolzen-gpu')" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "rich" },
     { name = "shellingham" },
 ]
