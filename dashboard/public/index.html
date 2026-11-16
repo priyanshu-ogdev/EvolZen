@@ -105,53 +105,68 @@
       <button id="btnTourAuto" class="px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-600/50 flex items-center gap-1 transition-all font-mono" title="Toggle Auto-Play Walkthrough">
         <span id="tourAutoIcon">⚡</span> <span id="tourAutoText">Auto Tour</span>
       </button>
+      <button id="btnSpectateMode" class="btn-tactile-spectate btn-spectate px-3 py-1 rounded-lg text-rose-300 flex items-center gap-1.5 transition-all font-mono font-bold shadow-md cursor-pointer" title="Toggle Cinematic Multi-Role Spectator Mode (Shortcut: C)">
+        <span class="rec-dot-indicator"></span>
+        <span id="spectateIcon">🎬</span> <span id="spectateText">SPECTATE</span>
+      </button>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- Main Header & Unified Simulation Cockpit Controls                         -->
+  <!-- Main Header & Unified Simulation Cockpit Controls (Rock-Solid Locked Grid)-->
   <!-- ========================================================================= -->
-  <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+  <header class="header-locked-bar border-b border-slate-800/90 bg-slate-950/95 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-6 py-2.5">
+    <div class="w-full max-w-[1720px] mx-auto flex items-center justify-between gap-4 flex-nowrap overflow-x-auto no-scrollbar">
       
-      <!-- Brand & Project Identity -->
-      <div class="flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0">
-          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-mono font-black text-cyan-400 text-lg">
+      <!-- Brand & Precision Aerospace Identity -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 via-indigo-600 to-purple-600 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0">
+          <div class="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center font-mono font-black text-cyan-400 text-base">
             EZ
           </div>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-lg font-extrabold tracking-tight text-white font-mono flex items-center gap-2">
-              EVOLZEN <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-sans tracking-wider uppercase font-semibold">PARALLEL UNIVERSE 2.0</span>
+            <h1 class="text-base font-extrabold tracking-tight text-white font-mono flex items-center gap-2 whitespace-nowrap">
+              EVOLZEN <span class="text-slate-600 font-light">//</span> <span class="text-cyan-400 font-mono tracking-wide text-xs sm:text-sm font-bold">1×1 KM AUTONOMOUS AGENT SUBSTRATE</span>
             </h1>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">1×1 km Strict-Voxel Substrate & Multi-Agent Infrastructure Demonstration</p>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span class="hairline-badge badge-cyan">
+              <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              PARALLEL UNIVERSE 2.0
+            </span>
+            <span class="hairline-badge">
+              DETERMINISTIC MOORE
+            </span>
+            <span class="hairline-badge badge-emerald hidden lg:inline-flex">
+              340M VOXELS
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Live Simulation Tick Controls, Speed Controls & Drought Shock (Skeuomorphic & Neumorphic Deck) -->
-      <div class="flex flex-wrap items-center gap-3 neu-panel px-4 py-2.5 shadow-xl">
+      <!-- Live Simulation Tick Controls, Speed Controls & Drought Shock (Locked Deck) -->
+      <div class="flex items-center gap-2.5 neu-panel px-3.5 py-2 shadow-xl shrink-0">
         
         <!-- Live Clock with Skeuomorphic Dome LED -->
-        <div class="flex items-center gap-2.5 pr-3 border-r border-slate-700/60">
+        <div class="flex items-center gap-2 pr-2.5 border-r border-slate-700/60">
           <div class="flex items-center gap-1.5">
             <span class="skeuo-led skeuo-led-green led-pulse" title="Simulation Engine Clock Active"></span>
             <span class="text-[10px] uppercase tracking-wider text-slate-400 font-mono font-bold">CLOCK</span>
           </div>
-          <div class="neu-lcd px-2.5 py-1 rounded text-xs font-mono font-bold">
+          <div class="neu-lcd px-2.5 py-1 rounded text-xs font-mono font-bold min-w-[85px] text-center">
             <span id="currentTickBadge">TICK #142</span>
           </div>
         </div>
 
         <!-- Play/Pause & Speed Buttons -->
-        <div class="flex items-center gap-2" role="toolbar" aria-label="Simulation Controls">
-          <button id="btnPlayPause" class="btn-tactile btn-tactile-cyan px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 active" title="Toggle Simulation Play/Pause (Shortcut: Space)">
+        <div class="flex items-center gap-1.5" role="toolbar" aria-label="Simulation Controls">
+          <button id="btnPlayPause" class="btn-tactile btn-tactile-cyan px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 active" title="Toggle Simulation Play/Pause (Shortcut: Space)">
             <span id="playIcon">⏸</span> <span id="playText">PAUSE</span>
           </button>
           
-          <!-- Speed selectors (0.5x, 1x, 2x, 5x, 10x) -->
+          <!-- Speed selectors (0.5x, 1x, 2x, 5x) -->
           <div class="neu-speed-group" role="group" aria-label="Playback Speed">
             <button id="btnSpeed05x" class="neu-speed-btn" data-speed="0.5" title="0.5x Cinematic Speed (1600ms)">0.5x</button>
             <button id="btnSpeed1x" class="neu-speed-btn active" data-speed="1" title="1x Observable Pace (850ms)">1x</button>
@@ -160,53 +175,53 @@
           </div>
 
           <!-- Manual Steppers -->
-          <button id="btnStep1" class="btn-tactile px-2.5 py-1.5 text-xs font-mono" title="Advance 1 Tick (Shortcut: +)">+1</button>
-          <button id="btnStep5" class="btn-tactile px-2.5 py-1.5 text-xs font-mono" title="Advance 5 Ticks">+5</button>
-          <button id="btnStep25" class="btn-tactile px-2.5 py-1.5 text-xs font-mono" title="Advance 25 Ticks">+25</button>
-          <button id="btnReset" class="btn-tactile px-2.5 py-1.5 text-xs text-rose-300 font-mono hover:text-rose-200" title="Reset World Simulation">RESET</button>
+          <button id="btnStep1" class="btn-tactile px-2 py-1.5 text-xs font-mono" title="Advance 1 Tick (Shortcut: +)">+1</button>
+          <button id="btnStep5" class="btn-tactile px-2 py-1.5 text-xs font-mono" title="Advance 5 Ticks">+5</button>
+          <button id="btnStep25" class="btn-tactile px-2 py-1.5 text-xs font-mono" title="Advance 25 Ticks">+25</button>
+          <button id="btnReset" class="btn-tactile px-2 py-1.5 text-xs text-rose-300 font-mono hover:text-rose-200" title="Reset World Simulation">RESET</button>
           
           <!-- Trigger Drought Shock with Amber LED -->
-          <button id="btnDrought" class="btn-tactile btn-tactile-amber px-3 py-1.5 text-xs font-mono font-bold flex items-center gap-2 shadow-lg" title="Trigger 60% Scarcity Shock across West Farms & Sectors">
+          <button id="btnDrought" class="btn-tactile btn-tactile-amber px-2.5 py-1.5 text-xs font-mono font-bold flex items-center gap-1.5 shadow-lg" title="Trigger 60% Scarcity Shock across West Farms & Sectors">
             <span class="skeuo-led skeuo-led-amber"></span>
             <span id="btnTriggerDrought" class="flex items-center gap-1">
               <span id="droughtIcon">⚡</span>
-              <span id="droughtText" class="hidden sm:inline">DROUGHT SHOCK</span>
+              <span id="droughtText" class="hidden sm:inline">DROUGHT</span>
             </span>
           </button>
         </div>
       </div>
 
       <!-- Quick Subsystem Status Indicators, Invariant, Gini, Citizens Census & Staged LLM Plaque -->
-      <div class="flex items-center gap-2.5 text-xs font-mono flex-wrap justify-end">
+      <div class="flex items-center gap-2 text-xs font-mono shrink-0 justify-end">
         
         <!-- Invariant Badge 100% Exact Match -->
-        <span id="invariantBadge" class="neu-badge px-3 py-1.5 rounded-lg text-emerald-300 flex items-center gap-2 shadow" title="Conservation Invariants: 100% Exact-Match Verified">
+        <span id="invariantBadge" class="neu-badge px-2.5 py-1.5 rounded-lg text-emerald-300 flex items-center gap-1.5 shadow whitespace-nowrap" title="Conservation Invariants: 100% Exact-Match Verified">
           <span class="skeuo-led skeuo-led-cyan"></span>
           <span>INVARIANTS: <strong class="text-emerald-400">100%</strong></span>
         </span>
 
         <!-- Gini Badge -->
-        <span class="neu-badge px-3 py-1.5 rounded-lg text-slate-300 flex items-center gap-2 shadow" title="Wealth Gini Coefficient">
+        <span class="neu-badge px-2.5 py-1.5 rounded-lg text-slate-300 flex items-center gap-1.5 shadow whitespace-nowrap" title="Wealth Gini Coefficient">
           <span class="skeuo-led skeuo-led-amber"></span>
-          <span>GINI: <strong class="text-amber-400 font-bold" id="badgeGini">0.284</strong></span>
+          <span>GINI: <strong class="text-amber-400 font-bold tabular-nums" id="badgeGini">0.284</strong></span>
         </span>
 
         <!-- Citizens (64) Census Drawer Button -->
-        <button id="btnOpenCensus" class="btn-tactile px-3 py-1.5 rounded-lg text-cyan-300 flex items-center gap-1.5 shadow" title="View Full Population Census & Live Roster (64 Citizens)">
+        <button id="btnOpenCensus" class="btn-tactile px-2.5 py-1.5 rounded-lg text-cyan-300 flex items-center gap-1.5 shadow whitespace-nowrap" title="View Full Population Census & Live Roster (64 Citizens)">
           <span>👥</span> <span class="font-bold">CITIZENS (64)</span>
         </button>
 
         <!-- Staged LLM Route Hazard Plaque (Hazard Stripes + Warning Stencil) -->
-        <span id="hazardLlmBadge" class="staged-llm-badge-skeuo px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 shadow-lg cursor-help border border-amber-500" title="Cognitive Route Decoupled: Zero Runtime Neural LLM Inference by Architectural Invariant">
+        <span id="hazardLlmBadge" class="staged-llm-badge-skeuo px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 shadow-lg cursor-help border border-amber-500 whitespace-nowrap" title="Cognitive Route Decoupled: Zero Runtime Neural LLM Inference by Architectural Invariant">
           <span class="skeuo-led skeuo-led-amber led-pulse"></span>
           <svg class="w-3.5 h-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-          <span class="hidden sm:inline">LLM: STAGED / ZERO INFERENCE</span>
-          <span class="sm:hidden">LLM: STAGED</span>
+          <span class="hidden 2xl:inline">LLM: STAGED / ZERO INFERENCE</span>
+          <span class="2xl:hidden">LLM: STAGED</span>
         </span>
 
         <!-- Inspector Drawer Toggle Button -->
-        <button id="btnToggleDrawer" class="btn-tactile px-3 py-1.5 rounded-lg text-cyan-300 flex items-center gap-1.5 shadow" title="Toggle Sliding Interactive Entity Inspector">
-          <span>📋</span> <span class="hidden lg:inline">INSPECTOR</span>
+        <button id="btnToggleDrawer" class="btn-tactile px-2.5 py-1.5 rounded-lg text-cyan-300 flex items-center gap-1.5 shadow whitespace-nowrap" title="Toggle Sliding Interactive Entity Inspector">
+          <span>📋</span> <span>INSPECTOR</span>
         </button>
 
       </div>
@@ -214,7 +229,7 @@
     </div>
 
     <!-- View Mode Director & Dynamic 7-Module Switcher Bar -->
-    <div class="max-w-7xl mx-auto mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/60 pt-2 text-xs">
+    <div class="w-full max-w-[1720px] mx-auto mt-2.5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/60 pt-2 text-xs">
       
       <!-- View Mode Director (Split Cockpit / Max 3D / Focused Module / Unified) -->
       <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800 font-mono text-[11px]" role="toolbar" aria-label="View Mode Director">
@@ -275,44 +290,52 @@
     <section id="tab-map" class="tab-pane active space-y-4" role="tabpanel" aria-labelledby="tab-map">
       
       <!-- 3D Overhaul Top Controls & Camera Director -->
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3 rounded-xl shadow-lg">
+      <div class="flex flex-wrap items-center justify-between gap-2.5 bg-slate-950/90 border border-slate-800/90 p-2.5 rounded-xl shadow-xl backdrop-blur-md select-none">
         
-        <!-- View Mode Switcher -->
-        <div class="flex items-center gap-2">
-          <div class="flex rounded-lg bg-slate-950 p-1 border border-slate-800 text-xs font-mono">
-            <button id="btnView3D" class="view-mode-btn active px-3 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5">
+        <!-- View Mode Switcher + Lighting + Max View + SPECTATE Button -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800 text-xs font-mono shadow-inner">
+            <button id="btnView3D" class="view-mode-btn active px-3 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5 transition-all">
               <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
               <span>3D OVERHAUL VIEW</span>
             </button>
-            <button id="btnView2D" class="view-mode-btn px-3 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5">
+            <button id="btnView2D" class="view-mode-btn px-3 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-              <span>2D ORTHOGRAPHIC MAP</span>
+              <span>2D ORTHOGRAPHIC</span>
             </button>
           </div>
 
           <span class="text-slate-700 hidden sm:inline">|</span>
 
           <!-- Day/Night Toggle -->
-          <button id="btnToggleDayNight" class="px-2.5 py-1 text-xs rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Lighting Mode">
+          <button id="btnToggleDayNight" class="btn-tactile px-2.5 py-1 text-xs rounded-lg text-slate-300 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Lighting Mode">
             <span id="lightIcon">🌙</span> <span id="lightLabel">Night Bloom</span>
           </button>
 
           <!-- Max View Theater Toggle -->
-          <button id="btnMaxView" class="px-2.5 py-1 text-xs rounded-lg bg-slate-950 border border-cyan-800/60 text-cyan-300 hover:bg-cyan-950/60 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Fullscreen Max Theater">
+          <button id="btnMaxView" class="btn-tactile px-2.5 py-1 text-xs rounded-lg text-cyan-300 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Fullscreen Max Theater">
             <span id="maxViewIcon">⛶</span> <span id="maxViewLabel">Max View</span>
+          </button>
+
+          <!-- Prominent SPECTATE Button (Pulsating recording indicator dot) -->
+          <button id="btnSpectateModeTop" class="btn-tactile btn-tactile-spectate btn-spectate px-3 py-1 text-xs rounded-lg flex items-center gap-2 font-mono shadow-lg transition-all cursor-pointer" title="Toggle Cinematic Multi-Role Spectator Mode (Shortcut: C)">
+            <span class="rec-dot-indicator"></span>
+            <span class="font-bold tracking-wider">🎬 SPECTATE</span>
           </button>
         </div>
 
-        <!-- Demonstration Camera Bookmarks -->
+        <!-- Demonstration Camera Bookmarks: 🌐 District, 🌾 Farms, ⚖️ Agora, 🏥 Hospital, 🏡 Dwellings, 🎬 Spectate -->
         <div class="flex items-center gap-1.5 text-xs font-mono overflow-x-auto no-scrollbar py-0.5">
-          <span class="text-[10px] uppercase text-slate-500 font-bold mr-1">DEMO FOCUS:</span>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="orbital">🌐 Orbital Pan</button>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="civic">🏛️ Civic & Agora</button>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="farms">🌾 West Farms</button>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-800/40" data-focus="silo">🌾 Granary Silo</button>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700" data-focus="houses">🏡 Houses (345)</button>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-800/40" data-focus="shield">🛡️ gVisor Shield</button>
-          <button class="cam-bookmark px-2.5 py-1 rounded bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-700/50" data-focus="agent">👤 Follow Agent</button>
+          <span class="text-[10px] uppercase text-slate-500 font-bold mr-1 tracking-wider">CAMERA:</span>
+          <button class="cam-bookmark" data-focus="orbital" title="District Panoramic Orbital Overview">🌐 District</button>
+          <button class="cam-bookmark" data-focus="farms" title="West Farm Belt Crop Clusters">🌾 Farms</button>
+          <button class="cam-bookmark" data-focus="agora" title="Central Agora Market & Double-Auction">⚖️ Agora</button>
+          <button class="cam-bookmark" data-focus="hospital" title="Civic Hospital Anchor">🏥 Hospital</button>
+          <button class="cam-bookmark" data-focus="houses" title="345 Connected Dwellings">🏡 Dwellings</button>
+          <button id="btnBookmarkSpectate" class="cam-bookmark btn-spectate flex items-center gap-1.5" data-focus="spectate" title="Toggle Cinematic Spectator Mode (Shortcut: C)">
+            <span class="rec-dot-indicator"></span>
+            <span>🎬 Spectate</span>
+          </button>
         </div>
 
       </div>
@@ -323,7 +346,7 @@
         <!-- Left: 3D World Viewport & Controls (8 cols on XL screens, 12 cols when maximized) -->
         <div id="viewportCol" class="xl:col-span-8 flex flex-col gap-3 transition-all duration-300">
 
-          <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group shadow-2xl transition-all duration-300" id="worldViewport" style="height:76vh;min-height:580px;">
+          <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group shadow-2xl transition-all duration-300 cockpit-viewport-card" id="worldViewport">
             
             <!-- 3D Three.js WebGL Container -->
             <div id="threeContainer" class="w-full h-full cursor-grab active:cursor-grabbing block"></div>
@@ -338,25 +361,108 @@
               <button id="mapZoomReset" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center justify-center transition-all">1x</button>
             </div>
 
-            <!-- 3D Overlay Telemetry HUD -->
-            <div class="absolute bottom-4 left-4 bg-slate-950/90 backdrop-blur border border-cyan-800/50 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex items-center gap-3 shadow-xl z-10">
-              <div class="flex items-center gap-2">
+            <!-- Top Compass / Camera Indicator HUD -->
+            <div id="viewportTopCompassHud" class="absolute top-3 left-1/2 -translate-x-1/2 bg-slate-950/85 backdrop-blur-md border border-cyan-800/40 px-3.5 py-1.5 rounded-full text-[11px] font-mono text-cyan-400 flex items-center gap-3 shadow-2xl z-20 pointer-events-none select-none">
+              <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>COORD: <strong id="mouseCoords" class="text-white">X: 500m · Z: 500m</strong></span>
+                <span class="text-slate-400 text-[10px] tracking-wider uppercase">SUBSTRATE HUD</span>
               </div>
-              <span class="text-slate-600">|</span>
+              <span class="text-slate-700">|</span>
+              <div class="flex items-center gap-1.5 text-slate-200">
+                <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                <span>HDG: <strong id="hudCompassHeading" class="text-white font-mono tabular-nums">045° NNE</strong></span>
+              </div>
+              <span class="text-slate-700">|</span>
               <div>
-                <span>SECTOR: <strong id="sectorName" class="text-amber-400">Central Civic Anchor</strong></span>
+                <span>ELEV: <strong id="hudElevation" class="text-white font-mono tabular-nums">-24°</strong></span>
               </div>
-              <span class="text-slate-600">|</span>
-              <div class="hidden sm:block">
-                <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400">64 Active</strong></span>
+              <span class="text-slate-700">|</span>
+              <div>
+                <span>GRID: <strong class="text-emerald-400 font-mono">1000×1000m</strong></span>
+              </div>
+            </div>
+
+            <!-- 3D Overlay Telemetry HUD (Bottom Ticker) -->
+            <div class="absolute bottom-4 left-4 right-4 bg-slate-950/90 backdrop-blur-md border border-cyan-800/40 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex flex-wrap items-center justify-between gap-3 shadow-xl z-20 select-none">
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <span>COORD: <strong id="mouseCoords" class="text-white tabular-nums">X: 500m · Z: 500m</strong></span>
+                </div>
+                <span class="text-slate-600">|</span>
+                <div>
+                  <span>SECTOR: <strong id="sectorName" class="text-amber-400">Central Civic Anchor</strong></span>
+                </div>
+                <span class="text-slate-600 hidden sm:inline">|</span>
+                <div class="hidden sm:block">
+                  <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400 tabular-nums">64 Active</strong></span>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 text-[11px] text-slate-400">
+                <span class="hidden md:inline">340M VOXELS · 345 DWELLINGS</span>
+                <span class="text-slate-600 hidden md:inline">|</span>
+                <span class="text-emerald-400 font-bold">100% INVARIANTS</span>
               </div>
             </div>
 
             <!-- Instructions badge overlay -->
             <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur border border-slate-800/80 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 select-none pointer-events-none z-10">
-              <span>🖱️ Drag: Orbit Camera · Scroll: Zoom · Click: Focus Agent/Building</span>
+              <span>🖱️ Drag: Orbit Camera · Scroll: Zoom · Click: Focus Agent · Press C: Spectate</span>
+            </div>
+
+            <!-- Sleek Cinematic Spectator Letterbox & Live Telemetry HUD Overlay -->
+            <div id="spectateLetterboxOverlay" class="absolute inset-0 z-30 pointer-events-none hidden flex flex-col justify-between transition-opacity duration-500 opacity-0 select-none">
+              <!-- Top Letterbox Bar with Live Telemetry HUD Pill -->
+              <div class="w-full spectate-letterbox-bar pt-3.5 pb-8 px-5 flex flex-wrap items-center justify-between gap-3 pointer-events-auto shadow-2xl">
+                <!-- Glowing Live Telemetry HUD Pill -->
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <div class="spectate-hud-pill flex items-center gap-2 px-3.5 py-1.5 rounded-full font-mono text-xs">
+                    <span class="relative flex h-2.5 w-2.5">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                    <span class="font-black tracking-wider text-rose-300">REC</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-300 font-semibold">LIVE SPECTATING:</span>
+                    <span id="spectateCitizenName" class="text-amber-300 font-bold">Rowan</span>
+                    <span id="spectateCitizenRole" class="text-emerald-400 font-bold">(Farmer)</span>
+                    <span class="text-slate-600 hidden sm:inline">•</span>
+                    <span id="spectateCitizenActivity" class="text-cyan-300 font-medium hidden sm:inline max-w-xs md:max-w-md truncate">HARVESTING WHEAT & TRANSPORTING TO SILO</span>
+                    <span class="text-slate-600 hidden lg:inline">•</span>
+                    <span class="text-slate-400 hidden lg:inline">CAMERA:</span>
+                    <span id="spectateShotType" class="text-white font-bold hidden lg:inline">OVER-SHOULDER CHASE CAM</span>
+                  </div>
+                </div>
+
+                <!-- Camera Shot Controls & Clean Exit Button -->
+                <div class="flex items-center gap-2 font-mono text-xs">
+                  <button id="btnSpectateNextAngle" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-all" title="Cycle Camera Angle (Over-Shoulder / Low-Angle / Drone Orbit / Frontal)">
+                    <span>🔄</span> <span class="hidden sm:inline">Angle</span>
+                  </button>
+                  <button id="btnSpectateNextAgent" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-all" title="Cycle to Next Colony Role">
+                    <span>⏭</span> <span class="hidden sm:inline">Next Citizen</span>
+                  </button>
+                  <button id="btnExitSpectate" class="px-3.5 py-1.5 rounded-lg bg-rose-600/95 hover:bg-rose-500 text-white border border-rose-400 font-bold flex items-center gap-1.5 shadow-lg shadow-rose-900/40 transition-all cursor-pointer" title="Exit Cinematic Spectator Mode (Shortcut: ESC or C)">
+                    <span>✕</span> <span>EXIT SPECTATE</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bottom Letterbox Bar with Position & Biometric Telemetry -->
+              <div class="w-full spectate-letterbox-bar-bottom pb-3.5 pt-8 px-5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono pointer-events-auto">
+                <div class="flex items-center gap-3 text-slate-400 flex-wrap">
+                  <span class="text-cyan-400 font-bold tracking-wider">EVOLZEN 3D CINEMATIC SPECTATOR</span>
+                  <span class="text-slate-600">•</span>
+                  <span id="spectatePositionBadge" class="text-slate-300">POS: X 50.0m · Z 500.0m</span>
+                  <span class="text-slate-600">•</span>
+                  <span id="spectateVitalBadge" class="text-emerald-400">ENERGY: 94% · HYDRATION: 88%</span>
+                </div>
+                <div class="flex items-center gap-3 text-slate-400 text-[11px]">
+                  <span>AUTO-TRANSITION: <span id="spectateTimerCountdown" class="text-amber-400 font-bold">6s</span></span>
+                  <span class="text-slate-600">|</span>
+                  <span>EXIT: <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">ESC</kbd> / <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">C</kbd></span>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -380,31 +486,34 @@
 
         <!-- Right: Docked Interactive Entity Inspector Sidebar (4 cols on XL screens) -->
         <div id="inspectorCol" class="xl:col-span-4 flex flex-col transition-all duration-300">
-          <aside id="inspectorDrawer" class="inspector-drawer flex flex-col h-full rounded-xl bg-slate-950/95 border border-cyan-800/40 text-slate-100 font-mono shadow-2xl overflow-hidden" style="height:76vh;min-height:580px;" role="complementary" aria-label="Selected Entity Inspector Drawer">
+          <aside id="inspectorDrawer" class="inspector-drawer flex flex-col h-full rounded-xl bg-slate-950/95 border border-cyan-800/40 text-slate-100 font-mono shadow-2xl overflow-hidden cockpit-viewport-card" role="complementary" aria-label="Selected Entity Inspector Drawer">
             <div class="drawer-inner flex flex-col h-full bg-slate-950/95 backdrop-blur-xl text-slate-100 font-mono">
               
               <!-- Drawer Header -->
-              <div class="drawer-header p-3.5 border-b border-slate-800 flex items-center justify-between">
+              <div class="drawer-header p-3 border-b border-slate-800/90 flex items-center justify-between bg-slate-950">
                 <div class="flex items-center gap-2">
-                  <span class="text-cyan-400 text-base">📋</span>
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-white">Interactive Entity Inspector</h3>
+                  <span class="text-cyan-400 text-sm">📋</span>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-white font-mono">Entity Inspector</h3>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-cyan-950/70 text-cyan-300 border border-cyan-800/50">L∞ TELEMETRY</span>
                 </div>
-                <button id="btnCloseDrawer" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition-all flex items-center gap-1" title="Collapse Sidebar to Max View">
+                <button id="btnCloseDrawer" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-mono border border-slate-700/80 transition-all flex items-center gap-1" title="Collapse Sidebar to Max View">
                   <span>⛶</span> <span>Hide Sidebar</span>
                 </button>
               </div>
 
-              <!-- Drawer Internal Tab Switcher: Agent vs Population vs Building -->
-              <div class="px-3.5 py-2 border-b border-slate-800 flex items-center gap-1.5 text-xs">
-                <button id="drawerTabAgent" class="drawer-tab active flex-1 py-1.5 rounded-lg text-center font-bold bg-cyan-950/60 border border-cyan-700/50 text-cyan-300">
-                  👤 Focused Agent
-                </button>
-                <button id="drawerTabPopulation" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
-                  👥 Census (64)
-                </button>
-                <button id="drawerTabBuilding" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
-                  🏡 Buildings (345)
-                </button>
+              <!-- Drawer Internal Segmented Tab Switcher with Crisp Illuminated Active Underline -->
+              <div class="p-2 border-b border-slate-800/90 bg-slate-950">
+                <div class="grid grid-cols-3 gap-1 p-1 bg-slate-900/90 border border-slate-800 rounded-lg text-xs font-mono font-bold" role="tablist">
+                  <button id="drawerTabAgent" class="drawer-segmented-tab active py-1.5 px-1 rounded-md text-center text-cyan-300 transition-all" role="tab" aria-selected="true">
+                    👤 Focused Citizen
+                  </button>
+                  <button id="drawerTabPopulation" class="drawer-segmented-tab py-1.5 px-1 rounded-md text-center text-slate-400 hover:text-slate-200 transition-all" role="tab" aria-selected="false">
+                    👥 Census (64)
+                  </button>
+                  <button id="drawerTabBuilding" class="drawer-segmented-tab py-1.5 px-1 rounded-md text-center text-slate-400 hover:text-slate-200 transition-all" role="tab" aria-selected="false">
+                    🏡 Dwellings (345)
+                  </button>
+                </div>
               </div>
 
               <!-- Drawer Body Content -->
@@ -444,7 +553,7 @@
                     <div class="mt-3 p-2 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
                       <div>
                         <span class="text-slate-400 text-[10px] block">Chebyshev Distance L∞:</span>
-                        <span id="chebyshevMetricValue" class="text-cyan-400 font-bold">0.16 (Equilibrium)</span>
+                        <span id="chebyshevMetricValue" class="text-cyan-400 font-bold tabular-nums">0.16 (Equilibrium)</span>
                       </div>
                       <button id="btnToggleFollowCam" class="px-2.5 py-1 text-[11px] rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/50 flex items-center gap-1 font-mono transition-all" title="Toggle 3rd-Person Follow Camera on Agent">
                         <span>🎥</span> <span>Follow Cam</span>
@@ -455,95 +564,122 @@
                   <!-- 8-Drive Chebyshev Homeostatic Gauges Grid -->
                   <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2.5">
                     <h4 class="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                      <span>8-Drive Chebyshev Homeostasis Gauges</span>
-                      <span class="text-emerald-400 font-bold">EQUILIBRIUM ACTIVE</span>
+                      <span class="flex items-center gap-1.5 font-bold text-white">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                        8-Drive Chebyshev Homeostasis
+                      </span>
+                      <span class="text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-600/40 text-[9px] shadow-sm">EQUILIBRIUM ACTIVE</span>
                     </h4>
 
                     <!-- Gauge 1: Food -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">🍎 Food Satiety</span>
-                        <span id="gaugeFoodText" class="text-emerald-400 font-bold">84%</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]"></span>
+                          🍎 Food Satiety
+                        </span>
+                        <span id="gaugeFoodText" class="text-emerald-400 font-bold tabular-nums font-mono">84%</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeFoodBar" class="h-full bg-emerald-500 rounded-full" style="width: 84%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeFoodBar" class="gauge-fill bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" style="width: 84%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 2: Hydration -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">💧 Hydration Level</span>
-                        <span id="gaugeHydrationText" class="text-cyan-400 font-bold">78%</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#06b6d4]"></span>
+                          💧 Hydration Level
+                        </span>
+                        <span id="gaugeHydrationText" class="text-cyan-400 font-bold tabular-nums font-mono">78%</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeHydrationBar" class="h-full bg-cyan-500 rounded-full" style="width: 78%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeHydrationBar" class="gauge-fill bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.6)]" style="width: 78%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 3: Rest / Energy -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">⚡ Rest &amp; Energy</span>
-                        <span id="gaugeRestText" class="text-amber-400 font-bold">92%</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>
+                          ⚡ Rest &amp; Energy
+                        </span>
+                        <span id="gaugeRestText" class="text-amber-400 font-bold tabular-nums font-mono">92%</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeRestBar" class="h-full bg-amber-500 rounded-full" style="width: 92%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeRestBar" class="gauge-fill bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" style="width: 92%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 4: Health -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">❤️ Physical Health</span>
-                        <span id="gaugeHealthText" class="text-rose-400 font-bold">95%</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_#f43f5e]"></span>
+                          ❤️ Physical Health
+                        </span>
+                        <span id="gaugeHealthText" class="text-rose-400 font-bold tabular-nums font-mono">95%</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeHealthBar" class="h-full bg-rose-500 rounded-full" style="width: 95%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeHealthBar" class="gauge-fill bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" style="width: 95%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 5: Currency / Wealth -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">💰 Currency Balance</span>
-                        <span id="gaugeCurrencyText" class="text-yellow-400 font-bold">12.5 C</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 shadow-[0_0_6px_#eab308]"></span>
+                          💰 Currency Balance
+                        </span>
+                        <span id="gaugeCurrencyText" class="text-yellow-400 font-bold tabular-nums font-mono">12.5 C</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeCurrencyBar" class="h-full bg-yellow-500 rounded-full" style="width: 65%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeCurrencyBar" class="gauge-fill bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]" style="width: 65%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 6: Shelter -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">🏠 Shelter Security</span>
-                        <span id="gaugeShelterText" class="text-orange-400 font-bold">95% (House #1)</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_6px_#f97316]"></span>
+                          🏠 Shelter Security
+                        </span>
+                        <span id="gaugeShelterText" class="text-orange-400 font-bold tabular-nums font-mono">95% (House #1)</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeShelterBar" class="h-full bg-orange-500 rounded-full" style="width: 95%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeShelterBar" class="gauge-fill bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" style="width: 95%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 7: Tools & Equipment -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">🔨 Tools &amp; Durability</span>
-                        <span id="gaugeToolsText" class="text-purple-400 font-bold">88% (Pitchfork)</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_#a855f7]"></span>
+                          🔨 Tools &amp; Durability
+                        </span>
+                        <span id="gaugeToolsText" class="text-purple-400 font-bold tabular-nums font-mono">88% (Pitchfork)</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeToolsBar" class="h-full bg-purple-500 rounded-full" style="width: 88%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeToolsBar" class="gauge-fill bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" style="width: 88%;"></div>
                       </div>
                     </div>
 
                     <!-- Gauge 8: Kinship & Social Ties -->
                     <div class="space-y-1">
                       <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-300">🤝 Kinship &amp; Cooperation</span>
-                        <span id="gaugeKinshipText" class="text-blue-400 font-bold">82% (3 Offspring)</span>
+                        <span class="text-slate-300 flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_#3b82f6]"></span>
+                          🤝 Kinship &amp; Cooperation
+                        </span>
+                        <span id="gaugeKinshipText" class="text-blue-400 font-bold tabular-nums font-mono">82% (3 Offspring)</span>
                       </div>
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                        <div id="gaugeKinshipBar" class="h-full bg-blue-500 rounded-full" style="width: 82%;"></div>
+                      <div class="gauge-track">
+                        <div id="gaugeKinshipBar" class="gauge-fill bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" style="width: 82%;"></div>
                       </div>
                     </div>
 
@@ -1638,11 +1774,15 @@
         [tabAgent, tabPopulation, tabBuilding].forEach(t => {
           if (!t) return;
           if (t === activeTab) {
-            t.classList.add('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300', 'font-bold');
+            t.classList.add('active');
             t.classList.remove('text-slate-400');
+            t.classList.add('text-cyan-300');
+            t.setAttribute('aria-selected', 'true');
           } else {
-            t.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300', 'font-bold');
+            t.classList.remove('active');
             t.classList.add('text-slate-400');
+            t.classList.remove('text-cyan-300');
+            t.setAttribute('aria-selected', 'false');
           }
         });
         [secAgent, secPopulation, secBuilding].forEach(s => {
@@ -1661,6 +1801,21 @@
         if (window.evolzenRenderCensus) window.evolzenRenderCensus();
       });
       if (tabBuilding) tabBuilding.addEventListener('click', () => selectDrawerTab(tabBuilding, secBuilding));
+
+      // Synchronize Spectate button triggers
+      const btnSpectateMode = document.getElementById('btnSpectateMode');
+      const btnSpectateModeTop = document.getElementById('btnSpectateModeTop');
+      const btnBookmarkSpectate = document.getElementById('btnBookmarkSpectate');
+      if (btnSpectateModeTop && btnSpectateMode) {
+        btnSpectateModeTop.addEventListener('click', () => {
+          btnSpectateMode.click();
+        });
+      }
+      if (btnBookmarkSpectate && btnSpectateMode) {
+        btnBookmarkSpectate.addEventListener('click', () => {
+          btnSpectateMode.click();
+        });
+      }
 
       // Expose globally for 3D engine raycaster click integration
       window.evolzenOpenInspector = function(type, data) {

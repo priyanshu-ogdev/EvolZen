@@ -1,33 +1,39 @@
 /* ==========================================================================
    EVOLZEN // 1×1 KM Parallel Universe & Multi-Agent Infrastructure Cockpit
-   ui-ux-pro-max Design System: Deep Void Cockpit Cybernetic Aesthetic (#090d16)
+   Aerospace Bloomberg-Terminal Grade Design System: Deep Obsidian (#030712)
    ========================================================================== */
 
 :root {
-  /* High-End Dark Void Cockpit Surfaces */
-  --bg-void: #090d16;
-  --bg-surface: #0e1526;
-  --bg-surface-elevated: #141e34;
-  --bg-surface-card: rgba(14, 21, 38, 0.85);
-  --bg-card-glass: rgba(14, 21, 38, 0.75);
+  /* High-End Deep Obsidian Cockpit Surfaces */
+  --bg-void: #030712;
+  --bg-obsidian: #030712;
+  --bg-obsidian-surface: #070d1a;
+  --bg-obsidian-card: #0b1222;
+  --bg-surface: #070d1a;
+  --bg-surface-elevated: #0f172a;
+  --bg-surface-card: rgba(11, 18, 34, 0.9);
+  --bg-card-glass: rgba(7, 13, 26, 0.85);
   
-  /* Border Tokens */
+  /* Hairline Precision Borders */
   --border-subtle: #1e293b;
   --border-medium: #334155;
-  --border-focus: #38bdf8;
-  --border-glass: rgba(56, 189, 248, 0.15);
+  --border-focus: #00f0ff;
+  --border-glass: rgba(0, 240, 255, 0.2);
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-hairline-cyan: rgba(6, 182, 212, 0.35);
   
-  /* Subsystem Brand Accents */
-  --cyan-primary: #06b6d4;
-  --cyan-glow: rgba(6, 182, 212, 0.25);
+  /* Aerospace Cockpit Brand Accents */
+  --cyan-primary: #00f0ff;
+  --cyan-accent: #06b6d4;
+  --cyan-glow: rgba(0, 240, 255, 0.35);
   --emerald-primary: #10b981;
-  --emerald-glow: rgba(16, 185, 129, 0.25);
+  --emerald-glow: rgba(16, 185, 129, 0.35);
   --amber-primary: #f59e0b;
-  --amber-glow: rgba(245, 158, 11, 0.35);
+  --amber-glow: rgba(245, 158, 11, 0.45);
   --purple-primary: #8b5cf6;
-  --purple-glow: rgba(139, 92, 246, 0.25);
+  --purple-glow: rgba(139, 92, 246, 0.35);
   --rose-primary: #f43f5e;
-  --rose-glow: rgba(244, 63, 94, 0.25);
+  --rose-glow: rgba(244, 63, 94, 0.45);
   --blue-primary: #38bdf8;
   
   /* Glowing Hazard Amber for Staged Cognitive Route (#f59e0b) */
@@ -641,13 +647,28 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   animation: fadeIn 0.25s ease-out forwards;
 }
 
+/* ==========================================================================
+   COCKPIT GRID & FLUSH VIEWPORT ALIGNMENT
+   Ensures 3D Viewport and Docked Sidebar are 100% flush in height & alignment
+   ========================================================================== */
+.cockpit-viewport-card,
+#worldViewport,
+#inspectorDrawer {
+  height: 70vh !important;
+  min-height: 580px !important;
+  max-height: 840px !important;
+}
+
 /* 1. UNIFIED COCKPIT LAYOUT */
 .workspace-layout-unified #tab-map {
   display: block !important;
 }
-.workspace-layout-unified #tab-map #worldViewport {
-  height: 56vh !important;
-  min-height: 440px !important;
+.workspace-layout-unified #tab-map #worldViewport,
+.workspace-layout-unified #tab-map #inspectorDrawer,
+.workspace-layout-unified #tab-map .cockpit-viewport-card {
+  height: 64vh !important;
+  min-height: 540px !important;
+  max-height: 800px !important;
 }
 .workspace-layout-unified #subsystemSection {
   display: block !important;
@@ -678,9 +699,11 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .workspace-layout-split #tab-map {
   display: block !important;
 }
-.workspace-layout-split #tab-map #worldViewport {
+.workspace-layout-split #tab-map #worldViewport,
+.workspace-layout-split #tab-map #inspectorDrawer,
+.workspace-layout-split #tab-map .cockpit-viewport-card {
   height: calc(100vh - 180px) !important;
-  min-height: 520px !important;
+  min-height: 540px !important;
 }
 .workspace-layout-split #tab-map > .grid {
   display: none !important; /* Move space to telemetry column */
@@ -1038,8 +1061,61 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 }
 
 /* ==========================================================================
-   DOCKED COCKPIT INSPECTOR SIDEBAR
-   Permanent side-by-side telemetry dock (zero modal backdrop / zero viewport obstruction)
+   AEROSPACE 3D VIEWPORT & CINEMATIC LETTERBOX HUD
+   Obsidian #030712 background, hairline precision borders, sleek inset shadows
+   ========================================================================== */
+#worldViewport {
+  background: #030712 !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 
+    inset 0 0 60px rgba(0, 0, 0, 0.95),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.05),
+    0 25px 50px -12px rgba(0, 0, 0, 0.85) !important;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Cinematic Letterbox Overlays (Activated during Spectate Mode) */
+.spectate-letterbox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: #000000;
+  z-index: 25;
+  pointer-events: none;
+  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 0;
+}
+.spectate-letterbox-top {
+  top: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.spectate-letterbox-bottom {
+  bottom: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.spectate-letterbox.active {
+  height: 40px;
+}
+
+/* Cinematic Spectator Live Telemetry HUD Pill */
+#spectateHudOverlay {
+  background: rgba(3, 7, 18, 0.94);
+  border: 1px solid rgba(244, 63, 94, 0.6);
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Top Compass & Navigation HUD */
+#viewportTopCompassHud {
+  background: rgba(3, 7, 18, 0.88);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   DOCKED COCKPIT INSPECTOR SIDEBAR & CHEBYSHEV GAUGES
+   Perfect flush height with 3D viewport, crisp illuminated segmented tabs
    ========================================================================== */
 .inspector-drawer {
   position: relative;
@@ -1047,8 +1123,17 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   height: 100%;
   transform: none;
   z-index: 10;
-  box-shadow: none;
-  transition: all 0.25s ease;
+  background: #030712 !important;
+  border: 1px solid #1e293b !important;
+  box-shadow: 
+    inset 0 0 40px rgba(0, 0, 0, 0.95),
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.05),
+    0 20px 40px -15px rgba(0, 0, 0, 0.9) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .inspector-drawer.drawer-open {
   transform: none;
@@ -1060,7 +1145,40 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
   visibility: hidden !important;
 }
 
-/* Drawer Tab Switcher */
+/* Clean Segmented Drawer Tabs with Crisp Illuminated Active Underline */
+.drawer-segmented-tab {
+  position: relative;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  padding: 6px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #94a3b8;
+  background: transparent;
+  text-align: center;
+  user-select: none;
+}
+.drawer-segmented-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+.drawer-segmented-tab.active {
+  background: rgba(6, 182, 212, 0.16) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(6, 182, 212, 0.35) !important;
+  border-bottom: 2px solid #00f0ff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 16px rgba(6, 182, 212, 0.35) !important;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.6) !important;
+  font-weight: 700;
+}
+
+/* Legacy drawer-tab compatibility */
 .drawer-tab {
   transition: all 0.2s ease;
   cursor: pointer;
@@ -1068,6 +1186,36 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .drawer-tab:hover {
   background: rgba(30, 41, 59, 0.6);
   color: #ffffff;
+}
+
+/* High-Contrast Chebyshev Gauges */
+.gauge-track {
+  width: 100%;
+  height: 6px;
+  background: #020408;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  position: relative;
+}
+
+.gauge-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.gauge-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 9999px;
 }
 
 /* ==========================================================================
@@ -1409,6 +1557,164 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 .census-table-row:hover {
   background: rgba(14, 165, 233, 0.12);
   cursor: pointer;
+}
+
+/* 10. Cinematic Spectator Mode Letterbox & Glowing Telemetry HUD */
+.spectate-letterbox-bar {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.88) 65%, rgba(2, 6, 23, 0) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.spectate-letterbox-bar-bottom {
+  background: linear-gradient(0deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.88) 65%, rgba(2, 6, 23, 0) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.spectate-hud-pill {
+  background: rgba(8, 15, 30, 0.92);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.22), inset 0 1px 2px rgba(255, 255, 255, 0.12);
+}
+
+.spectate-rec-badge {
+  background: rgba(88, 28, 28, 0.9);
+  border: 1px solid rgba(239, 68, 68, 0.65);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+}
+
+/* 11. Aerospace Bloomberg-Terminal Grade Tactile Spectate & Bookmarks */
+.btn-tactile-spectate {
+  background: linear-gradient(180deg, #4c0519 0%, #1c0209 100%) !important;
+  border: 1px solid #e11d48 !important;
+  border-top-color: rgba(255, 255, 255, 0.4) !important;
+  border-bottom-color: #881337 !important;
+  color: #ffe4e6 !important;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+.btn-tactile-spectate:hover {
+  background: linear-gradient(180deg, #881337 0%, #4c0519 100%) !important;
+  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+}
+.btn-tactile-spectate.spectating-active {
+  background: linear-gradient(180deg, #9f1239 0%, #e11d48 100%) !important;
+  border-color: #fda4af !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(225, 29, 72, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  animation: spectatePulse 1.8s infinite !important;
+}
+@keyframes spectatePulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(225, 29, 72, 0.5); }
+  50% { box-shadow: 0 0 28px rgba(225, 29, 72, 0.95); }
+}
+
+.rec-dot-indicator {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f43f5e;
+  box-shadow: 0 0 8px #f43f5e, 0 0 14px rgba(244, 63, 94, 0.9);
+  animation: recBlink 1.2s infinite ease-in-out;
+}
+@keyframes recBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+
+/* Quick Camera Bookmarks */
+.cam-bookmark {
+  background: #0b1222;
+  border: 1px solid #1e293b;
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+.cam-bookmark:hover {
+  background: #141e34;
+  border-color: #06b6d4;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+.cam-bookmark:active {
+  transform: translateY(1px);
+}
+.cam-bookmark.btn-spectate {
+  background: rgba(76, 5, 25, 0.45) !important;
+  border-color: rgba(225, 29, 72, 0.55) !important;
+  color: #fda4af !important;
+}
+.cam-bookmark.btn-spectate:hover {
+  background: rgba(136, 19, 55, 0.7) !important;
+  border-color: #f43f5e !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.5) !important;
+}
+
+/* Hairline Precision Badges */
+.hairline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(11, 18, 34, 0.6);
+  color: #cbd5e1;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.hairline-badge.badge-cyan {
+  border-color: rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.1);
+  color: #22d3ee;
+}
+.hairline-badge.badge-emerald {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+.hairline-badge.badge-amber {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
+/* Locked Tabular Numeric Formatting (Zero Layout Jitter) */
+.tabular-nums, .neu-lcd, #currentTickBadge, #badgeGini, #giniValue, #mouseCoords, #chebyshevMetricValue {
+  font-variant-numeric: tabular-nums;
+}
+#currentTickBadge {
+  min-width: 86px;
+  display: inline-block;
+  text-align: center;
+}
+#badgeGini, #giniValue {
+  min-width: 44px;
+  display: inline-block;
+}
+#mouseCoords {
+  min-width: 140px;
+  display: inline-block;
+}
+[id^="gauge"][id$="Text"] {
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+  text-align: right;
+  display: inline-block;
 }
 
 /* Respect Reduced Motion */
