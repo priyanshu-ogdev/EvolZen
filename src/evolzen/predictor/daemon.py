@@ -250,9 +250,11 @@ class OnlineTrainingDaemon:
         """Stop the background daemon loop, wait for completion, and close database handles."""
         self._stop_event.set()
         with self._lock:
-            if self._thread is not None:
-                self._thread.join(timeout=timeout)
-                self._thread = None
+            thread = self._thread
+            self._thread = None
+        if thread is not None:
+            thread.join(timeout=timeout)
+        with self._lock:
             if self._store is not None:
                 try:
                     self._store.close()

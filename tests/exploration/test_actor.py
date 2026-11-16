@@ -1,3 +1,5 @@
+import pytest
+
 from evolzen.exploration.actor import Actor
 from evolzen.schemas.transition import State
 
@@ -8,3 +10,10 @@ def test_choose_probe_picks_highest_ontology_error() -> None:
     actor = Actor(ontology_error_fn=lambda s: scores[s.state_id])
     chosen = actor.choose_probe(states)
     assert chosen is states[1]
+
+
+def test_choose_probe_empty_states_raises() -> None:
+    actor = Actor(ontology_error_fn=lambda s: 0.5)
+    with pytest.raises(ValueError, match="candidate_states must not be empty"):
+        actor.choose_probe([])
+

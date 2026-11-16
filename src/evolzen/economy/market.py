@@ -444,5 +444,22 @@ class Market:
                 institutions[local_inst.institution_id] = local_inst.model_copy(
                     update={"currency_reserve": local_inst.currency_reserve + settlement.fee_withheld}
                 )
+            elif institutions:
+                first_inst_id = next(iter(institutions))
+                target_inst = institutions[first_inst_id]
+                institutions[first_inst_id] = target_inst.model_copy(
+                    update={"currency_reserve": target_inst.currency_reserve + settlement.fee_withheld}
+                )
+            else:
+                # If no institutions exist anywhere in the world to receive the fee,
+                # refund the fee to the seller so that buyer's debit matches seller's credit
+                # and exact currency conservation is maintained.
+                updated_seller = seller.model_copy(
+                    update={
+                        "inventory": seller_inv,
+                        "currency": seller.currency + settlement.total_price,
+                    }
+                )
+                agents[seller.agent_id] = updated_seller
 
         return world.model_copy(update={"agents": agents, "institutions": institutions})

@@ -16,3 +16,10 @@ def test_route_raises_before_index_is_built() -> None:
     router = EmbeddingRouter()
     with pytest.raises(RuntimeError):
         router.route(query_embedding=[0.0] * 384, top_k=3)
+
+
+def test_route_non_positive_top_k_returns_empty() -> None:
+    router = EmbeddingRouter()
+    assert router.route(query_embedding=[0.0] * 384, top_k=0) == []
+    assert router.route(query_embedding=[0.0] * 384, top_k=-1) == []
+

@@ -21,4 +21,6 @@ class Actor:
 
     def choose_probe(self, candidate_states: list[State]) -> State:
         """Pick the candidate state the current rule library explains worst."""
+        if not candidate_states:
+            raise ValueError("candidate_states must not be empty")
         return max(candidate_states, key=self._ontology_error_fn)

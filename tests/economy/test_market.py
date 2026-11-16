@@ -395,3 +395,76 @@ def test_order_book_partial_fills() -> None:
     assert ob.bids[0].agent_id == "buyer"
 
 
+def test_market_settle_in_world_without_local_institution_conserves_currency() -> None:
+    """Verify settle_in_world routes withheld fee to available institution if no local institution exists."""
+    engine = SocialSandboxEngine(default_seed=50, num_agents=2, num_locations=2)
+    s0 = engine.reset(seed=50, initial_agent_age=300)
+    w0 = WorldState.from_state(s0)
+
+    # Establish an institution at 'plaza', but trade occurs at a different location ('forest')
+    guild = InstitutionRecord(
+        institution_id="guild-plaza",
+        name="Plaza Guild",
+        founder_id="agent-0",
+        location_id="plaza",
+        member_ids=("agent-0",),
+        treasury={},
+        currency_reserve=0,
+        contribution_rate=0.2,
+        created_tick=0,
+    )
+    agents = dict(w0.agents)
+    agents["agent-0"] = agents["agent-0"].model_copy(update={"institution_ids": ("guild-plaza",)})
+    w_start = w0.model_copy(update={"institutions": {"guild-plaza": guild}, "agents": agents})
+
+    settlement = TradeSettlement(
+        buyer_id="agent-1",
+        seller_id="agent-0",
+        resource="food",
+        quantity=1,
+        price_per_unit=10,
+        total_price=10,
+        fee_withheld=2,
+        location_id="forest",  # No institution at 'forest'
+        tick=300,
+    )
+
+    m = Market()
+    w_settled = m.settle_in_world(settlement, w_start)
+
+    # Fee routed to fallback institution
+    assert w_settled.institutions["guild-plaza"].currency_reserve == 2
+    report = check_invariants(w_start, w_settled)
+    assert report.passed is True
+
+
+def test_market_settle_in_world_without_any_institution_conserves_currency() -> None:
+    """Verify settle_in_world refunds withheld fee to seller if no institutions exist in world."""
+    engine = SocialSandboxEngine(default_seed=50, num_agents=2, num_locations=1)
+    s0 = engine.reset(seed=50, initial_agent_age=300)
+    w0 = WorldState.from_state(s0)
+    assert len(w0.institutions) == 0
+
+    settlement = TradeSettlement(
+        buyer_id="agent-1",
+        seller_id="agent-0",
+        resource="food",
+        quantity=1,
+        price_per_unit=10,
+        total_price=10,
+        fee_withheld=2,
+        location_id="plaza",
+        tick=300,
+    )
+
+    m = Market()
+    w_settled = m.settle_in_world(settlement, w0)
+
+    # In zero-institution world, withheld fee is refunded to seller to maintain exact currency conservation
+    assert w_settled.agents["agent-0"].currency == w0.agents["agent-0"].currency + 10
+    assert w_settled.agents["agent-1"].currency == w0.agents["agent-1"].currency - 10
+    report = check_invariants(w0, w_settled)
+    assert report.passed is True
+
+
+

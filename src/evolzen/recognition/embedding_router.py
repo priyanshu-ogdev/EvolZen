@@ -59,6 +59,8 @@ class EmbeddingRouter:
         """Return the rule_ids of the top_k most relevant library entries."""
         import numpy as np
 
+        if top_k <= 0:
+            return []
         if self._index is None:
             raise RuntimeError("build_index() must be called before route().")
         query_arr = np.asarray([query_embedding], dtype="float32")

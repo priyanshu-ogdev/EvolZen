@@ -941,12 +941,6 @@ def _handle_assign_role(
         reason=f"assigned role {role}",
         rewards=(0.25, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0),
     )
-    return _StepOutcome(
-        world=_replace_agent(world, updated),
-        accepted=True,
-        reason=f"assigned role {role}",
-        rewards=(0.25, 0.05, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0),
-    )
 
 
 def _handle_spawn_offspring(
