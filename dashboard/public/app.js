@@ -112,14 +112,16 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       4: { name: 'Modern Flat', color: 0x38bdf8, hex: '#38bdf8', floors: 2, height: 6.8, walls: 'CONCRETE (White)', roof: 'FLAT TERRACE + RAILING', roofColor: 0x64748b, chimney: 'Flue Vent' }
     },
 
-    // Civic Anchors
+    // Civic Anchors & Key Facilities
     civicAnchors: [
       { id: 'hospital', name: 'Hospital ✚ Trauma Center', x: 450, z: 550, size: 42, height: 26, color: 0xef4444, hex: '#ef4444', icon: '🏥', desc: 'Regional triage & convalescence facility with rooftop pulsing red cross' },
       { id: 'school', name: 'Civic Academy', x: 650, z: 550, size: 38, height: 20, color: 0xb91c1c, hex: '#b91c1c', icon: '🏫', desc: 'Manual cultural transmission, clock tower & civic academy' },
       { id: 'fire', name: 'Fire Station Core', x: 550, z: 450, size: 32, height: 18, color: 0xdc2626, hex: '#dc2626', icon: '🚒', desc: 'Hazard containment & emergency siren dispatch with dual bay doors' },
       { id: 'municipal', name: 'Municipal Office', x: 450, z: 450, size: 36, height: 24, color: 0xeab308, hex: '#eab308', icon: '🏛️', desc: 'Civic governance hall, colonnade portico, deed registry & voting' },
       { id: 'market', name: 'Central Agora Market', x: 550, z: 650, size: 46, height: 14, color: 0xf97316, hex: '#f97316', icon: '⚖️', desc: 'Continuous double-auction order book, striped awnings & commodity crates' },
-      { id: 'park', name: 'Central Park Conservatory', x: 500, z: 500, w: 100, h: 100, color: 0x10b981, hex: '#10b981', icon: '🌲', isZone: true, desc: 'Public green reserve, walking paths & Victorian glass greenhouse' }
+      { id: 'park', name: 'Central Park Conservatory', x: 500, z: 500, w: 100, h: 100, color: 0x10b981, hex: '#10b981', icon: '🌲', isZone: true, desc: 'Public green reserve, walking paths & Victorian glass greenhouse' },
+      { id: 'silo', name: 'Communal Granary Silos', x: 520, z: 620, size: 32, height: 24, color: 0xf59e0b, hex: '#f59e0b', icon: '🌾', desc: 'Communal grain reserve silos buffering famine & drought stress' },
+      { id: 'workshop', name: 'Timber & Quarry Workshops', x: 450, z: 250, size: 36, height: 16, color: 0x8b5cf6, hex: '#8b5cf6', icon: '🛠️', desc: 'Tool fabrication, masonry cutting & material processing facility' }
     ],
 
     // Role definitions for 64 agents
@@ -238,6 +240,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     initTourEngine();
     initKeyboardShortcuts();
     init2DMapCanvas();
+    initCensusControls();
 
     // 2. Fetch Initial Server Data concurrently
     await Promise.all([
@@ -267,11 +270,34 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     renderPipelineGraph();
     renderAuditChecklist();
     render2DWorldMap();
+    renderPopulationCensus();
 
     // If agents are loaded, select the first agent for initial inspector display
     if (state.agents && state.agents.length > 0) {
       inspectAgent(state.agents[0], false);
     }
+
+    // 5. Automatically run simulation indefinitely on page load (calm, observable 850ms pace)
+    state.isRunning = true;
+    state.simIntervalMs = 850;
+    state.simSpeedFactor = 1.0;
+    if (state.timer) clearInterval(state.timer);
+    state.timer = setInterval(() => stepSimulation(1), state.simIntervalMs);
+
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const btnPlay = document.getElementById('btnPlayPause');
+    if (playIcon) playIcon.textContent = '⏸';
+    if (playText) playText.textContent = 'PAUSE';
+    if (btnPlay) {
+      btnPlay.className = 'btn-tactile btn-tactile-cyan px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 active';
+    }
+
+    fetch('/api/sim/autoplay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: true, interval_ms: state.simIntervalMs })
+    }).catch(() => {});
 
     console.log('[EVOLZEN] 3D World Engine & Interactive Telemetry fully operational.');
   }
@@ -804,7 +830,58 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     scene.add(parkGroup);
   }
 
-  // Civic Anchors: Hospital, Agora, School, Municipal, Fire Station
+  // 3D Floating Building Label Sprite Generator (High-DPI Neumorphic Billboard)
+  function createBuildingLabelSprite(title, icon, colorHex, subtext) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Neumorphic Plaque Background
+    ctx.fillStyle = 'rgba(5, 9, 18, 0.94)';
+    ctx.strokeStyle = colorHex || '#38bdf8';
+    ctx.lineWidth = 4.5;
+    drawRoundedRect(ctx, 4, 4, 504, 120, 22, true, true);
+
+    // Inner subtle glow border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 1.5;
+    drawRoundedRect(ctx, 8, 8, 496, 112, 18, false, true);
+
+    // 2. Icon + Title Header
+    ctx.font = 'bold 27px "Inter", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${icon ? icon + '  ' : ''}${title}`, 256, 42);
+
+    // Divider
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(32, 68);
+    ctx.lineTo(480, 68);
+    ctx.stroke();
+
+    // 3. Subtext
+    ctx.font = 'bold 16px "Fira Code", monospace';
+    ctx.fillStyle = colorHex || '#38bdf8';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(subtext || 'Civic Infrastructure Facility', 256, 94);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter;
+    const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.scale.set(18.0, 4.5, 1.0);
+    sprite.userData = { canvas, texture, colorHex, isBuildingLabel: true };
+    return sprite;
+  }
+
+  // Civic Anchors: Hospital, Agora, School, Municipal, Fire Station, Silos, Workshops
   function build3DCivicAnchors(scene) {
     const civicGroup = new THREE.Group();
     state.three.civicGroup = civicGroup;
@@ -932,6 +1009,62 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         sirenDome.position.set(0, 12, 0);
         hoseTower.add(sirenDome);
       }
+
+      // 6. COMMUNAL GRANARY SILOS: Cylindrical Towers & Metal Domes
+      if (c.id === 'silo') {
+        const siloMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
+        const domeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 });
+        [-9, 0, 9].forEach(ox => {
+          const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, height, 20), siloMat);
+          cylinder.position.set(ox, 0, 0);
+          cylinder.castShadow = true;
+          bldg.add(cylinder);
+
+          const cap = new THREE.Mesh(new THREE.SphereGeometry(5.0, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.5), domeMat);
+          cap.position.set(ox, height / 2, 0);
+          bldg.add(cap);
+        });
+      }
+
+      // 7. TIMBER & QUARRY WORKSHOPS: Yard Storage
+      if (c.id === 'workshop') {
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+        for (let q = 0; q < 6; q++) {
+          const block = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3.5, 3.5), q % 2 === 0 ? stoneMat : woodMat);
+          block.position.set(c.x + size / 2 + 5, 1.8, c.z - 10 + q * 4.5);
+          block.castShadow = true;
+          civicGroup.add(block);
+        }
+      }
+
+      // Floating 3D Building Label Plaque
+      const labelSprite = createBuildingLabelSprite(c.name, c.icon, c.hex || '#38bdf8', c.desc);
+      let labelY = height + 10;
+      if (c.id === 'hospital') labelY = height + 16;
+      if (c.id === 'school') labelY = height + 28;
+      if (c.id === 'fire') labelY = height + 26;
+      if (c.id === 'silo') labelY = height + 16;
+      if (c.id === 'market') labelY = height + 18;
+      if (c.id === 'municipal') labelY = height + 16;
+      labelSprite.position.set(c.x, labelY, c.z);
+      civicGroup.add(labelSprite);
+    });
+
+    // 8. Add District Wayfinding Plaques
+    const districtMarkers = [
+      { name: 'West Farm Belt', icon: '🌾', x: 60, y: 22, z: 500, color: '#10b981', desc: '10 Agrarian Plots · Primary Wheat Harvest' },
+      { name: 'Central Park Conservatory', icon: '🌲', x: 500, y: 26, z: 500, color: '#22c55e', desc: 'Public Reserve & Victorian Greenhouse' },
+      { name: 'North Residential District', icon: '🏡', x: 260, y: 18, z: 180, color: '#facc15', desc: 'Ranch & Bungalow Single-Floor Dwellings' },
+      { name: 'East Colonial Enclave', icon: '🏡', x: 740, y: 20, z: 720, color: '#ef4444', desc: 'Colonial & McMansion Two-Story Estates' },
+      { name: 'South Modern Terraces', icon: '🏡', x: 720, y: 18, z: 280, color: '#38bdf8', desc: 'Contemporary Flat Concrete & Glass Homes' }
+    ];
+
+    districtMarkers.forEach(dm => {
+      const dmSprite = createBuildingLabelSprite(dm.name, dm.icon, dm.color, dm.desc);
+      dmSprite.position.set(dm.x, dm.y, dm.z);
+      dmSprite.scale.set(22.0, 5.5, 1.0);
+      civicGroup.add(dmSprite);
     });
 
     scene.add(civicGroup);
@@ -1353,9 +1486,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     legRGroup.add(bootR);
     group.add(legRGroup);
 
-    // 5. Floating Action Badge
-    const badgeSprite = createActionBadgeSprite(agentData.action || roleConfig.defaultAction, roleColorHex);
-    badgeSprite.position.set(0, 2.65, 0);
+    // 5. High-Resolution Floating 3D Billboard Sprite (Name, Role, Real-Time Activity & Vitals)
+    const badgeSprite = createAgentBillboardSprite(agentData, roleColorHex);
+    badgeSprite.position.set(0, 3.2, 0);
     group.add(badgeSprite);
 
     // 6. Ground Selection Ring
@@ -1380,57 +1513,162 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       currentPos: new THREE.Vector3(agentData.position.x, 0, agentData.position.z),
       targetPos: new THREE.Vector3(agentData.position.x, 0, agentData.position.z),
       walkPhase: Math.random() * Math.PI * 2,
+      idlePhase: Math.random() * Math.PI * 2,
       isMoving: false,
       heading: 0,
       data: agentData
     };
   }
 
-  function createActionBadgeSprite(actionText, colorHex) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d');
+  function getAgentRoleIcon(role) {
+    switch (role) {
+      case 'Farmer': return '🌾';
+      case 'Builder': return '🏗️';
+      case 'Crafter': return '🛠️';
+      case 'Trader': return '⚖️';
+      case 'Medic': return '🏥';
+      case 'Generalist': return '🌳';
+      default: return '👤';
+    }
+  }
 
-    ctx.fillStyle = 'rgba(9, 13, 22, 0.88)';
-    ctx.strokeStyle = colorHex || '#10b981';
+  function getAgentDisplayActivity(agent) {
+    if (!agent) return 'Standby in World';
+    if (agent.activity_text) return agent.activity_text;
+    const house = agent.home_house_index || 1;
+    switch (agent.action) {
+      case 'GATHER_CROP': return `Harvesting wheat at West Farm Belt (Plot #${(house % 10) + 1})`;
+      case 'REST_HOME': return `Resting & recuperating in Dwelling #${house}`;
+      case 'WITHDRAW_INSTITUTION': return `Withdrawing emergency grain from Silo`;
+      case 'AUCTION_BID': return `Bidding on grain order book at Agora`;
+      case 'MEDIC_CARE': return `Receiving triage care at Hospital Trauma Center`;
+      case 'CRAFT_TOOL': return `Forging tools & axes at Timber Workshop`;
+      case 'HYDRATE': return `Drinking fresh spring water at Central Fountain`;
+      case 'CIVIC_TRANSMISSION': return `Studying cultural manuals at Academy`;
+      case 'CONSTRUCT': return `Raising masonry at Municipal Construction Site`;
+      case 'CIVIC_REST': return `Socializing at Central Park Conservatory`;
+      default: return (agent.action || 'STANDBY').replace(/_/g, ' ');
+    }
+  }
+
+  function renderAgentBillboardCanvas(ctx, canvas, agent, colorHex) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const roleName = agent.role || 'Farmer';
+    const roleIcon = getAgentRoleIcon(roleName);
+    const accentColor = colorHex || agent.color || '#10b981';
+
+    // 1. Outer Neumorphic Pill Card
+    ctx.fillStyle = 'rgba(6, 10, 20, 0.94)';
+    ctx.strokeStyle = accentColor;
     ctx.lineWidth = 4;
-    drawRoundedRect(ctx, 4, 4, 248, 56, 28, true, true);
+    drawRoundedRect(ctx, 4, 4, 504, 132, 22, true, true);
 
-    ctx.font = 'bold 22px "Fira Code", monospace';
-    ctx.fillStyle = '#ffffff';
+    // Inner subtle glow border
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1.5;
+    drawRoundedRect(ctx, 7, 7, 498, 126, 19, false, true);
+
+    // 2. Header Line (y: 34)
+    // Left Role Icon Circle
+    ctx.beginPath();
+    ctx.arc(36, 34, 18, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fill();
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.font = '20px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const cleanText = (actionText || 'STANDBY').replace(/_/g, ' ');
-    ctx.fillText(cleanText, 128, 32);
+    ctx.fillText(roleIcon, 36, 35);
+
+    // Agent Name & Role
+    ctx.font = 'bold 23px "Inter", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const agentName = agent.name || `Agent ${agent.id || ''}`;
+    ctx.fillText(`${agentName} • ${roleName}`, 64, 34);
+
+    // ID Pill on right
+    ctx.font = 'bold 15px "Fira Code", monospace';
+    ctx.fillStyle = accentColor;
+    ctx.textAlign = 'right';
+    ctx.fillText(agent.id ? agent.id.toUpperCase() : 'EZ-01', 492, 34);
+
+    // Divider
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, 56);
+    ctx.lineTo(492, 56);
+    ctx.stroke();
+
+    // 3. Plain-English Real-Time Activity Text (y: 82)
+    const activityText = getAgentDisplayActivity(agent);
+    ctx.font = 'bold 20px "Inter", sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    let displayAct = activityText;
+    if (ctx.measureText(displayAct).width > 470) {
+      while (displayAct.length > 10 && ctx.measureText(displayAct + '...').width > 470) {
+        displayAct = displayAct.slice(0, -1);
+      }
+      displayAct += '...';
+    }
+    ctx.fillText(displayAct, 22, 82);
+
+    // 4. Vital Progress Bar (y: 112)
+    const h = agent.homeostasis || { food: 80, rest: 80 };
+    const foodVal = h.food !== undefined ? Math.min(100, Math.max(0, h.food)) : 80;
+    const restVal = h.rest !== undefined ? Math.min(100, Math.max(0, h.rest)) : 80;
+    const avgVital = (foodVal + restVal) / 2;
+
+    // Background track
+    ctx.fillStyle = '#0f172a';
+    drawRoundedRect(ctx, 22, 106, 300, 14, 7, true, false);
+
+    // Fill track
+    const barWidth = Math.max(8, (avgVital / 100) * 300);
+    const grad = ctx.createLinearGradient(22, 0, 322, 0);
+    grad.addColorStop(0, '#10b981');
+    grad.addColorStop(1, '#06b6d4');
+    ctx.fillStyle = grad;
+    drawRoundedRect(ctx, 22, 106, barWidth, 14, 7, true, false);
+
+    // Text metrics
+    ctx.font = 'bold 12px "Fira Code", monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.textAlign = 'right';
+    ctx.fillText(`Food: ${Math.round(foodVal)}%  Rest: ${Math.round(restVal)}%`, 492, 113);
+  }
+
+  function createAgentBillboardSprite(agentData, colorHex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 140;
+    const ctx = canvas.getContext('2d');
+
+    renderAgentBillboardCanvas(ctx, canvas, agentData, colorHex);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.minFilter = THREE.LinearFilter;
     const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(2.4, 0.6, 1.0);
-    sprite.userData = { canvas, texture, colorHex };
+    sprite.scale.set(5.2, 1.45, 1.0);
+    sprite.userData = { canvas, texture, colorHex, lastAction: agentData.action };
     return sprite;
   }
 
-  function updateActionBadgeSprite(sprite, newAction, colorHex) {
+  function updateAgentBillboardSprite(sprite, agent) {
     if (!sprite || !sprite.userData || !sprite.userData.canvas) return;
     const canvas = sprite.userData.canvas;
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = 'rgba(9, 13, 22, 0.88)';
-    ctx.strokeStyle = colorHex || sprite.userData.colorHex || '#10b981';
-    ctx.lineWidth = 4;
-    drawRoundedRect(ctx, 4, 4, 248, 56, 28, true, true);
-
-    ctx.font = 'bold 22px "Fira Code", monospace';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const cleanText = (newAction || 'STANDBY').replace(/_/g, ' ');
-    ctx.fillText(cleanText, 128, 32);
-
+    renderAgentBillboardCanvas(ctx, canvas, agent, agent.color || sprite.userData.colorHex);
     sprite.userData.texture.needsUpdate = true;
   }
 
@@ -1456,7 +1694,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       if (match) {
         avatar.data = match;
         avatar.targetPos.set(match.position.x, 0, match.position.z);
-        updateActionBadgeSprite(avatar.badgeSprite, match.action, match.color);
+        updateAgentBillboardSprite(avatar.badgeSprite, match);
       }
     });
   }
@@ -1491,20 +1729,30 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         while (diff > Math.PI) diff -= Math.PI * 2;
         avatar.group.rotation.y += diff * Math.min(1, dt * 10);
 
-        avatar.walkPhase += dt * 11 * state.simSpeedFactor;
+        avatar.walkPhase += dt * 9 * state.simSpeedFactor;
         avatar.legLGroup.rotation.x = Math.sin(avatar.walkPhase) * 0.65;
         avatar.legRGroup.rotation.x = -Math.sin(avatar.walkPhase) * 0.65;
         avatar.armLGroup.rotation.x = -Math.sin(avatar.walkPhase) * 0.55;
         avatar.armRGroup.rotation.x = Math.sin(avatar.walkPhase) * 0.55;
 
-        avatar.torsoGroup.position.y = avatar.baseTorsoY + Math.abs(Math.sin(avatar.walkPhase * 2)) * 0.12;
+        // Torso lean forward in walk direction & subtle torso twist
+        avatar.torsoGroup.rotation.x = THREE.MathUtils.lerp(avatar.torsoGroup.rotation.x, 0.08, 0.1);
+        avatar.torsoGroup.rotation.y = Math.sin(avatar.walkPhase) * 0.06;
+        avatar.torsoGroup.rotation.z = THREE.MathUtils.lerp(avatar.torsoGroup.rotation.z, 0, 0.1);
+        avatar.torsoGroup.position.y = avatar.baseTorsoY + Math.abs(Math.sin(avatar.walkPhase * 2)) * 0.08;
       } else {
         avatar.isMoving = false;
         avatar.legLGroup.rotation.x = THREE.MathUtils.lerp(avatar.legLGroup.rotation.x, 0, 0.15);
         avatar.legRGroup.rotation.x = THREE.MathUtils.lerp(avatar.legRGroup.rotation.x, 0, 0.15);
         avatar.armLGroup.rotation.x = THREE.MathUtils.lerp(avatar.armLGroup.rotation.x, 0, 0.15);
         avatar.armRGroup.rotation.x = THREE.MathUtils.lerp(avatar.armRGroup.rotation.x, 0, 0.15);
-        avatar.torsoGroup.position.y = THREE.MathUtils.lerp(avatar.torsoGroup.position.y, avatar.baseTorsoY, 0.15);
+        avatar.torsoGroup.rotation.x = THREE.MathUtils.lerp(avatar.torsoGroup.rotation.x, 0, 0.15);
+        avatar.torsoGroup.rotation.y = THREE.MathUtils.lerp(avatar.torsoGroup.rotation.y, 0, 0.15);
+
+        // Lifelike idle breathing & weight-shift sway so agents never freeze rigidly
+        const idleCycle = elapsedTime * 2.0 + (avatar.idlePhase || 0);
+        avatar.torsoGroup.position.y = avatar.baseTorsoY + Math.sin(idleCycle) * 0.03;
+        avatar.torsoGroup.rotation.z = Math.sin(idleCycle * 0.7) * 0.02;
       }
 
       avatar.group.position.set(avatar.currentPos.x, 0, avatar.currentPos.z);
@@ -1906,13 +2154,14 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
   function initSpeedControls() {
     const speedConfigs = {
-      '1x': { interval: 1200, factor: 1.0 },
-      '2x': { interval: 600, factor: 1.8 },
-      '5x': { interval: 240, factor: 3.5 },
-      '10x': { interval: 120, factor: 6.0 }
+      '0.5x': { interval: 1600, factor: 0.6 },
+      '1x': { interval: 850, factor: 1.0 },
+      '2x': { interval: 450, factor: 1.8 },
+      '5x': { interval: 200, factor: 3.5 },
+      '10x': { interval: 100, factor: 6.0 }
     };
 
-    const speedButtons = document.querySelectorAll('.speed-btn, .btn-speed, [data-speed]');
+    const speedButtons = document.querySelectorAll('.speed-btn, .btn-speed, .neu-speed-btn, [data-speed]');
     speedButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         let sp = btn.dataset.speed;
@@ -1926,7 +2175,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     // Listen to custom speed event from UI controller
     window.addEventListener('evolzen-speed-change', (e) => {
       if (e.detail && e.detail.speed) {
-        const sp = `${e.detail.speed}x`;
+        let sp = e.detail.speed;
+        if (!sp.endsWith('x')) sp = `${sp}x`;
         if (speedConfigs[sp]) {
           setSimulationSpeed(sp, speedConfigs[sp].interval, speedConfigs[sp].factor);
         }
@@ -1939,7 +2189,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     state.simIntervalMs = intervalMs;
     state.simSpeedFactor = factor;
 
-    document.querySelectorAll('.speed-btn, .btn-speed, [data-speed]').forEach(b => {
+    document.querySelectorAll('.speed-btn, .btn-speed, .neu-speed-btn, [data-speed]').forEach(b => {
       let sp = b.dataset.speed;
       if (!sp.endsWith('x')) sp = `${sp}x`;
       const isMatch = sp === speed;
@@ -1947,7 +2197,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     });
 
     if (state.isRunning) {
-      clearInterval(state.timer);
+      if (state.timer) clearInterval(state.timer);
       state.timer = setInterval(() => stepSimulation(1), state.simIntervalMs);
       fetch('/api/sim/autoplay', {
         method: 'POST',
@@ -2001,6 +2251,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     renderOrderBook();
     renderLorenzCurve();
     syncAgentMeshes();
+    if (typeof window.evolzenRenderCensus === 'function') window.evolzenRenderCensus();
 
     setTimeout(() => {
       state.isDroughtActive = false;
@@ -2026,7 +2277,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (state.isRunning) {
       if (playIcon) playIcon.textContent = '⏸';
       if (playText) playText.textContent = 'PAUSE';
-      if (btn) btn.className = 'btn-ctrl px-3 py-1 text-xs rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium flex items-center gap-1.5 transition-all';
+      if (btn) btn.className = 'btn-tactile btn-tactile-cyan px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 active';
       state.timer = setInterval(() => stepSimulation(1), state.simIntervalMs);
       fetch('/api/sim/autoplay', {
         method: 'POST',
@@ -2036,8 +2287,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     } else {
       if (playIcon) playIcon.textContent = '▶';
       if (playText) playText.textContent = 'RUN';
-      if (btn) btn.className = 'btn-ctrl px-3 py-1 text-xs rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-1.5 transition-all';
-      if (state.timer) clearInterval(state.timer);
+      if (btn) btn.className = 'btn-tactile px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5';
+      if (state.timer) {
+        clearInterval(state.timer);
+        state.timer = null;
+      }
       fetch('/api/sim/autoplay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2064,23 +2318,142 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       if (data.tick !== undefined && state.envState) {
         state.envState.tick = data.tick;
         if (data.locations) state.envState.locations = data.locations;
+        if (data.communal_silo) state.envState.communal_silo = data.communal_silo;
+      }
+      if (data.agents && data.agents.length > 0) {
+        state.agents = data.agents;
       }
       updateSimulationHUD();
       renderLocationPools();
       renderResourceChart();
 
-      await Promise.all([fetchEconomyState(), fetchAgentsRoster()]);
-      renderOrderBook();
-      renderLorenzCurve();
       syncAgentMeshes();
 
       if (state.selectedAgentId) {
         const cur = state.agents.find(a => a.id === state.selectedAgentId);
         if (cur) inspectAgent(cur, false);
       }
+
+      if (typeof window.evolzenRenderCensus === 'function') {
+        window.evolzenRenderCensus();
+      }
     } catch (e) {
       console.warn('Error during stepSimulation:', e);
     }
+  }
+
+  // Population Census Roster Controller
+  let censusActiveRole = 'ALL';
+  let censusSearchQuery = '';
+
+  function renderPopulationCensus() {
+    const container = document.getElementById('censusListContainer');
+    const countBadge = document.getElementById('censusCountBadge');
+    if (!container || !state.agents || state.agents.length === 0) return;
+
+    let filtered = state.agents;
+    if (censusActiveRole !== 'ALL') {
+      filtered = filtered.filter(a => a.role === censusActiveRole);
+    }
+    if (censusSearchQuery && censusSearchQuery.trim()) {
+      const q = censusSearchQuery.toLowerCase();
+      filtered = filtered.filter(a => 
+        (a.name && a.name.toLowerCase().includes(q)) ||
+        (a.role && a.role.toLowerCase().includes(q)) ||
+        (a.id && a.id.toLowerCase().includes(q)) ||
+        (getAgentDisplayActivity(a).toLowerCase().includes(q))
+      );
+    }
+
+    if (countBadge) {
+      countBadge.textContent = `${filtered.length} / ${state.agents.length} Citizens`;
+    }
+
+    container.innerHTML = filtered.map(agent => {
+      const roleIcon = getAgentRoleIcon(agent.role);
+      const act = getAgentDisplayActivity(agent);
+      const h = agent.homeostasis || { food: 80, rest: 80, health: 85, currency: 20 };
+      const isSelected = state.selectedAgentId === agent.id;
+
+      return `
+        <div class="neu-panel p-2.5 rounded-lg border ${isSelected ? 'border-cyan-400 bg-cyan-950/30' : 'border-slate-800'} hover:border-cyan-500/60 transition-all cursor-pointer census-item" data-agent-id="${agent.id}">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-base">${roleIcon}</span>
+              <div>
+                <span class="text-xs font-bold text-white">${agent.name || agent.id}</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono ml-1 font-bold" style="color: ${agent.color || '#38bdf8'}; background: ${agent.color || '#38bdf8'}22;">${agent.role}</span>
+              </div>
+            </div>
+            <button class="btn-track-agent px-2 py-0.5 text-[10px] rounded bg-cyan-950/80 hover:bg-cyan-800 text-cyan-300 border border-cyan-700/50 font-mono" data-agent-id="${agent.id}">
+              🎯 Focus
+            </button>
+          </div>
+          <div class="mt-1.5 text-[11px] text-cyan-300 font-mono truncate" title="${act}">
+            ${act}
+          </div>
+          <div class="mt-1 flex items-center justify-between text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-800/80">
+            <span>🏠 Dwelling #${agent.home_house_index || 1}</span>
+            <span>❤️ ${Math.round(h.health || 85)}% · 🍎 ${Math.round(h.food || 80)}% · 💰 ${agent.homeostasis?.currency || 15}C</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.census-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-track-agent')) return;
+        const agId = item.dataset.agentId;
+        const ag = state.agents.find(a => a.id === agId);
+        if (ag) {
+          inspectAgent(ag, true);
+          const tabAgent = document.getElementById('drawerTabAgent');
+          if (tabAgent) tabAgent.click();
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-track-agent').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const agId = btn.dataset.agentId;
+        const ag = state.agents.find(a => a.id === agId);
+        if (ag) {
+          inspectAgent(ag, true);
+          state.followingAgentId = ag.id;
+          if (state.three.camera && state.three.controls) {
+            state.three.camTargetPos = new THREE.Vector3(ag.position.x - 12, 8, ag.position.z - 12);
+            state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 1.2, ag.position.z);
+          }
+        }
+      });
+    });
+  }
+
+  window.evolzenRenderCensus = renderPopulationCensus;
+
+  function initCensusControls() {
+    const searchInput = document.getElementById('censusSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        censusSearchQuery = e.target.value;
+        renderPopulationCensus();
+      });
+    }
+
+    const filterBtns = document.querySelectorAll('.census-role-filter');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => {
+          b.classList.remove('active', 'bg-cyan-950', 'border-cyan-700', 'text-cyan-300', 'font-bold');
+          b.classList.add('text-slate-400');
+        });
+        btn.classList.add('active', 'bg-cyan-950', 'border-cyan-700', 'text-cyan-300', 'font-bold');
+        btn.classList.remove('text-slate-400');
+        censusActiveRole = btn.dataset.role || 'ALL';
+        renderPopulationCensus();
+      });
+    });
   }
 
   async function resetSimulation() {

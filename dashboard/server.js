@@ -8,6 +8,14 @@
  * Runs without any LLM or heavy training inference runtime usage by architectural mandate.
  */
 
+// Top-level crash guards to ensure 100% server uptime
+process.on('uncaughtException', (err) => {
+  console.error('[CRITICAL] Uncaught exception prevented from crashing process:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL] Unhandled promise rejection prevented from crashing process:', reason);
+});
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -142,7 +150,36 @@ let simState = {
 // Autoplay Timer & State
 let autoplayTimer = null;
 let autoplayActive = false;
-let autoplayIntervalMs = 300;
+let autoplayIntervalMs = 850; // Calibrated for smooth, observable pacing
+
+function getAgentActivityDescription(agent) {
+  if (!agent) return 'Standby in World';
+  const houseIdx = agent.home_house_index || 1;
+  switch (agent.action) {
+    case 'GATHER_CROP':
+      return `Harvesting wheat at West Farm Belt (Plot #${(houseIdx % 10) + 1})`;
+    case 'REST_HOME':
+      return `Resting & recuperating in Dwelling #${houseIdx}`;
+    case 'WITHDRAW_INSTITUTION':
+      return `Withdrawing drought grain buffer from Communal Silo`;
+    case 'AUCTION_BID':
+      return `Bidding on grain order book at Central Agora Market`;
+    case 'MEDIC_CARE':
+      return `Receiving triage care at Hospital Trauma Center`;
+    case 'CRAFT_TOOL':
+      return `Forging iron tools & axes at Timber Workshop`;
+    case 'HYDRATE':
+      return `Drinking fresh spring water at Central Fountain`;
+    case 'CIVIC_TRANSMISSION':
+      return `Studying normative manuals at Civic Academy`;
+    case 'CONSTRUCT':
+      return `Raising masonry at Municipal Construction Site`;
+    case 'CIVIC_REST':
+      return `Socializing at Central Park Conservatory`;
+    default:
+      return `${(agent.action || 'STANDBY').replace(/_/g, ' ')}`;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // 2b. Agent Population & Homeostatic Core (Phase 1.2 Chebyshev Core)
@@ -228,7 +265,8 @@ function initializeAgents() {
     const currentZ = isAtWork ? (roleInfo.target.z + (Math.random() - 0.5) * 30) : homeZ;
     const target = isAtWork ? { ...roleInfo.target } : { x: homeX, z: homeZ, label: 'Home Dwelling' };
     
-    agents.push({
+    const initialAction = isAtWork ? roleInfo.action : 'REST_HOME';
+    const agentObj = {
       id: `agent_${String(i + 1).padStart(2, '0')}`,
       name: `${AGENT_NAMES[i % AGENT_NAMES.length]}`,
       role: roleInfo.name,
@@ -239,7 +277,7 @@ function initializeAgents() {
       waypoints: generateWaypoints({ x: currentX, z: currentZ }, target),
       position: { x: Math.round(currentX * 10) / 10, y: 0.5, z: Math.round(currentZ * 10) / 10 },
       heading: 0,
-      action: isAtWork ? roleInfo.action : 'REST_HOME',
+      action: initialAction,
       homeostasis: {
         food: Math.round(75 + Math.random() * 20),
         hydration: Math.round(80 + Math.random() * 18),
@@ -250,7 +288,9 @@ function initializeAgents() {
         tools: Math.round(60 + Math.random() * 35),
         kinship: Math.round(50 + Math.random() * 40)
       }
-    });
+    };
+    agentObj.activity_text = getAgentActivityDescription(agentObj);
+    agents.push(agentObj);
   }
   return agents;
 }
@@ -518,7 +558,7 @@ function simAgentsStep(steps) {
 
   for (let a of simulatedAgents) {
     const distToTarget = Math.hypot(a.target.x - a.position.x, a.target.z - a.position.z);
-    const atTarget = distToTarget < (a.action === 'WITHDRAW_INSTITUTION' ? 16.0 : 4.0);
+    const atTarget = distToTarget < (a.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 4.0);
     
     // Evaluate Chebyshev Homeostasis
     const decision = evaluateChebyshevHomeostasis(a, isDrought, siloReserve);
@@ -568,7 +608,8 @@ function simAgentsStep(steps) {
     }
 
     if (dist > 2.0) {
-      const speed = Math.min(dist, 2.4 * steps);
+      const speedMult = a.action === 'WITHDRAW_INSTITUTION' ? 4.0 : 2.4;
+      const speed = Math.min(dist, speedMult * steps);
       const vx = (dx / dist) * speed;
       const vz = (dz / dist) * speed;
       a.position.x += vx;
@@ -584,6 +625,9 @@ function simAgentsStep(steps) {
 
     // Apply baseline metabolic drift & homeostatic bounds
     applyMetabolicDrift(a, steps, isDrought);
+
+    // Compute updated plain-English activity text
+    a.activity_text = getAgentActivityDescription(a);
   }
 }
 
@@ -939,8 +983,8 @@ app.get('/api/world/meta', (req, res) => {
   });
 });
 
-// Environment State & Invariant Audit
-app.get('/api/environment/state', (req, res) => {
+// Environment State & Invariant Audit (Supports both /api/environment/state and /api/sim/state)
+app.get(['/api/environment/state', '/api/sim/state'], (req, res) => {
   res.json({
     ...simState,
     autoplay: {
@@ -950,8 +994,8 @@ app.get('/api/environment/state', (req, res) => {
   });
 });
 
-// Step Environment Simulation (Deterministic)
-app.post('/api/environment/step', (req, res) => {
+// Step Environment Simulation (Deterministic, returns updated agents immediately)
+app.post(['/api/environment/step', '/api/sim/step'], (req, res) => {
   const steps = Math.min(Math.max(parseInt(req.body.steps || 1, 10), 1), 50);
   executeSimulationStep(steps);
 
@@ -963,12 +1007,13 @@ app.post('/api/environment/step', (req, res) => {
     locations: simState.locations,
     communal_silo: simState.communal_silo,
     drought: simState.drought,
-    active_agents: simulatedAgents.length
+    active_agents: simulatedAgents.length,
+    agents: simulatedAgents
   });
 });
 
 // Reset Environment Simulation
-app.post('/api/environment/reset', (req, res) => {
+app.post(['/api/environment/reset', '/api/sim/reset'], (req, res) => {
   if (autoplayTimer) {
     clearInterval(autoplayTimer);
     autoplayTimer = null;
@@ -999,11 +1044,11 @@ app.post('/api/environment/reset', (req, res) => {
   };
   simState.history = [{ tick: 0, food: 700, wood: 650, stone: 500, gini: 0.281, communal_silo: 650 }];
   simulatedAgents = initializeAgents();
-  res.json({ status: 'reset', tick: 0 });
+  res.json({ status: 'reset', tick: 0, agents: simulatedAgents });
 });
 
-// Autoplay Background Ticking API (Configurable interval e.g. 100ms - 1000ms)
-app.get('/api/sim/autoplay', (req, res) => {
+// Autoplay Background Ticking API (Configurable interval e.g. 500ms - 2000ms)
+app.get(['/api/environment/autoplay', '/api/sim/autoplay'], (req, res) => {
   res.json({
     active: autoplayActive,
     interval_ms: autoplayIntervalMs,
@@ -1012,10 +1057,10 @@ app.get('/api/sim/autoplay', (req, res) => {
   });
 });
 
-app.post('/api/sim/autoplay', (req, res) => {
+app.post(['/api/environment/autoplay', '/api/sim/autoplay'], (req, res) => {
   const newInterval = req.body.interval_ms || req.body.interval;
   if (newInterval !== undefined) {
-    autoplayIntervalMs = Math.max(50, Math.min(5000, parseInt(newInterval, 10) || 300));
+    autoplayIntervalMs = Math.max(100, Math.min(5000, parseInt(newInterval, 10) || 850));
   }
   
   let shouldBeActive = autoplayActive;
@@ -1033,7 +1078,11 @@ app.post('/api/sim/autoplay', (req, res) => {
     if (autoplayTimer) clearInterval(autoplayTimer);
     autoplayActive = true;
     autoplayTimer = setInterval(() => {
-      executeSimulationStep(1);
+      try {
+        executeSimulationStep(1);
+      } catch (err) {
+        console.error('Error during autonomous step:', err);
+      }
     }, autoplayIntervalMs);
   } else {
     if (autoplayTimer) {
@@ -1053,7 +1102,7 @@ app.post('/api/sim/autoplay', (req, res) => {
 });
 
 // Drought Shock Endpoint (Triggers 60% resource scarcity shock across locations & logs event)
-app.get('/api/environment/drought', (req, res) => {
+app.get(['/api/environment/drought', '/api/sim/drought'], (req, res) => {
   res.json({
     drought: simState.drought,
     communal_silo: simState.communal_silo,
@@ -1061,7 +1110,7 @@ app.get('/api/environment/drought', (req, res) => {
   });
 });
 
-app.post('/api/environment/drought', (req, res) => {
+app.post(['/api/environment/drought', '/api/sim/drought'], (req, res) => {
   let activate = true;
   if (req.body.active !== undefined) {
     activate = Boolean(req.body.active);
@@ -1211,6 +1260,14 @@ app.get('/api/system/audit', (req, res) => {
       { name: 'Runtime LLM Inference Decoupling', status: 'PASS', detail: 'Mandate respected: 0 token calls' }
     ]
   });
+});
+
+// Global Express Error Boundary to prevent any unhandled error from crashing the server
+app.use((err, req, res, next) => {
+  console.error('[EXPRESS CAUGHT ERROR]', err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+  }
 });
 
 // Start Express Server if run directly

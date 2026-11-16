@@ -131,72 +131,81 @@
         </div>
       </div>
 
-      <!-- Live Simulation Tick Controls, Speed Controls & Drought Shock -->
-      <div class="flex flex-wrap items-center gap-2.5 bg-slate-950/90 border border-slate-800 rounded-xl px-3.5 py-2 shadow-inner">
+      <!-- Live Simulation Tick Controls, Speed Controls & Drought Shock (Skeuomorphic & Neumorphic Deck) -->
+      <div class="flex flex-wrap items-center gap-3 neu-panel px-4 py-2.5 shadow-xl">
         
-        <!-- Live Clock -->
-        <div class="flex items-center gap-2 pr-2.5 border-r border-slate-800">
-          <span class="text-[10px] uppercase tracking-wider text-slate-400 font-mono flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> CLOCK
-          </span>
-          <span id="currentTickBadge" class="text-sm font-mono font-bold text-cyan-400">TICK #142</span>
+        <!-- Live Clock with Skeuomorphic Dome LED -->
+        <div class="flex items-center gap-2.5 pr-3 border-r border-slate-700/60">
+          <div class="flex items-center gap-1.5">
+            <span class="skeuo-led skeuo-led-green led-pulse" title="Simulation Engine Clock Active"></span>
+            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-mono font-bold">CLOCK</span>
+          </div>
+          <div class="neu-lcd px-2.5 py-1 rounded text-xs font-mono font-bold">
+            <span id="currentTickBadge">TICK #142</span>
+          </div>
         </div>
 
         <!-- Play/Pause & Speed Buttons -->
-        <div class="flex items-center gap-1.5" role="toolbar" aria-label="Simulation Controls">
-          <button id="btnPlayPause" class="btn-ctrl px-3 py-1 text-xs rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-1.5 transition-all shadow-md active:scale-95" title="Toggle Simulation Play/Pause (Shortcut: Space)">
-            <span id="playIcon">▶</span> <span id="playText">RUN</span>
+        <div class="flex items-center gap-2" role="toolbar" aria-label="Simulation Controls">
+          <button id="btnPlayPause" class="btn-tactile btn-tactile-cyan px-3.5 py-1.5 text-xs font-bold flex items-center gap-1.5 active" title="Toggle Simulation Play/Pause (Shortcut: Space)">
+            <span id="playIcon">⏸</span> <span id="playText">PAUSE</span>
           </button>
           
-          <!-- Speed selectors (1x, 2x, 5x, 10x) -->
-          <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5" role="group" aria-label="Playback Speed">
-            <button id="btnSpeed1x" class="btn-speed active px-1.5 py-0.5 text-[10px] rounded font-mono font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-700/50" data-speed="1" title="1x Speed (1000ms)">1x</button>
-            <button id="btnSpeed2x" class="btn-speed px-1.5 py-0.5 text-[10px] rounded font-mono text-slate-400 hover:text-white" data-speed="2" title="2x Speed (500ms)">2x</button>
-            <button id="btnSpeed5x" class="btn-speed px-1.5 py-0.5 text-[10px] rounded font-mono text-slate-400 hover:text-white" data-speed="5" title="5x Speed (200ms)">5x</button>
-            <button id="btnSpeed10x" class="btn-speed px-1.5 py-0.5 text-[10px] rounded font-mono text-slate-400 hover:text-white" data-speed="10" title="10x Speed (100ms)">10x</button>
+          <!-- Speed selectors (0.5x, 1x, 2x, 5x, 10x) -->
+          <div class="neu-speed-group" role="group" aria-label="Playback Speed">
+            <button id="btnSpeed05x" class="neu-speed-btn" data-speed="0.5" title="0.5x Cinematic Speed (1600ms)">0.5x</button>
+            <button id="btnSpeed1x" class="neu-speed-btn active" data-speed="1" title="1x Observable Pace (850ms)">1x</button>
+            <button id="btnSpeed2x" class="neu-speed-btn" data-speed="2" title="2x Moderate Speed (450ms)">2x</button>
+            <button id="btnSpeed5x" class="neu-speed-btn" data-speed="5" title="5x Fast Forward (200ms)">5x</button>
           </div>
 
           <!-- Manual Steppers -->
-          <button id="btnStep1" class="btn-ctrl px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 1 Tick (Shortcut: +)">+1</button>
-          <button id="btnStep5" class="btn-ctrl px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 5 Ticks">+5</button>
-          <button id="btnStep25" class="btn-ctrl px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 25 Ticks">+25</button>
-          <button id="btnReset" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 font-mono transition-all" title="Reset World Simulation">RESET</button>
+          <button id="btnStep1" class="btn-tactile px-2.5 py-1.5 text-xs font-mono" title="Advance 1 Tick (Shortcut: +)">+1</button>
+          <button id="btnStep5" class="btn-tactile px-2.5 py-1.5 text-xs font-mono" title="Advance 5 Ticks">+5</button>
+          <button id="btnStep25" class="btn-tactile px-2.5 py-1.5 text-xs font-mono" title="Advance 25 Ticks">+25</button>
+          <button id="btnReset" class="btn-tactile px-2.5 py-1.5 text-xs text-rose-300 font-mono hover:text-rose-200" title="Reset World Simulation">RESET</button>
           
-          <!-- Trigger Drought Shock -->
-          <button id="btnDrought" class="btn-ctrl btn-drought px-2.5 py-1 text-xs rounded-lg bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-600/60 font-mono font-bold flex items-center gap-1 transition-all shadow-md active:scale-95" title="Trigger 60% Scarcity Shock across West Farms & Sectors">
+          <!-- Trigger Drought Shock with Amber LED -->
+          <button id="btnDrought" class="btn-tactile btn-tactile-amber px-3 py-1.5 text-xs font-mono font-bold flex items-center gap-2 shadow-lg" title="Trigger 60% Scarcity Shock across West Farms & Sectors">
+            <span class="skeuo-led skeuo-led-amber"></span>
             <span id="btnTriggerDrought" class="flex items-center gap-1">
-              <span id="droughtIcon" class="text-amber-400">⚡</span>
+              <span id="droughtIcon">⚡</span>
               <span id="droughtText" class="hidden sm:inline">DROUGHT SHOCK</span>
             </span>
           </button>
         </div>
       </div>
 
-      <!-- Quick Subsystem Status Indicators, Invariant, Gini & Glowing Staged LLM Hazard Badge -->
-      <div class="flex items-center gap-2 text-xs font-mono flex-wrap justify-end">
+      <!-- Quick Subsystem Status Indicators, Invariant, Gini, Citizens Census & Staged LLM Plaque -->
+      <div class="flex items-center gap-2.5 text-xs font-mono flex-wrap justify-end">
         
-        <!-- Invariant Badge 100% -->
-        <span id="invariantBadge" class="px-2.5 py-1 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 shadow-sm" title="Conservation Invariants: 100% Exact-Match Verified">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <!-- Invariant Badge 100% Exact Match -->
+        <span id="invariantBadge" class="neu-badge px-3 py-1.5 rounded-lg text-emerald-300 flex items-center gap-2 shadow" title="Conservation Invariants: 100% Exact-Match Verified">
+          <span class="skeuo-led skeuo-led-cyan"></span>
           <span>INVARIANTS: <strong class="text-emerald-400">100%</strong></span>
         </span>
 
         <!-- Gini Badge -->
-        <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 flex items-center gap-1.5 shadow-sm" title="Wealth Gini Coefficient">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-          <span>GINI: <strong class="text-amber-400" id="badgeGini">0.284</strong></span>
+        <span class="neu-badge px-3 py-1.5 rounded-lg text-slate-300 flex items-center gap-2 shadow" title="Wealth Gini Coefficient">
+          <span class="skeuo-led skeuo-led-amber"></span>
+          <span>GINI: <strong class="text-amber-400 font-bold" id="badgeGini">0.284</strong></span>
         </span>
 
-        <!-- Staged LLM Route Hazard Badge (Prominent Glowing Hazard Amber) -->
-        <span id="hazardLlmBadge" class="staged-llm-badge px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 shadow-md cursor-help" title="Cognitive Route Decoupled: Zero Runtime Neural LLM Inference by Architectural Invariant">
-          <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-          <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <!-- Citizens (64) Census Drawer Button -->
+        <button id="btnOpenCensus" class="btn-tactile px-3 py-1.5 rounded-lg text-cyan-300 flex items-center gap-1.5 shadow" title="View Full Population Census & Live Roster (64 Citizens)">
+          <span>👥</span> <span class="font-bold">CITIZENS (64)</span>
+        </button>
+
+        <!-- Staged LLM Route Hazard Plaque (Hazard Stripes + Warning Stencil) -->
+        <span id="hazardLlmBadge" class="staged-llm-badge-skeuo px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 shadow-lg cursor-help border border-amber-500" title="Cognitive Route Decoupled: Zero Runtime Neural LLM Inference by Architectural Invariant">
+          <span class="skeuo-led skeuo-led-amber led-pulse"></span>
+          <svg class="w-3.5 h-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           <span class="hidden sm:inline">LLM: STAGED / ZERO INFERENCE</span>
           <span class="sm:hidden">LLM: STAGED</span>
         </span>
 
         <!-- Inspector Drawer Toggle Button -->
-        <button id="btnToggleDrawer" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800/50 flex items-center gap-1.5 transition-all shadow-sm" title="Toggle Sliding Interactive Inspector Drawer">
+        <button id="btnToggleDrawer" class="btn-tactile px-3 py-1.5 rounded-lg text-cyan-300 flex items-center gap-1.5 shadow" title="Toggle Sliding Interactive Entity Inspector">
           <span>📋</span> <span class="hidden lg:inline">INSPECTOR</span>
         </button>
 
@@ -1307,13 +1316,16 @@
         </button>
       </div>
 
-      <!-- Drawer Internal Tab Switcher: Agent vs Building -->
-      <div class="px-4 py-2 border-b border-slate-800 flex items-center gap-2 text-xs">
+      <!-- Drawer Internal Tab Switcher: Agent vs Population vs Building -->
+      <div class="px-4 py-2 border-b border-slate-800 flex items-center gap-1.5 text-xs">
         <button id="drawerTabAgent" class="drawer-tab active flex-1 py-1.5 rounded-lg text-center font-bold bg-cyan-950/60 border border-cyan-700/50 text-cyan-300">
-          👤 Human Agent (64)
+          👤 Focused Agent
+        </button>
+        <button id="drawerTabPopulation" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
+          👥 Census (64)
         </button>
         <button id="drawerTabBuilding" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
-          🏡 Building (345)
+          🏡 Buildings (345)
         </button>
       </div>
 
@@ -1328,7 +1340,7 @@
             <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 p-0.5 flex items-center justify-center text-lg">
-                  <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
+                  <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center" id="agentDrawerIcon">
                     🌾
                   </div>
                 </div>
@@ -1339,6 +1351,14 @@
               </div>
               <span id="agentDrawerStateBadge" class="text-[10px] px-2 py-0.5 rounded font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
                 GATHER_CROP
+              </span>
+            </div>
+
+            <!-- Dynamic Real-Time Activity Plaque -->
+            <div class="mt-2.5 p-2.5 rounded-lg neu-well text-xs border border-cyan-900/30">
+              <span class="text-slate-400 text-[10px] uppercase font-mono block mb-1">Current Real-Time Activity:</span>
+              <span id="agentDrawerActivityText" class="font-bold text-cyan-300 font-mono flex items-center gap-1.5 text-xs">
+                🌾 Harvesting wheat at West Farm Belt (Plot #3)
               </span>
             </div>
 
@@ -1467,7 +1487,33 @@
 
         </div>
 
-        <!-- SECTION 2: BUILDING & ANCHOR INSPECTOR -->
+        <!-- SECTION 2: FULL POPULATION CENSUS (64 CITIZENS) -->
+        <div id="populationSection" class="space-y-3 hidden">
+          <div class="neu-panel p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-white uppercase tracking-wider">Demographic Census</span>
+              <span class="text-[10px] text-cyan-400 font-mono font-bold" id="censusCountBadge">64 Citizens</span>
+            </div>
+            <input type="text" id="censusSearchInput" placeholder="Filter by name, role, activity..." class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono">
+            
+            <div class="flex flex-wrap gap-1 mt-2.5" id="censusRoleFilters">
+              <button class="census-role-filter active px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 border border-cyan-700 text-cyan-300 font-bold" data-role="ALL">ALL (64)</button>
+              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Farmer">🌾 Farmer</button>
+              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Builder">🏗️ Builder</button>
+              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Crafter">🛠️ Crafter</button>
+              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Trader">⚖️ Trader</button>
+              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Medic">🏥 Medic</button>
+              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Generalist">🌳 Generalist</button>
+            </div>
+          </div>
+
+          <!-- Scrollable Census Citizen Roster -->
+          <div id="censusListContainer" class="space-y-2 max-h-[62vh] overflow-y-auto pr-1">
+            <!-- Dynamic citizen cards rendered here -->
+          </div>
+        </div>
+
+        <!-- SECTION 3: BUILDING & ANCHOR INSPECTOR -->
         <div id="buildingInspectorSection" class="space-y-4 hidden">
           <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md">
             <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
@@ -1541,9 +1587,12 @@
       const backdrop = document.getElementById('drawerBackdrop');
       const btnToggle = document.getElementById('btnToggleDrawer');
       const btnClose = document.getElementById('btnCloseDrawer');
+      const btnOpenCensus = document.getElementById('btnOpenCensus');
       const tabAgent = document.getElementById('drawerTabAgent');
+      const tabPopulation = document.getElementById('drawerTabPopulation');
       const tabBuilding = document.getElementById('drawerTabBuilding');
       const secAgent = document.getElementById('agentInspectorSection');
+      const secPopulation = document.getElementById('populationSection');
       const secBuilding = document.getElementById('buildingInspectorSection');
 
       function openDrawer() {
@@ -1564,34 +1613,49 @@
         }
       });
 
+      if (btnOpenCensus) btnOpenCensus.addEventListener('click', () => {
+        openDrawer();
+        if (tabPopulation) tabPopulation.click();
+      });
+
       if (btnClose) btnClose.addEventListener('click', closeDrawer);
       if (backdrop) backdrop.addEventListener('click', closeDrawer);
 
-      if (tabAgent && tabBuilding && secAgent && secBuilding) {
-        tabAgent.addEventListener('click', () => {
-          tabAgent.classList.add('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300');
-          tabAgent.classList.remove('text-slate-400');
-          tabBuilding.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300');
-          tabBuilding.classList.add('text-slate-400');
-          secAgent.classList.remove('hidden');
-          secBuilding.classList.add('hidden');
+      function selectDrawerTab(activeTab, activeSec) {
+        [tabAgent, tabPopulation, tabBuilding].forEach(t => {
+          if (!t) return;
+          if (t === activeTab) {
+            t.classList.add('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300', 'font-bold');
+            t.classList.remove('text-slate-400');
+          } else {
+            t.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300', 'font-bold');
+            t.classList.add('text-slate-400');
+          }
         });
-
-        tabBuilding.addEventListener('click', () => {
-          tabBuilding.classList.add('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300');
-          tabBuilding.classList.remove('text-slate-400');
-          tabAgent.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-700/50', 'text-cyan-300');
-          tabAgent.classList.add('text-slate-400');
-          secBuilding.classList.remove('hidden');
-          secAgent.classList.add('hidden');
+        [secAgent, secPopulation, secBuilding].forEach(s => {
+          if (!s) return;
+          if (s === activeSec) {
+            s.classList.remove('hidden');
+          } else {
+            s.classList.add('hidden');
+          }
         });
       }
+
+      if (tabAgent) tabAgent.addEventListener('click', () => selectDrawerTab(tabAgent, secAgent));
+      if (tabPopulation) tabPopulation.addEventListener('click', () => {
+        selectDrawerTab(tabPopulation, secPopulation);
+        if (window.evolzenRenderCensus) window.evolzenRenderCensus();
+      });
+      if (tabBuilding) tabBuilding.addEventListener('click', () => selectDrawerTab(tabBuilding, secBuilding));
 
       // Expose globally for 3D engine raycaster click integration
       window.evolzenOpenInspector = function(type, data) {
         openDrawer();
         if (type === 'building' && tabBuilding) {
           tabBuilding.click();
+        } else if (type === 'population' && tabPopulation) {
+          tabPopulation.click();
         } else if (tabAgent) {
           tabAgent.click();
         }

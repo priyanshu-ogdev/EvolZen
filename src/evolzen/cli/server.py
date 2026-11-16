@@ -45,6 +45,15 @@ class ThreadedHTTPServer(ThreadingHTTPServer):
     allow_reuse_address = True
     dashboard_server: EvolZenDashboardServer
 
+    def handle_error(self, request: Any, client_address: Any) -> None:
+        """Suppress noisy ConnectionResetError / BrokenPipeError on client disconnect."""
+        import sys
+        exc_type, exc_val, _ = sys.exc_info()
+        if exc_type in (ConnectionResetError, BrokenPipeError, ConnectionAbortedError):
+            logger.debug("Client {} disconnected abruptly: {}", client_address, exc_val)
+            return
+        super().handle_error(request, client_address)
+
 
 class EvolZenRequestHandler(BaseHTTPRequestHandler):
     """HTTP request handler dispatching `/`, `/api/status`, and `/api/events`."""
