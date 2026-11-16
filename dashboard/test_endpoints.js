@@ -248,9 +248,9 @@ async function runTests() {
     assert.ok(resetForDiurnal.data.farm_plots && resetForDiurnal.data.farm_plots.length === 10, '10 farm plots must exist');
     console.log(`✓ World time clock genesis verified: ${resetForDiurnal.data.world_time.formatted} (${resetForDiurnal.data.world_time.phase})`);
 
-    // Step 52 ticks (52 * 15m = 780m = 13h -> 8:00 AM + 13h = 21:00 / 09:00 PM NIGHT)
-    for (let i = 0; i < 52; i++) {
-      await request('POST', '/api/environment/step', { steps: 1 });
+    // Step 195 ticks (195 * 4m = 780m = 13h -> 8:00 AM + 13h = 21:00 / 09:00 PM NIGHT)
+    for (let i = 0; i < 39; i++) {
+      await request('POST', '/api/environment/step', { steps: 5 });
     }
     const nightState = await request('GET', '/api/environment/state');
     assert.strictEqual(nightState.data.world_time.hour, 21, 'Hour should be 21');
@@ -268,19 +268,25 @@ async function runTests() {
     assert.ok(sleepingHouseKeys.length > 0, 'At least one house must have sleeping occupants at night');
     const sleepingAgents = sleepingState.data.agents.filter(a => a.action === 'SLEEP_NIGHT');
     assert.ok(sleepingAgents.length > 0, 'Agents should enter SLEEP_NIGHT action');
-    assert.ok(sleepingAgents[0].action_description.includes('Sleeping soundly inside House #'), 'Sleep description must match specification');
-    console.log(`✓ Sleeping manifest verified: ${sleepingAgents.length} agents asleep across ${sleepingHouseKeys.length} dwellings`);
+    assert.strictEqual(sleepingAgents[0].inside_house, true, 'Sleeping agents must have inside_house === true');
+    assert.ok(
+      sleepingAgents[0].action_description.includes('Sleeping peacefully inside House #') ||
+      sleepingAgents[0].action_description.includes('Sleeping soundly inside House #'),
+      'Sleep description must match specification'
+    );
+    console.log(`✓ Sleeping manifest verified: ${sleepingAgents.length} agents asleep inside ${sleepingHouseKeys.length} dwellings (inside_house=true)`);
 
-    // Step into Dawn (advance 32 ticks: 32 * 15m = 8 hours -> 05:30 AM DAWN)
-    for (let i = 0; i < 32; i++) {
-      await request('POST', '/api/environment/step', { steps: 1 });
+    // Step into Dawn (advance 120 ticks: 120 * 4m = 8 hours -> 05:24 AM DAWN)
+    for (let i = 0; i < 24; i++) {
+      await request('POST', '/api/environment/step', { steps: 5 });
     }
     const dawnState = await request('GET', '/api/environment/state');
     assert.strictEqual(dawnState.data.world_time.phase, 'DAWN', 'Phase should be DAWN');
     assert.strictEqual(dawnState.data.world_time.is_night, false, 'is_night should be false');
     const awakeAgents = dawnState.data.agents.filter(a => a.action !== 'SLEEP_NIGHT');
     assert.strictEqual(awakeAgents.length, 64, 'All agents must wake up at dawn and resume routines');
-    console.log(`✓ Dawn wakeup verified: ${dawnState.data.world_time.formatted} (all 64 agents awake and active)`);
+    assert.ok(dawnState.data.agents.every(a => a.inside_house === false), 'All agents must be outside house at dawn');
+    console.log(`✓ Dawn wakeup verified: ${dawnState.data.world_time.formatted} (all 64 agents awake and outside houses)`);
 
     // Verify Farm plot crop stages & daylight regrowth
     assert.ok(dawnState.data.farm_plots.every(p => p.growth_stage >= 0 && p.growth_stage <= 3), 'All plots must have valid growth stages 0-3');

@@ -239,7 +239,8 @@ let simState = {
 
 function advanceWorldTime(steps) {
   const wt = simState.world_time || computeWorldTime(8, 0, 1);
-  const totalMinutes = wt.hour * 60 + wt.minute + (15 * steps);
+  // Calibrated 4 minutes per tick: 8-hour night (21:00 - 05:00) lasts 120 ticks (~100-120s observation)
+  const totalMinutes = wt.hour * 60 + wt.minute + (4 * steps);
   const daysToAdd = Math.floor(totalMinutes / 1440);
   const remainingMinutes = ((totalMinutes % 1440) + 1440) % 1440;
   const newHour = Math.floor(remainingMinutes / 60);
@@ -255,7 +256,7 @@ function getSleepingHouses() {
   const sleeping = {};
   if (typeof simulatedAgents !== 'undefined' && Array.isArray(simulatedAgents)) {
     for (const a of simulatedAgents) {
-      if (a.action === 'SLEEP_NIGHT') {
+      if (a.action === 'SLEEP_NIGHT' || a.inside_house) {
         const houseIdx = a.home_house_index || 1;
         if (!sleeping[houseIdx]) {
           sleeping[houseIdx] = [];
@@ -338,8 +339,8 @@ function getAgentActivityDescription(agent) {
   const isEnRoute = dist > (agent.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 6.0);
 
   // 0. Night sleep routine & dwelling sanctuary
-  if (agent.action === 'SLEEP_NIGHT') {
-    return `Sleeping soundly inside House #${houseIdx}`;
+  if (agent.action === 'SLEEP_NIGHT' || agent.inside_house) {
+    return `Sleeping peacefully inside House #${houseIdx}`;
   }
   if (agent.action === 'RETIRING_HOME') {
     return `Retiring to House #${houseIdx} for the night`;
@@ -949,6 +950,7 @@ function initializeAgents() {
       target: { x: homeX, z: homeZ, label: 'Front Porch / Dwelling' },
       position: { x: homeX, y: 0.5, z: homeZ },
       heading: 0,
+      inside_house: false,
       action: 'REST_HOME',
       waypoints: [],
       homeostasis: {
@@ -1266,15 +1268,17 @@ function simAgentsStep(steps) {
       const atHome = distToHome < 6.0;
 
       if (atHome) {
+        a.inside_house = true;
         a.action = 'SLEEP_NIGHT';
         a.target = homeTarget;
         a.waypoints = [];
         a.position.x = a.home.x;
         a.position.z = a.home.z;
         executeAgentActionReplenishment(a, steps, isDrought);
-        a.action_description = `Sleeping soundly inside House #${a.home_house_index}`;
+        a.action_description = `Sleeping peacefully inside House #${a.home_house_index}`;
         a.activity_text = a.action_description;
       } else {
+        a.inside_house = false;
         a.action = 'RETIRING_HOME';
         a.target = homeTarget;
         a.action_description = `Retiring to House #${a.home_house_index} for the night`;
@@ -1309,12 +1313,13 @@ function simAgentsStep(steps) {
         // Re-check distance to home after movement
         const newDistToHome = Math.hypot(a.home.x - a.position.x, a.home.z - a.position.z);
         if (newDistToHome < 6.0) {
+          a.inside_house = true;
           a.action = 'SLEEP_NIGHT';
           a.position.x = a.home.x;
           a.position.z = a.home.z;
           a.waypoints = [];
           executeAgentActionReplenishment(a, steps, isDrought);
-          a.action_description = `Sleeping soundly inside House #${a.home_house_index}`;
+          a.action_description = `Sleeping peacefully inside House #${a.home_house_index}`;
           a.activity_text = a.action_description;
         }
 
@@ -1329,7 +1334,8 @@ function simAgentsStep(steps) {
     // -----------------------------------------------------------------
     // DAYLIGHT / DAWN / SUNSET HOURS: Wake up & active Markov routines
     // -----------------------------------------------------------------
-    if (a.action === 'SLEEP_NIGHT' || a.action === 'RETIRING_HOME') {
+    if (a.inside_house || a.action === 'SLEEP_NIGHT' || a.action === 'RETIRING_HOME') {
+      a.inside_house = false;
       // Dawn wakeup: transition back to Markov routine refreshed
       if (a.routine_state === 'REST_PORCH') {
         advanceAgentMarkovRoutine(a);
@@ -1595,7 +1601,7 @@ function executeSimulationStep(steps) {
   simState.tick += steps;
   simState.step_index += steps * 4;
 
-  // Advance diurnal world time (15 mins per tick)
+  // Advance diurnal world time (4 mins per tick)
   advanceWorldTime(steps);
 
   const locs = simState.locations;

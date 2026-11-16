@@ -1855,6 +1855,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       legLGroup,
       legRGroup,
       badgeSprite,
+      auraRing,
       selRing,
       currentPos: new THREE.Vector3(agentData.position.x, 0, agentData.position.z),
       targetPos: new THREE.Vector3(agentData.position.x, 0, agentData.position.z),
@@ -1878,12 +1879,39 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     }
   }
 
+  function isAgentSleeping(agent) {
+    if (!agent) return false;
+    if (agent.inside_house === true) return true;
+    if (agent.action === 'SLEEP_NIGHT') return true;
+    const worldTime = state.envState && state.envState.world_time;
+    const isNight = worldTime ? worldTime.is_night : false;
+    if (isNight && agent.home_house_index) {
+      let homePos = null;
+      if (state.three && state.three.housePositions && state.three.housePositions[agent.home_house_index]) {
+        homePos = state.three.housePositions[agent.home_house_index];
+      } else if (state.worldMeta && state.worldMeta.houses && state.worldMeta.houses[agent.home_house_index - 1]) {
+        const [hx, hz, hw, hd] = state.worldMeta.houses[agent.home_house_index - 1];
+        homePos = new THREE.Vector3(hx + hw / 2, 0, hz + hd / 2);
+      }
+      if (homePos) {
+        const posX = (agent.position && agent.position.x !== undefined) ? agent.position.x : 500;
+        const posZ = (agent.position && agent.position.z !== undefined) ? agent.position.z : 500;
+        const distToHome = Math.hypot(posX - homePos.x, posZ - homePos.z);
+        if (distToHome < 7.0) return true;
+      }
+    }
+    return false;
+  }
+
   function getAgentDisplayActivity(agent) {
     if (!agent) return 'Standby in World';
-    if (agent.activity_text) return agent.activity_text;
     const house = agent.home_house_index || 1;
+    if (agent.inside_house === true || agent.action === 'SLEEP_NIGHT' || isAgentSleeping(agent)) {
+      return `Sleeping peacefully inside House #${house} 💤`;
+    }
+    if (agent.activity_text) return agent.activity_text;
     switch (agent.action) {
-      case 'SLEEP_NIGHT': return `Sleeping soundly inside House #${house} 💤`;
+      case 'SLEEP_NIGHT': return `Sleeping peacefully inside House #${house} 💤`;
       case 'HARVEST_WHEAT': return `Harvesting golden wheat at West Farm Belt 🌾`;
       case 'GATHER_CROP': return `Harvesting wheat at West Farm Belt (Plot #${(house % 10) + 1})`;
       case 'REST_HOME': return `Resting & recuperating in Dwelling #${house}`;
@@ -2071,6 +2099,21 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         avatar.data = match;
         avatar.targetPos.set(match.position.x, 0, match.position.z);
         updateAgentBillboardSprite(avatar.badgeSprite, match);
+
+        const sleeping = isAgentSleeping(match);
+        if (sleeping) {
+          avatar.currentPos.copy(avatar.targetPos);
+          avatar.group.position.set(avatar.targetPos.x, 0, avatar.targetPos.z);
+          avatar.group.visible = false;
+          if (avatar.badgeSprite) avatar.badgeSprite.visible = false;
+          if (avatar.auraRing) avatar.auraRing.visible = false;
+          if (avatar.selRing) avatar.selRing.visible = false;
+        } else {
+          avatar.group.visible = true;
+          if (avatar.badgeSprite) avatar.badgeSprite.visible = true;
+          if (avatar.auraRing) avatar.auraRing.visible = true;
+          if (avatar.selRing) avatar.selRing.visible = (state.selectedAgentId === match.id);
+        }
       }
     });
   }
@@ -2158,33 +2201,36 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     }
 
     // Determine active sleeping houses
-    let sleepingHouseIndices = [];
+    const set = new Set();
     if (state.envState && state.envState.sleeping_houses && typeof state.envState.sleeping_houses === 'object') {
-      sleepingHouseIndices = Object.keys(state.envState.sleeping_houses)
+      Object.keys(state.envState.sleeping_houses)
         .map(Number)
-        .filter(idx => (state.envState.sleeping_houses[idx] && state.envState.sleeping_houses[idx].length > 0));
+        .filter(idx => (state.envState.sleeping_houses[idx] && state.envState.sleeping_houses[idx].length > 0))
+        .forEach(idx => set.add(idx));
     }
 
-    if (sleepingHouseIndices.length === 0 && state.agents) {
-      const sleepingAgents = state.agents.filter(a => a.action === 'SLEEP_NIGHT' || (isNight && a.home_house_index));
-      const set = new Set();
-      sleepingAgents.forEach(a => {
-        if (a.home_house_index) set.add(a.home_house_index);
+    if (state.agents) {
+      state.agents.forEach(a => {
+        if (isAgentSleeping(a) || (isNight && a.home_house_index)) {
+          if (a.home_house_index) set.add(a.home_house_index);
+        }
       });
-      sleepingHouseIndices = Array.from(set);
     }
 
-    if (sleepingHouseIndices.length === 0 && isNight) {
-      sleepingHouseIndices = Array.from({ length: 64 }, (_, i) => i + 1);
+    if (set.size === 0 && isNight) {
+      for (let i = 1; i <= 64; i++) set.add(i);
     }
+    const sleepingHouseIndices = Array.from(set);
 
     let pIdx = 0;
     for (let i = 0; i < sleepingHouseIndices.length && pIdx < state.three.zzzParticles.length; i++) {
       const hIdx = sleepingHouseIndices[i];
       let pos = state.three.housePositions[hIdx];
       if (!pos && state.worldMeta && state.worldMeta.houses && state.worldMeta.houses[hIdx - 1]) {
-        const [hx, hz, hw, hd] = state.worldMeta.houses[hIdx - 1];
-        pos = new THREE.Vector3(hx + hw / 2, 6.0, hz + hd / 2);
+        const [hx, hz, hw, hd, archId] = state.worldMeta.houses[hIdx - 1];
+        const arch = (state.archetypes && state.archetypes[archId]) || {};
+        const hHeight = arch.height || 4.5;
+        pos = new THREE.Vector3(hx + hw / 2, hHeight + 2.2, hz + hd / 2);
         state.three.housePositions[hIdx] = pos;
       }
       if (!pos) continue;
@@ -2519,6 +2565,23 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const baseWalkSpeed = 12 * state.simSpeedFactor;
 
     state.three.agentMeshes.forEach(avatar => {
+      const sleeping = isAgentSleeping(avatar.data);
+      if (sleeping) {
+        avatar.group.visible = false;
+        if (avatar.badgeSprite) avatar.badgeSprite.visible = false;
+        if (avatar.auraRing) avatar.auraRing.visible = false;
+        if (avatar.selRing) avatar.selRing.visible = false;
+        avatar.isMoving = false;
+        avatar.currentPos.copy(avatar.targetPos);
+        avatar.group.position.set(avatar.targetPos.x, 0, avatar.targetPos.z);
+        return;
+      } else {
+        avatar.group.visible = true;
+        if (avatar.badgeSprite) avatar.badgeSprite.visible = true;
+        if (avatar.auraRing) avatar.auraRing.visible = true;
+        if (avatar.selRing) avatar.selRing.visible = (state.selectedAgentId === avatar.data.id);
+      }
+
       const dx = avatar.targetPos.x - avatar.currentPos.x;
       const dz = avatar.targetPos.z - avatar.currentPos.z;
       const dist = Math.hypot(dx, dz);
@@ -2571,52 +2634,81 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       const followed = state.three.agentMeshes.find(a => a.data.id === state.followingAgentId)
         || (tourState.currentAgent && state.three.agentMeshes.find(a => a.data.id === tourState.currentAgent.id));
       if (followed) {
+        const isSleeping = isAgentSleeping(followed.data);
         const heading = followed.group.rotation.y || 0;
-        const posX = followed.currentPos.x;
-        const posZ = followed.currentPos.z;
+        let posX = followed.currentPos.x;
+        let posZ = followed.currentPos.z;
         let targetCamX, targetCamY, targetCamZ;
         let lookAtTarget;
 
-        switch (tourState.currentShotType) {
-          case 'LOW_ANGLE': {
-            // Low-Angle Pavement Dolly: Generous vertical headroom (>10m clearance) above billboard badge (height 16.0m > 10m above 4.1m badge)
-            const dist = 28.0;
-            const angle = heading + 0.35;
-            targetCamX = posX - Math.sin(angle) * dist;
-            targetCamY = 16.0;
-            targetCamZ = posZ - Math.cos(angle) * dist;
-            lookAtTarget = new THREE.Vector3(posX, 5.0, posZ);
-            break;
+        if (isSleeping) {
+          // If spectating an agent who is inside sleeping, frame the camera on their dwelling's front facade and rooftop chimney with floating Zzz particles
+          const hIdx = followed.data.home_house_index || 1;
+          let hx = posX, hz = posZ, hw = 12, hd = 12, hHeight = 4.5;
+          if (state.worldMeta && state.worldMeta.houses && state.worldMeta.houses[hIdx - 1]) {
+            [hx, hz, hw, hd] = state.worldMeta.houses[hIdx - 1];
+            const archId = state.worldMeta.houses[hIdx - 1][4] || 0;
+            const arch = (state.archetypes && state.archetypes[archId]) || {};
+            hHeight = arch.height || 4.5;
           }
-          case 'DRONE_ORBIT': {
-            // High 45° Drone Orbit: Distance 60m, height 32.0m (>27m clearance), looking at y = 7.0m, orbiting slowly around the active citizen and surrounding architecture
-            tourState.orbitAngle = (tourState.orbitAngle || 0) + 0.005;
-            const dist = 60.0;
-            targetCamX = posX + Math.cos(tourState.orbitAngle) * dist;
-            targetCamY = 32.0;
-            targetCamZ = posZ + Math.sin(tourState.orbitAngle) * dist;
-            lookAtTarget = new THREE.Vector3(posX, 7.0, posZ);
-            break;
+          const centerX = hx + hw / 2;
+          const centerZ = hz + hd / 2;
+          posX = centerX;
+          posZ = centerZ;
+
+          const swayAngle = elapsedTime * 0.15;
+          const camDist = Math.max(18.0, hd + 10.0);
+          targetCamX = centerX + Math.sin(swayAngle) * 5.0;
+          targetCamY = hHeight + 7.5;
+          targetCamZ = centerZ + camDist;
+          lookAtTarget = new THREE.Vector3(centerX, hHeight * 0.75 + 1.2, centerZ);
+
+          const elShot = document.getElementById('spectateShotType');
+          if (elShot) {
+            elShot.textContent = 'DWELLING FACADE & CHIMNEY ZZZ';
           }
-          case 'FRONTAL': {
-            // Frontal Approach Dolly: Moving ahead of the citizen as they walk forward along the avenue
-            // Distance 32m, height 16.5m (>12m clearance), looking at y = 5.5m
-            const dist = 32.0;
-            targetCamX = posX + Math.sin(heading) * dist;
-            targetCamY = 16.5;
-            targetCamZ = posZ + Math.cos(heading) * dist;
-            lookAtTarget = new THREE.Vector3(posX, 5.5, posZ);
-            break;
-          }
-          case 'CHASE':
-          default: {
-            // Over-Shoulder Chase Cam: Distance 38m, height 18.5m (>14m clearance), looking at y = 6.0m (overhead billboard perfectly visible with full headroom)
-            const dist = 38.0;
-            targetCamX = posX - Math.sin(heading) * dist;
-            targetCamY = 18.5;
-            targetCamZ = posZ - Math.cos(heading) * dist;
-            lookAtTarget = new THREE.Vector3(posX, 6.0, posZ);
-            break;
+        } else {
+          switch (tourState.currentShotType) {
+            case 'LOW_ANGLE': {
+              // Low-Angle Pavement Dolly: Generous vertical headroom (>10m clearance) above billboard badge (height 16.0m > 10m above 4.1m badge)
+              const dist = 28.0;
+              const angle = heading + 0.35;
+              targetCamX = posX - Math.sin(angle) * dist;
+              targetCamY = 16.0;
+              targetCamZ = posZ - Math.cos(angle) * dist;
+              lookAtTarget = new THREE.Vector3(posX, 5.0, posZ);
+              break;
+            }
+            case 'DRONE_ORBIT': {
+              // High 45° Drone Orbit: Distance 60m, height 32.0m (>27m clearance), looking at y = 7.0m, orbiting slowly around the active citizen and surrounding architecture
+              tourState.orbitAngle = (tourState.orbitAngle || 0) + 0.005;
+              const dist = 60.0;
+              targetCamX = posX + Math.cos(tourState.orbitAngle) * dist;
+              targetCamY = 32.0;
+              targetCamZ = posZ + Math.sin(tourState.orbitAngle) * dist;
+              lookAtTarget = new THREE.Vector3(posX, 7.0, posZ);
+              break;
+            }
+            case 'FRONTAL': {
+              // Frontal Approach Dolly: Moving ahead of the citizen as they walk forward along the avenue
+              // Distance 32m, height 16.5m (>12m clearance), looking at y = 5.5m
+              const dist = 32.0;
+              targetCamX = posX + Math.sin(heading) * dist;
+              targetCamY = 16.5;
+              targetCamZ = posZ + Math.cos(heading) * dist;
+              lookAtTarget = new THREE.Vector3(posX, 5.5, posZ);
+              break;
+            }
+            case 'CHASE':
+            default: {
+              // Over-Shoulder Chase Cam: Distance 38m, height 18.5m (>14m clearance), looking at y = 6.0m (overhead billboard perfectly visible with full headroom)
+              const dist = 38.0;
+              targetCamX = posX - Math.sin(heading) * dist;
+              targetCamY = 18.5;
+              targetCamZ = posZ - Math.cos(heading) * dist;
+              lookAtTarget = new THREE.Vector3(posX, 6.0, posZ);
+              break;
+            }
           }
         }
 
@@ -2630,21 +2722,44 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         // Update live spectator position badge in HUD
         const elPos = document.getElementById('spectatePositionBadge');
         if (elPos) {
-          elPos.textContent = `POS: X ${Math.round(posX)}m · Z ${Math.round(posZ)}m`;
+          if (isSleeping) {
+            elPos.textContent = `HOUSE #${followed.data.home_house_index || 1} · 🏠 INSIDE · 💤 ASLEEP`;
+          } else {
+            elPos.textContent = `POS: X ${Math.round(posX)}m · Z ${Math.round(posZ)}m`;
+          }
         }
       }
     } else if (state.followingAgentId && camera && controls) {
       const followed = state.three.agentMeshes.find(a => a.data.id === state.followingAgentId);
       if (followed) {
-        const heading = followed.group.rotation.y;
-        const camDistance = 38.0;
-        const camHeight = 18.5;
-        const targetCamX = followed.currentPos.x - Math.sin(heading) * camDistance;
-        const targetCamZ = followed.currentPos.z - Math.cos(heading) * camDistance;
-        const targetCamY = camHeight;
+        if (isAgentSleeping(followed.data)) {
+          const hIdx = followed.data.home_house_index || 1;
+          let hx = followed.currentPos.x, hz = followed.currentPos.z, hw = 12, hd = 12, hHeight = 4.5;
+          if (state.worldMeta && state.worldMeta.houses && state.worldMeta.houses[hIdx - 1]) {
+            [hx, hz, hw, hd] = state.worldMeta.houses[hIdx - 1];
+            const archId = state.worldMeta.houses[hIdx - 1][4] || 0;
+            const arch = (state.archetypes && state.archetypes[archId]) || {};
+            hHeight = arch.height || 4.5;
+          }
+          const centerX = hx + hw / 2;
+          const centerZ = hz + hd / 2;
+          const camDist = Math.max(18.0, hd + 10.0);
+          const targetCamX = centerX + 2.0;
+          const targetCamY = hHeight + 7.5;
+          const targetCamZ = centerZ + camDist;
+          camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.08);
+          controls.target.lerp(new THREE.Vector3(centerX, hHeight * 0.75 + 1.2, centerZ), 0.08);
+        } else {
+          const heading = followed.group.rotation.y;
+          const camDistance = 38.0;
+          const camHeight = 18.5;
+          const targetCamX = followed.currentPos.x - Math.sin(heading) * camDistance;
+          const targetCamZ = followed.currentPos.z - Math.cos(heading) * camDistance;
+          const targetCamY = camHeight;
 
-        camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.08);
-        controls.target.lerp(new THREE.Vector3(followed.currentPos.x, 6.0, followed.currentPos.z), 0.08);
+          camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.08);
+          controls.target.lerp(new THREE.Vector3(followed.currentPos.x, 6.0, followed.currentPos.z), 0.08);
+        }
       }
     } else if (camTargetPos && camLookAtPos && camera && controls) {
       camera.position.lerp(camTargetPos, 0.05);
@@ -2797,21 +2912,47 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const subTitle = document.getElementById('subPanelTitle');
     const pills = document.getElementById('furnishingPills');
 
-    if (elIcon) elIcon.textContent = '👤';
-    if (elTitle) elTitle.textContent = `${agent.name || agent.id} · ${agent.role || 'Citizen'}`;
+    const isSleepingInside = isAgentSleeping(agent);
+    const houseNumber = agent.home_house_index || 1;
+
+    if (elIcon) elIcon.textContent = isSleepingInside ? '💤' : '👤';
+    if (elTitle) {
+      if (isSleepingInside) {
+        elTitle.textContent = `${agent.name || agent.id} · House #${houseNumber} Resident`;
+      } else {
+        elTitle.textContent = `${agent.name || agent.id} · ${agent.role || 'Citizen'}`;
+      }
+    }
     if (elBadge) {
-      elBadge.textContent = (agent.role || 'AGENT').toUpperCase();
-      elBadge.style.backgroundColor = `${agent.color || '#10b981'}33`;
-      elBadge.style.color = agent.color || '#10b981';
-      elBadge.style.borderColor = `${agent.color || '#10b981'}66`;
+      if (isSleepingInside) {
+        elBadge.textContent = `🏠 Inside House #${houseNumber} 💤 ASLEEP`;
+        elBadge.className = 'text-[10px] px-2.5 py-0.5 rounded font-mono font-bold badge-inside-sleep badge-inside-sleep-pulse';
+        elBadge.style.backgroundColor = '';
+        elBadge.style.color = '';
+        elBadge.style.borderColor = '';
+      } else {
+        elBadge.textContent = (agent.role || 'AGENT').toUpperCase();
+        elBadge.className = 'text-[10px] px-2 py-0.5 rounded font-mono font-bold';
+        elBadge.style.backgroundColor = `${agent.color || '#10b981'}33`;
+        elBadge.style.color = agent.color || '#10b981';
+        elBadge.style.borderColor = `${agent.color || '#10b981'}66`;
+      }
     }
 
     const posX = Math.round(agent.position.x || 500);
     const posZ = Math.round(agent.position.z || 500);
     if (elCoord) elCoord.textContent = `X: ${posX}m · Z: ${posZ}m (Substrate Grid)`;
-    if (elFloors) elFloors.textContent = `Home: Dwelling #${agent.home_house_index || 1}`;
+    if (elFloors) {
+      elFloors.textContent = isSleepingInside
+        ? `Home: Dwelling #${houseNumber} (Inside Resting)`
+        : `Home: Dwelling #${houseNumber}`;
+    }
     if (elMaterials) elMaterials.textContent = `Wallet: ${agent.homeostasis ? agent.homeostasis.currency : 25} C · Prop: ${state.roles[agent.role]?.prop || 'tool'}`;
-    if (elConn) elConn.textContent = `Action: ${agent.action || 'ACTIVE'}`;
+    if (elConn) {
+      elConn.textContent = isSleepingInside
+        ? `Status: 🏠 Inside House #${houseNumber} 💤 ASLEEP`
+        : `Action: ${agent.action || 'ACTIVE'}`;
+    }
 
     if (subTitle) subTitle.textContent = '8-Drive Chebyshev Homeostatic Gauges (Phase 1.2)';
 
@@ -2896,11 +3037,25 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const chebyshevVal = document.getElementById('chebyshevMetricValue');
 
     if (drawerName) drawerName.textContent = `${agent.name || agent.id}`;
-    if (drawerRole) drawerRole.textContent = `Role: ${(agent.role || 'CITIZEN').toUpperCase()} · Home: House #${agent.home_house_index || 1}`;
+    if (drawerRole) {
+      drawerRole.textContent = isSleepingInside
+        ? `Role: ${(agent.role || 'CITIZEN').toUpperCase()} · 🏠 Resting in House #${houseNumber}`
+        : `Role: ${(agent.role || 'CITIZEN').toUpperCase()} · Home: House #${houseNumber}`;
+    }
     if (drawerBadge) {
-      drawerBadge.textContent = agent.action || 'ACTIVE';
-      drawerBadge.style.color = agent.color || '#10b981';
-      drawerBadge.style.borderColor = `${agent.color || '#10b981'}80`;
+      if (isSleepingInside) {
+        drawerBadge.textContent = `🏠 Inside House #${houseNumber} 💤 ASLEEP`;
+        drawerBadge.className = 'text-[10px] px-2.5 py-1 rounded font-bold badge-inside-sleep badge-inside-sleep-pulse';
+        drawerBadge.style.color = '';
+        drawerBadge.style.borderColor = '';
+        drawerBadge.style.backgroundColor = '';
+      } else {
+        drawerBadge.textContent = agent.action || 'ACTIVE';
+        drawerBadge.className = 'text-[10px] px-2 py-0.5 rounded font-bold';
+        drawerBadge.style.color = agent.color || '#10b981';
+        drawerBadge.style.borderColor = `${agent.color || '#10b981'}80`;
+        drawerBadge.style.backgroundColor = '';
+      }
     }
     if (chebyshevVal) {
       chebyshevVal.textContent = `${chebyshevScore} (${maxDeficiency < 0.25 ? 'Equilibrium' : 'Bottleneck: ' + bottleneckDrive})`;
@@ -2967,7 +3122,16 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (elCoord) elCoord.textContent = `X: ${house.x}m · Z: ${house.z}m (${house.w}×${house.d}m)`;
     if (elFloors) elFloors.textContent = `${arch.floors} Floors · ${arch.height}m Height · ${arch.chimney} Chimney`;
     if (elMaterials) elMaterials.textContent = `${arch.walls} / ${arch.roof}`;
-    if (elConn) elConn.textContent = 'WIRED: Connected to Road Network';
+
+    const residents = (state.agents || []).filter(a => a.home_house_index === house.index);
+    const sleepingResidents = residents.filter(a => isAgentSleeping(a));
+    if (sleepingResidents.length > 0) {
+      if (elConn) elConn.textContent = `Occupancy: ${sleepingResidents.length} Citizen${sleepingResidents.length > 1 ? 's' : ''} Asleep Inside 💤`;
+    } else if (residents.length > 0) {
+      if (elConn) elConn.textContent = `Occupancy: ${residents.length} Resident${residents.length > 1 ? 's' : ''} (Outside Active)`;
+    } else {
+      if (elConn) elConn.textContent = 'WIRED: Connected to Road Network';
+    }
 
     if (subTitle) subTitle.textContent = 'Architectural Manifest & Interior Voxel Inventory';
     if (pills) {
@@ -3363,9 +3527,23 @@ import { OrbitControls } from './vendor/OrbitControls.js';
           inspectAgent(ag, true, true);
           state.followingAgentId = ag.id;
           if (state.three.camera && state.three.controls) {
-            const camOffset = 38 / Math.SQRT2;
-            state.three.camTargetPos = new THREE.Vector3(ag.position.x - camOffset, 18.5, ag.position.z - camOffset);
-            state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 6.0, ag.position.z);
+            if (isAgentSleeping(ag)) {
+              const hIdx = ag.home_house_index || 1;
+              let centerX = ag.position.x, centerZ = ag.position.z, hHeight = 4.5;
+              if (state.worldMeta && state.worldMeta.houses && state.worldMeta.houses[hIdx - 1]) {
+                const [hx, hz, hw, hd, archId] = state.worldMeta.houses[hIdx - 1];
+                centerX = hx + hw / 2;
+                centerZ = hz + hd / 2;
+                const arch = (state.archetypes && state.archetypes[archId]) || {};
+                hHeight = arch.height || 4.5;
+              }
+              state.three.camTargetPos = new THREE.Vector3(centerX + 3.0, hHeight + 8.0, centerZ + 22.0);
+              state.three.camLookAtPos = new THREE.Vector3(centerX, hHeight * 0.75 + 1.2, centerZ);
+            } else {
+              const camOffset = 38 / Math.SQRT2;
+              state.three.camTargetPos = new THREE.Vector3(ag.position.x - camOffset, 18.5, ag.position.z - camOffset);
+              state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 6.0, ag.position.z);
+            }
           }
         }
       });
@@ -4284,17 +4462,34 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       elRole.className = `${roleColors[agent.role] || 'text-cyan-400'} font-bold`;
     }
 
+    const isSleeping = isAgentSleeping(agent);
+    const houseNumber = agent.home_house_index || 1;
+
     if (elActivity) {
-      const act = getAgentDisplayActivity(agent);
-      elActivity.textContent = act.toUpperCase();
+      if (isSleeping) {
+        elActivity.textContent = `🏠 INSIDE HOUSE #${houseNumber} 💤 ASLEEP`;
+        elActivity.className = 'text-xs text-sky-300 font-mono font-bold tracking-wide animate-pulse';
+      } else {
+        const act = getAgentDisplayActivity(agent);
+        elActivity.textContent = act.toUpperCase();
+        elActivity.className = 'text-xs text-cyan-300 font-mono truncate max-w-[340px]';
+      }
     }
 
     if (elShot) {
-      elShot.textContent = state.cinematicTour.shotNames[state.cinematicTour.currentShotType] || 'OVER-SHOULDER CHASE CAM';
+      if (isSleeping) {
+        elShot.textContent = 'DWELLING FACADE & CHIMNEY ZZZ';
+      } else {
+        elShot.textContent = state.cinematicTour.shotNames[state.cinematicTour.currentShotType] || 'OVER-SHOULDER CHASE CAM';
+      }
     }
 
-    if (elPos && agent.position) {
-      elPos.textContent = `POS: X ${Math.round(agent.position.x)}m · Z ${Math.round(agent.position.z)}m`;
+    if (elPos) {
+      if (isSleeping) {
+        elPos.textContent = `HOUSE #${houseNumber} · 🏠 INSIDE · 💤 ASLEEP`;
+      } else if (agent.position) {
+        elPos.textContent = `POS: X ${Math.round(agent.position.x)}m · Z ${Math.round(agent.position.z)}m`;
+      }
     }
 
     if (elVital) {
@@ -4307,7 +4502,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         energy = Math.round((1 - (agent.drives.exhaustion || 0.05)) * 100);
         hydration = Math.round((1 - (agent.drives.thirst || 0.08)) * 100);
       }
-      elVital.textContent = `ENERGY: ${energy}% · HYDRATION: ${hydration}%`;
+      if (isSleeping) {
+        elVital.textContent = `SLEEPING · RESTORING ENERGY (${energy}%)`;
+      } else {
+        elVital.textContent = `ENERGY: ${energy}% · HYDRATION: ${hydration}%`;
+      }
     }
   }
 
@@ -4401,6 +4600,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   // Window exports for UI header and toolbar controls
   window.evolzenToggleCinematicTour = toggleCinematicTour;
   window.evolzenToggleFullscreenWorld = toggleFullscreenWorld;
+  window.__evolzenState = state;
 
   // =========================================================================
   // 12. 2D Orthographic Fallback Map
