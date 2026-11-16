@@ -22,70 +22,33 @@
 <body class="bg-void text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-black">
 
   <!-- ========================================================================= -->
-  <!-- Top Marquee & Certification Ticker                                        -->
+  <!-- Consolidated Executive Header Deck & Unified Cinematic Tour Bar           -->
   <!-- ========================================================================= -->
-  <div class="ticker-bar border-b border-cyan-900/40 bg-slate-950/95 text-xs py-1.5 px-4 font-mono flex items-center justify-between text-cyan-400 overflow-hidden select-none" role="region" aria-label="System Certification Ticker">
-    <div class="flex items-center gap-3 shrink-0">
+  <div id="tourBanner" class="executive-top-deck border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-md py-2 px-4 lg:px-6 font-mono text-xs flex flex-wrap items-center justify-between gap-3 text-cyan-300 shadow-lg select-none">
+    
+    <!-- Left: Source-Audit & Colony Telemetry Plaque -->
+    <div class="flex items-center gap-2.5 shrink-0">
       <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold tracking-wider text-[11px]">
         <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
         SOURCE-AUDIT CERTIFIED
       </span>
-      <span class="text-slate-600">|</span>
-      <span class="text-slate-300">SEED: <span class="text-amber-400 font-bold">42</span></span>
+      <span class="text-slate-700 hidden sm:inline">|</span>
+      <span class="text-slate-300 text-[11px] hidden sm:inline">SEED: <span class="text-amber-400 font-bold">42</span></span>
+      <span class="text-slate-700 hidden md:inline">•</span>
+      <span class="text-slate-300 text-[11px] hidden md:inline">10,378 CHUNKS</span>
+      <span class="text-slate-700 hidden lg:inline">•</span>
+      <span class="text-slate-300 text-[11px] hidden lg:inline">340M VOXELS</span>
+      <span class="text-slate-700 hidden xl:inline">•</span>
+      <span class="staged-llm-badge px-2 py-0.5 rounded text-[10px] font-bold hidden xl:inline-flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        LLM: STAGED
+      </span>
     </div>
 
-    <div class="ticker-content flex items-center gap-6 whitespace-nowrap overflow-hidden text-[11px]">
-      <span class="flex items-center gap-1.5 text-slate-200">
-        <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        10,378 CHUNKS
-      </span>
-      <span class="text-slate-700">•</span>
-      <span class="flex items-center gap-1.5 text-slate-200">
-        <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-        340,066,304 VOXELS RECONCILED
-      </span>
-      <span class="text-slate-700">•</span>
-      <span class="flex items-center gap-1.5 text-rose-400 font-bold">
-        <svg class="w-3 h-3 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-        WATER = 0 BY MANDATE
-      </span>
-      <span class="text-slate-700">•</span>
-      <span class="flex items-center gap-1.5 text-slate-200">
-        <svg class="w-3 h-3 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        345/345 HOUSES WIRED
-      </span>
-      <span class="text-slate-700">•</span>
-      <span class="flex items-center gap-1.5 text-slate-200">
-        <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        64 POPULATION (CHEBYSHEV CORE)
-      </span>
-      <span class="text-slate-700">•</span>
-      <span class="flex items-center gap-1.5 staged-llm-badge px-2 py-0.5 rounded text-[10px] font-bold">
-        <svg class="w-3 h-3 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        LLM ROUTE: STAGED / ZERO INFERENCE
-      </span>
-      <span class="text-slate-700">•</span>
-      <span class="text-cyan-300 font-mono">WORLD ARCHITECT: SHREYAN MITRA</span>
-    </div>
-
-    <div class="hidden md:flex items-center gap-2 text-slate-400 text-[11px] shrink-0">
-      <span>NODE: <span class="text-emerald-400 font-mono">v26.13</span></span>
-      <span class="text-slate-700">|</span>
-      <span>MODE: <span class="text-cyan-400 font-mono">HERMETIC EVAL</span></span>
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- Interactive Guided Portfolio Workflow Tour Bar                           -->
-  <!-- ========================================================================= -->
-  <div id="tourBanner" class="border-b border-cyan-900/50 bg-slate-950/95 py-2 px-4 font-mono text-xs flex flex-wrap items-center justify-between gap-3 text-cyan-300 shadow-md">
+    <!-- Center: Guided Tour Phases 1-6 -->
     <div class="flex items-center gap-3 shrink-0">
-      <span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-bold flex items-center gap-1.5 text-[11px]">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-        PORTFOLIO WORKFLOW TOUR
-      </span>
       <div id="tourStepDots" class="flex items-center gap-1.5">
         <span class="tour-dot active" data-step="1"></span>
         <span class="tour-dot" data-step="2"></span>
@@ -95,21 +58,23 @@
         <span class="tour-dot" data-step="6"></span>
       </div>
       <span id="tourStepBadge" class="text-amber-400 font-bold text-[11px]">STEP 1/6:</span>
-      <span id="tourStepTitle" class="text-white font-semibold text-xs truncate max-w-sm sm:max-w-md">1×1 km Spatial Substrate & Deterministic Moore Machine</span>
+      <span id="tourStepTitle" class="text-white font-semibold text-xs truncate max-w-[200px] sm:max-w-xs md:max-w-sm">1×1 km Spatial Substrate & Deterministic Moore Machine</span>
+      <span id="tourStepDesc" class="hidden">10,378 Chunks · 340M Voxels · Zero Water Mandate</span>
+      <div class="flex items-center gap-1">
+        <button id="btnTourPrev" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all font-mono text-xs cursor-pointer" title="Previous Phase">◀</button>
+        <button id="btnTourNext" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-700/60 transition-all font-mono text-xs font-bold cursor-pointer" title="Next Phase">▶</button>
+      </div>
     </div>
 
-    <div class="flex items-center gap-2 text-xs">
-      <span id="tourStepDesc" class="text-slate-400 text-[11px] hidden xl:inline">10,378 Chunks · 340M Voxels · Zero Water Mandate</span>
-      <button id="btnTourPrev" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all font-mono" title="Previous Phase">◀ Prev</button>
-      <button id="btnTourNext" class="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-all font-mono" title="Next Phase">Next ▶</button>
-      <button id="btnTourAuto" class="px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-600/50 flex items-center gap-1 transition-all font-mono" title="Toggle Auto-Play Walkthrough">
-        <span id="tourAutoIcon">⚡</span> <span id="tourAutoText">Auto Tour</span>
-      </button>
-      <button id="btnSpectateMode" class="btn-tactile-spectate btn-spectate px-3 py-1 rounded-lg text-rose-300 flex items-center gap-1.5 transition-all font-mono font-bold shadow-md cursor-pointer" title="Toggle Cinematic Multi-Role Spectator Mode (Shortcut: C)">
+    <!-- Right: Unified CINEMATIC TOUR Button -->
+    <div class="flex items-center gap-2 shrink-0">
+      <button id="btnCinematicTour" class="btn-tactile-spectate btn-spectate px-3.5 py-1.5 rounded-lg text-rose-300 flex items-center gap-2 transition-all font-mono font-bold shadow-md cursor-pointer" title="Start Multi-Role Cinematic Tour (Shortcut: C)">
         <span class="rec-dot-indicator"></span>
-        <span id="spectateIcon">🎬</span> <span id="spectateText">SPECTATE</span>
+        <span id="cinematicTourIcon">🎬</span>
+        <span id="cinematicTourText" class="tracking-wide text-xs">CINEMATIC TOUR</span>
       </button>
     </div>
+
   </div>
 
   <!-- ========================================================================= -->
@@ -237,16 +202,16 @@
           <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           DIRECTOR:
         </span>
-        <button id="btnViewSplit" class="layout-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all" data-layout="split" title="Split Cockpit: 3D World Left + Telemetry Right (Shortcut: S)">
+        <button id="btnViewSplit" class="layout-btn bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all" data-layout="split" title="Split Cockpit: 3D World Left + Telemetry Right (Shortcut: S)">
           <span class="text-cyan-400 font-bold">◫</span> <span>Split Cockpit</span>
         </button>
-        <button id="btnViewMax" class="layout-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all" data-layout="theater" title="Max 3D: Fullscreen Theater (Shortcut: M)">
+        <button id="btnViewMax" class="layout-btn bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all" data-layout="theater" title="Max 3D: Fullscreen Theater (Shortcut: M)">
           <span class="text-amber-400 font-bold">⛶</span> <span>Max 3D</span>
         </button>
-        <button id="btnViewFocus" class="layout-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all" data-layout="focus" title="Focused Module: Full-Window Tab Deep-Dive (Shortcut: F)">
+        <button id="btnViewFocus" class="layout-btn bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all" data-layout="focus" title="Focused Module: Full-Window Tab Deep-Dive (Shortcut: F)">
           <span class="text-purple-400 font-bold">☰</span> <span>Focused Module</span>
         </button>
-        <button id="btnViewUnified" class="layout-btn active px-2.5 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5 transition-all" data-layout="unified" title="Unified Cockpit: 3D Substrate + Docked Subsystem Deck (Shortcut: U)">
+        <button id="btnViewUnified" class="layout-btn active bg-slate-900 px-2.5 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5 transition-all" data-layout="unified" title="Unified Cockpit: 3D Substrate + Docked Subsystem Deck (Shortcut: U)">
           <span class="text-emerald-400 font-bold">🎛️</span> <span>Unified</span>
         </button>
       </div>
@@ -292,14 +257,14 @@
       <!-- 3D Overhaul Top Controls & Camera Director -->
       <div class="flex flex-wrap items-center justify-between gap-2.5 bg-slate-950/90 border border-slate-800/90 p-2.5 rounded-xl shadow-xl backdrop-blur-md select-none">
         
-        <!-- View Mode Switcher + Lighting + Max View + SPECTATE Button -->
+        <!-- View Mode Switcher + Lighting + Fullscreen World Button -->
         <div class="flex items-center gap-2 flex-wrap">
           <div class="flex rounded-lg bg-slate-900 p-1 border border-slate-800 text-xs font-mono shadow-inner">
             <button id="btnView3D" class="view-mode-btn active px-3 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5 transition-all">
               <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
               <span>3D OVERHAUL VIEW</span>
             </button>
-            <button id="btnView2D" class="view-mode-btn px-3 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all">
+            <button id="btnView2D" class="view-mode-btn bg-slate-900 border border-slate-800 px-3 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-all">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
               <span>2D ORTHOGRAPHIC</span>
             </button>
@@ -312,19 +277,13 @@
             <span id="lightIcon">🌙</span> <span id="lightLabel">Night Bloom</span>
           </button>
 
-          <!-- Max View Theater Toggle -->
-          <button id="btnMaxView" class="btn-tactile px-2.5 py-1 text-xs rounded-lg text-cyan-300 hover:text-white flex items-center gap-1.5 font-mono" title="Toggle Fullscreen Max Theater">
-            <span id="maxViewIcon">⛶</span> <span id="maxViewLabel">Max View</span>
-          </button>
-
-          <!-- Prominent SPECTATE Button (Pulsating recording indicator dot) -->
-          <button id="btnSpectateModeTop" class="btn-tactile btn-tactile-spectate btn-spectate px-3 py-1 text-xs rounded-lg flex items-center gap-2 font-mono shadow-lg transition-all cursor-pointer" title="Toggle Cinematic Multi-Role Spectator Mode (Shortcut: C)">
-            <span class="rec-dot-indicator"></span>
-            <span class="font-bold tracking-wider">🎬 SPECTATE</span>
+          <!-- Sleek Fullscreen World Button (Only the 3D World Canvas) -->
+          <button id="btnFullscreenWorld" class="btn-tactile px-3 py-1 text-xs rounded-lg text-cyan-300 hover:text-white flex items-center gap-1.5 font-mono font-bold shadow-md cursor-pointer transition-all" title="Toggle Fullscreen World Canvas (Shortcut: M or F11)">
+            <span id="fullscreenIcon">⛶</span> <span id="fullscreenLabel">Fullscreen World</span>
           </button>
         </div>
 
-        <!-- Demonstration Camera Bookmarks: 🌐 District, 🌾 Farms, ⚖️ Agora, 🏥 Hospital, 🏡 Dwellings, 🎬 Spectate -->
+        <!-- Demonstration Camera Bookmarks: 🌐 District, 🌾 Farms, ⚖️ Agora, 🏥 Hospital, 🏡 Dwellings -->
         <div class="flex items-center gap-1.5 text-xs font-mono overflow-x-auto no-scrollbar py-0.5">
           <span class="text-[10px] uppercase text-slate-500 font-bold mr-1 tracking-wider">CAMERA:</span>
           <button class="cam-bookmark" data-focus="orbital" title="District Panoramic Orbital Overview">🌐 District</button>
@@ -332,10 +291,6 @@
           <button class="cam-bookmark" data-focus="agora" title="Central Agora Market & Double-Auction">⚖️ Agora</button>
           <button class="cam-bookmark" data-focus="hospital" title="Civic Hospital Anchor">🏥 Hospital</button>
           <button class="cam-bookmark" data-focus="houses" title="345 Connected Dwellings">🏡 Dwellings</button>
-          <button id="btnBookmarkSpectate" class="cam-bookmark btn-spectate flex items-center gap-1.5" data-focus="spectate" title="Toggle Cinematic Spectator Mode (Shortcut: C)">
-            <span class="rec-dot-indicator"></span>
-            <span>🎬 Spectate</span>
-          </button>
         </div>
 
       </div>
@@ -361,30 +316,19 @@
               <button id="mapZoomReset" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center justify-center transition-all">1x</button>
             </div>
 
-            <!-- Top Compass / Camera Indicator HUD -->
-            <div id="viewportTopCompassHud" class="absolute top-3 left-1/2 -translate-x-1/2 bg-slate-950/85 backdrop-blur-md border border-cyan-800/40 px-3.5 py-1.5 rounded-full text-[11px] font-mono text-cyan-400 flex items-center gap-3 shadow-2xl z-20 pointer-events-none select-none">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span class="text-slate-400 text-[10px] tracking-wider uppercase">SUBSTRATE HUD</span>
-              </div>
-              <span class="text-slate-700">|</span>
-              <div class="flex items-center gap-1.5 text-slate-200">
-                <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-                <span>HDG: <strong id="hudCompassHeading" class="text-white font-mono tabular-nums">045° NNE</strong></span>
-              </div>
-              <span class="text-slate-700">|</span>
-              <div>
-                <span>ELEV: <strong id="hudElevation" class="text-white font-mono tabular-nums">-24°</strong></span>
-              </div>
-              <span class="text-slate-700">|</span>
-              <div>
-                <span>GRID: <strong class="text-emerald-400 font-mono">1000×1000m</strong></span>
-              </div>
+            <!-- Floating Exit Fullscreen Button (Visible only in Fullscreen World) -->
+            <button id="btnExitFullscreenWorld" class="absolute top-4 right-4 z-40 px-3.5 py-1.5 rounded-lg bg-slate-900/95 hover:bg-slate-800 text-slate-200 border border-slate-700 font-mono text-xs font-bold shadow-2xl items-center gap-1.5 transition-all cursor-pointer hidden" title="Exit Fullscreen World (Shortcut: ESC)">
+              <span>✕</span> <span>EXIT FULLSCREEN</span>
+            </button>
+
+            <!-- Instructions badge overlay (Docked cleanly in top-left corner) -->
+            <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur border border-slate-800/80 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 select-none pointer-events-none z-10">
+              <span>🖱️ Drag: Orbit · Scroll: Zoom · Click: Focus · C: Tour · M: Fullscreen</span>
             </div>
 
-            <!-- 3D Overlay Telemetry HUD (Bottom Ticker) -->
-            <div class="absolute bottom-4 left-4 right-4 bg-slate-950/90 backdrop-blur-md border border-cyan-800/40 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex flex-wrap items-center justify-between gap-3 shadow-xl z-20 select-none">
-              <div class="flex items-center gap-3">
+            <!-- 3D Overlay Telemetry HUD (Unobtrusive Bottom Status Bar) -->
+            <div id="viewportBottomStatus" class="absolute bottom-4 left-4 right-4 bg-slate-950/90 backdrop-blur-md border border-cyan-800/40 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex flex-wrap items-center justify-between gap-3 shadow-xl z-20 select-none">
+              <div class="flex items-center gap-3 flex-wrap">
                 <div class="flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
                   <span>COORD: <strong id="mouseCoords" class="text-white tabular-nums">X: 500m · Z: 500m</strong></span>
@@ -398,16 +342,21 @@
                   <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400 tabular-nums">64 Active</strong></span>
                 </div>
               </div>
-              <div class="flex items-center gap-3 text-[11px] text-slate-400">
-                <span class="hidden md:inline">340M VOXELS · 345 DWELLINGS</span>
+              
+              <div class="flex items-center gap-3 text-[11px] text-slate-400 flex-wrap">
+                <div class="flex items-center gap-1.5 text-slate-300">
+                  <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                  <span>HDG: <strong id="hudCompassHeading" class="text-white font-mono tabular-nums">045° NNE</strong></span>
+                </div>
+                <span class="text-slate-600">|</span>
+                <div>
+                  <span>ELEV: <strong id="hudElevation" class="text-white font-mono tabular-nums">-24°</strong></span>
+                </div>
+                <span class="text-slate-600 hidden md:inline">|</span>
+                <span class="hidden md:inline">GRID: <strong class="text-emerald-400 font-mono">1000×1000m</strong></span>
                 <span class="text-slate-600 hidden md:inline">|</span>
                 <span class="text-emerald-400 font-bold">100% INVARIANTS</span>
               </div>
-            </div>
-
-            <!-- Instructions badge overlay -->
-            <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur border border-slate-800/80 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 select-none pointer-events-none z-10">
-              <span>🖱️ Drag: Orbit Camera · Scroll: Zoom · Click: Focus Agent · Press C: Spectate</span>
             </div>
 
             <!-- Sleek Cinematic Spectator Letterbox & Live Telemetry HUD Overlay -->
@@ -712,12 +661,12 @@
                     
                     <div class="flex flex-wrap gap-1 mt-2.5" id="censusRoleFilters">
                       <button class="census-role-filter active px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 border border-cyan-700 text-cyan-300 font-bold" data-role="ALL">ALL (64)</button>
-                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Farmer">🌾 Farmer</button>
-                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Builder">🏗️ Builder</button>
-                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Crafter">🛠️ Crafter</button>
-                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Trader">⚖️ Trader</button>
-                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Medic">🏥 Medic</button>
-                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Generalist">🌳 Generalist</button>
+                      <button class="census-role-filter bg-slate-900 border border-slate-700/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Farmer">🌾 Farmer</button>
+                      <button class="census-role-filter bg-slate-900 border border-slate-700/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Builder">🏗️ Builder</button>
+                      <button class="census-role-filter bg-slate-900 border border-slate-700/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Crafter">🛠️ Crafter</button>
+                      <button class="census-role-filter bg-slate-900 border border-slate-700/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Trader">⚖️ Trader</button>
+                      <button class="census-role-filter bg-slate-900 border border-slate-700/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Medic">🏥 Medic</button>
+                      <button class="census-role-filter bg-slate-900 border border-slate-700/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Generalist">🌳 Generalist</button>
                     </div>
                   </div>
 
@@ -1802,20 +1751,42 @@
       });
       if (tabBuilding) tabBuilding.addEventListener('click', () => selectDrawerTab(tabBuilding, secBuilding));
 
-      // Synchronize Spectate button triggers
+      // Synchronize Unified Cinematic Tour & Fullscreen World controls
+      const btnCinematicTour = document.getElementById('btnCinematicTour');
       const btnSpectateMode = document.getElementById('btnSpectateMode');
-      const btnSpectateModeTop = document.getElementById('btnSpectateModeTop');
-      const btnBookmarkSpectate = document.getElementById('btnBookmarkSpectate');
-      if (btnSpectateModeTop && btnSpectateMode) {
-        btnSpectateModeTop.addEventListener('click', () => {
-          btnSpectateMode.click();
+      const btnFullscreenWorld = document.getElementById('btnFullscreenWorld');
+      const btnExitFullscreenWorld = document.getElementById('btnExitFullscreenWorld');
+      const worldViewport = document.getElementById('worldViewport');
+
+      if (btnCinematicTour) {
+        btnCinematicTour.addEventListener('click', () => {
+          if (window.evolzenToggleCinematicTour) {
+            window.evolzenToggleCinematicTour();
+          } else if (btnSpectateMode) {
+            btnSpectateMode.click();
+          }
         });
       }
-      if (btnBookmarkSpectate && btnSpectateMode) {
-        btnBookmarkSpectate.addEventListener('click', () => {
-          btnSpectateMode.click();
-        });
+
+      function handleFullscreenWorldToggle() {
+        if (!worldViewport) return;
+        const isMax = worldViewport.classList.toggle('viewport-maximized');
+        const icon = document.getElementById('fullscreenIcon');
+        const label = document.getElementById('fullscreenLabel');
+        if (isMax) {
+          if (icon) icon.textContent = '🗗';
+          if (label) label.textContent = 'Exit Fullscreen';
+          if (btnFullscreenWorld) btnFullscreenWorld.classList.add('active');
+        } else {
+          if (icon) icon.textContent = '⛶';
+          if (label) label.textContent = 'Fullscreen World';
+          if (btnFullscreenWorld) btnFullscreenWorld.classList.remove('active');
+        }
+        window.dispatchEvent(new Event('resize'));
       }
+
+      if (btnFullscreenWorld) btnFullscreenWorld.addEventListener('click', handleFullscreenWorldToggle);
+      if (btnExitFullscreenWorld) btnExitFullscreenWorld.addEventListener('click', handleFullscreenWorldToggle);
 
       // Expose globally for 3D engine raycaster click integration
       window.evolzenOpenInspector = function(type, data) {

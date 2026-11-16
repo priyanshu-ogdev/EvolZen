@@ -46,11 +46,19 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       timer: null
     },
 
-    // Dedicated Cinematic Spectator Engine
-    spectate: {
+    // Single Unified Cinematic Tour Engine (combining Auto Tour & Spectate)
+    cinematicTour: {
       active: false,
       roleIndex: 0,
       roles: ['Farmer', 'Trader', 'Builder', 'Medic', 'Crafter', 'Generalist'],
+      landmarks: {
+        Farmer: { name: 'West Farm Belt & Silos', pos: { x: 50, z: 500 } },
+        Trader: { name: 'Central Agora Market', pos: { x: 550, z: 650 } },
+        Builder: { name: 'Civic Core & Portico', pos: { x: 500, z: 500 } },
+        Medic: { name: 'Civic Hospital Anchor', pos: { x: 450, z: 550 } },
+        Crafter: { name: 'Engineering Workshop', pos: { x: 650, z: 550 } },
+        Generalist: { name: 'Civic Conservatory & Commons', pos: { x: 350, z: 450 } }
+      },
       currentShotType: 'CHASE', // 'CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'
       shotAngleIndex: 0,
       shotNames: {
@@ -72,6 +80,13 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         'Crafter': 0,
         'Generalist': 0
       }
+    },
+    // Backwards compatibility alias
+    spectate: null,
+
+    // Dedicated Fullscreen World View
+    fullscreen: {
+      active: false
     },
 
     // 3D Three.js Engine State
@@ -176,6 +191,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       { id: 'C-10', name: 'Adaptive Commons Generalists', coords: [0.60, 0.60, 0.60, 0.84, 0.70], fitness: 88.9, count: 6, elite: 'agent_07' }
     ]
   };
+  state.spectate = state.cinematicTour;
 
   // Subsystem Console Titles Mapping
   const subsystemTitles = {
@@ -307,11 +323,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     initSpeedControls();
     initDroughtControl();
     initViewModeControls();
+    initFullscreenWorldControl();
     initLayoutControls();
     initTabs();
     initSubsystemDock();
-    initTourEngine();
-    initSpectatorEngine();
+    initCinematicTourEngine();
     initKeyboardShortcuts();
     init2DMapCanvas();
     initCensusControls();
@@ -656,13 +672,13 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     });
   }
 
-  function handleThreeResize() {
+  function handleThreeResize(force = false) {
     const container = document.getElementById('threeContainer');
     if (!container || !state.three.renderer || !state.three.camera) return;
     const w = container.clientWidth || container.offsetWidth || window.innerWidth || 900;
-    const h = container.clientHeight || container.offsetHeight || window.innerHeight * 0.76 || 580;
+    const h = container.clientHeight || container.offsetHeight || Math.round(window.innerHeight * 0.76) || 580;
     if (w <= 0 || h <= 0) return;
-    if (state.three.lastW === w && state.three.lastH === h) return;
+    if (!force && state.three.lastW === w && state.three.lastH === h) return;
     state.three.lastW = w;
     state.three.lastH = h;
     state.three.camera.aspect = w / h;
@@ -2013,10 +2029,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       avatar.group.position.set(avatar.currentPos.x, 0, avatar.currentPos.z);
     });
 
-    // 2. Camera Direction: Dedicated Cinematic Spectator Mode or Third-Person Follow Cam
-    if (state.spectate && state.spectate.active && camera && controls) {
+    // 2. Camera Direction: Single Unified Cinematic Tour or Third-Person Follow Cam
+    const isCinematicActive = (state.cinematicTour && state.cinematicTour.active) || (state.spectate && state.spectate.active);
+    if (isCinematicActive && camera && controls) {
+      const tourState = state.cinematicTour || state.spectate;
       const followed = state.three.agentMeshes.find(a => a.data.id === state.followingAgentId)
-        || (state.spectate.currentAgent && state.three.agentMeshes.find(a => a.data.id === state.spectate.currentAgent.id));
+        || (tourState.currentAgent && state.three.agentMeshes.find(a => a.data.id === tourState.currentAgent.id));
       if (followed) {
         const heading = followed.group.rotation.y || 0;
         const posX = followed.currentPos.x;
@@ -2024,39 +2042,40 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         let targetCamX, targetCamY, targetCamZ;
         let lookAtTarget;
 
-        switch (state.spectate.currentShotType) {
+        switch (tourState.currentShotType) {
           case 'LOW_ANGLE': {
-            // Low-Angle Pavement Dolly: Distance 26m, height 9.0m, looking at y = 4.5m (dramatic street tracking perspective)
-            const dist = 26.0;
+            // Low-Angle Pavement Dolly: Generous vertical headroom (>10m clearance) above billboard badge (height 16.0m > 10m above 4.1m badge)
+            const dist = 28.0;
             const angle = heading + 0.35;
             targetCamX = posX - Math.sin(angle) * dist;
-            targetCamY = 9.0;
+            targetCamY = 16.0;
             targetCamZ = posZ - Math.cos(angle) * dist;
-            lookAtTarget = new THREE.Vector3(posX, 4.5, posZ);
+            lookAtTarget = new THREE.Vector3(posX, 5.0, posZ);
             break;
           }
           case 'DRONE_ORBIT': {
-            // High 45° Drone Orbit: Distance 60m, height 32m, looking at y = 7.0m, orbiting slowly around the active citizen and surrounding architecture
-            state.spectate.orbitAngle = (state.spectate.orbitAngle || 0) + 0.005;
+            // High 45° Drone Orbit: Distance 60m, height 32.0m (>27m clearance), looking at y = 7.0m, orbiting slowly around the active citizen and surrounding architecture
+            tourState.orbitAngle = (tourState.orbitAngle || 0) + 0.005;
             const dist = 60.0;
-            targetCamX = posX + Math.cos(state.spectate.orbitAngle) * dist;
+            targetCamX = posX + Math.cos(tourState.orbitAngle) * dist;
             targetCamY = 32.0;
-            targetCamZ = posZ + Math.sin(state.spectate.orbitAngle) * dist;
+            targetCamZ = posZ + Math.sin(tourState.orbitAngle) * dist;
             lookAtTarget = new THREE.Vector3(posX, 7.0, posZ);
             break;
           }
           case 'FRONTAL': {
             // Frontal Approach Dolly: Moving ahead of the citizen as they walk forward along the avenue
-            const dist = 30.0;
+            // Distance 32m, height 16.5m (>12m clearance), looking at y = 5.5m
+            const dist = 32.0;
             targetCamX = posX + Math.sin(heading) * dist;
-            targetCamY = 13.0;
+            targetCamY = 16.5;
             targetCamZ = posZ + Math.cos(heading) * dist;
             lookAtTarget = new THREE.Vector3(posX, 5.5, posZ);
             break;
           }
           case 'CHASE':
           default: {
-            // Over-Shoulder Chase Cam: Distance 38m, height 18.5m, looking at y = 6.0m (overhead billboard perfectly visible with full headroom)
+            // Over-Shoulder Chase Cam: Distance 38m, height 18.5m (>14m clearance), looking at y = 6.0m (overhead billboard perfectly visible with full headroom)
             const dist = 38.0;
             targetCamX = posX - Math.sin(heading) * dist;
             targetCamY = 18.5;
@@ -2130,6 +2149,33 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (renderer && scene && camera && state.viewMode === '3d') {
       renderer.render(scene, camera);
     }
+
+    // 5. Update Real-Time Substrate Telemetry (Heading, Elevation, Coordinates, Sector, Agents)
+    if (camera) {
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      const deg = Math.round((Math.atan2(dir.x, dir.z) * 180 / Math.PI + 360) % 360);
+      const cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+      const cardIdx = Math.round(deg / 22.5) % 16;
+      const headingStr = `${String(deg).padStart(3, '0')}° ${cardinals[cardIdx]}`;
+      const elev = Math.round(Math.asin(Math.max(-1, Math.min(1, dir.y))) * 180 / Math.PI);
+      const elevStr = `${elev >= 0 ? '+' : ''}${elev}°`;
+
+      let currentCoord = { x: 500, z: 500 };
+      if (state.followingAgentId) {
+        const ag = state.agents && state.agents.find(a => a.id === state.followingAgentId);
+        if (ag && ag.position) {
+          currentCoord = { x: Math.round(ag.position.x), z: Math.round(ag.position.z) };
+        }
+      } else if (controls && controls.target) {
+        currentCoord = {
+          x: Math.max(0, Math.min(1000, Math.round(controls.target.x))),
+          z: Math.max(0, Math.min(1000, Math.round(controls.target.z)))
+        };
+      }
+
+      updateBottomTelemetry(currentCoord, headingStr, elevStr);
+    }
   }
 
   // Raycasting & Click Selection
@@ -2151,6 +2197,22 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     } else {
       state.three.hoveredObject = null;
       state.three.renderer.domElement.style.cursor = 'grab';
+    }
+
+    // Live Substrate Ground Coordinate Tracking into Bottom Status Bar
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const targetPoint = new THREE.Vector3();
+    if (state.three.raycaster.ray.intersectPlane(groundPlane, targetPoint)) {
+      const hoverX = Math.max(0, Math.min(1000, Math.round(targetPoint.x)));
+      const hoverZ = Math.max(0, Math.min(1000, Math.round(targetPoint.z)));
+      const elCoords = document.getElementById('substrateCoordinatesStatus') || document.getElementById('mouseCoords');
+      if (elCoords) {
+        elCoords.textContent = `X: ${hoverX}m · Z: ${hoverZ}m`;
+      }
+      const elSector = document.getElementById('sectorName');
+      if (elSector) {
+        elSector.textContent = getSectorNameForCoord(hoverX, hoverZ);
+      }
     }
   }
 
@@ -2666,11 +2728,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         if (cur) inspectAgent(cur, false, false);
       }
 
-      if (state.spectate && state.spectate.active && state.spectate.currentAgent) {
-        const liveAgent = state.agents.find(a => a.id === state.spectate.currentAgent.id);
+      const activeTour = state.cinematicTour || state.spectate;
+      if (activeTour && activeTour.active && activeTour.currentAgent) {
+        const liveAgent = state.agents.find(a => a.id === activeTour.currentAgent.id);
         if (liveAgent) {
-          state.spectate.currentAgent = liveAgent;
-          updateSpectatorHUD(liveAgent);
+          activeTour.currentAgent = liveAgent;
+          updateCinematicTourHUD(liveAgent);
         }
       }
 
@@ -3138,140 +3201,257 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   }
 
   // =========================================================================
-  // 11. Guided Portfolio Workflow Tour
+  // 11. Single Unified Cinematic Tour Engine & Fullscreen World Viewing
   // =========================================================================
-  function initTourEngine() {
-    const btnPrev = document.getElementById('btnTourPrev');
-    const btnNext = document.getElementById('btnTourNext');
-    const btnAuto = document.getElementById('btnTourAuto');
-    const dots = document.querySelectorAll('.tour-dot');
 
-    if (btnPrev) btnPrev.addEventListener('click', prevTourStep);
-    if (btnNext) btnNext.addEventListener('click', nextTourStep);
-    if (btnAuto) btnAuto.addEventListener('click', toggleAutoTour);
-
-    dots.forEach((dot, idx) => {
-      dot.addEventListener('click', () => goToTourStep(idx));
-    });
-
-    renderTourStep(0);
+  function getSectorNameForCoord(x, z) {
+    if (x < 140 && z > 250 && z < 750) return 'West Farm Belt & Silos';
+    if (x > 420 && x < 580 && z > 420 && z < 580) return 'Central Civic Anchor';
+    if (x >= 500 && x <= 650 && z >= 600 && z <= 750) return 'Agora Market & Double-Auction';
+    if (x <= 480 && z >= 500 && z <= 620) return 'Civic Hospital Anchor';
+    if (x >= 500 && x <= 650 && z <= 500 && z >= 380) return 'Fire Station Emergency Sector';
+    if (x > 250 && x < 400 && z > 350 && z < 550) return 'Central Park & Conservatory';
+    return 'Residential Dwelling Sector';
   }
 
-  function goToTourStep(idx) {
-    if (idx < 0) idx = 0;
-    if (idx >= tourSteps.length) idx = tourSteps.length - 1;
-    state.tour.step = idx;
-    renderTourStep(idx);
+  function updateBottomTelemetry(coords, headingStr, elevStr) {
+    // 1. Substrate Coordinates (Cleanly docked in bottom bar)
+    const elCoords = document.getElementById('substrateCoordinatesStatus') || document.getElementById('mouseCoords');
+    if (elCoords && coords) {
+      elCoords.textContent = `X: ${coords.x}m · Z: ${coords.z}m`;
+    }
+
+    // 2. Compass Heading & Elevation
+    const elHdg = document.getElementById('hudCompassHeading');
+    if (elHdg && headingStr) {
+      elHdg.textContent = headingStr;
+    }
+
+    const elElev = document.getElementById('hudElevation');
+    if (elElev && elevStr) {
+      elElev.textContent = elevStr;
+    }
+
+    // 3. Sector Name
+    const elSector = document.getElementById('sectorName');
+    if (elSector && coords) {
+      elSector.textContent = getSectorNameForCoord(coords.x, coords.z);
+    }
+
+    // 4. Active Agents Count
+    const elAgents = document.getElementById('activeAgentsBadge') || document.getElementById('hudAgentCount');
+    if (elAgents && state.agents) {
+      elAgents.textContent = `${state.agents.length} Active`;
+    }
+
+    // 5. Ensure center floating HUD overlay is tucked away if present
+    const centerOverlay = document.getElementById('viewportTopCompassHud');
+    if (centerOverlay && centerOverlay.classList.contains('top-3')) {
+      centerOverlay.style.pointerEvents = 'none';
+    }
   }
 
-  function nextTourStep() {
-    let nextIdx = state.tour.step + 1;
-    if (nextIdx >= tourSteps.length) nextIdx = 0;
-    goToTourStep(nextIdx);
-  }
+  // --- Dedicated Fullscreen World Viewing ---
 
-  function prevTourStep() {
-    let prevIdx = state.tour.step - 1;
-    if (prevIdx < 0) prevIdx = tourSteps.length - 1;
-    goToTourStep(prevIdx);
-  }
+  function initFullscreenWorldControl() {
+    const btnFs = document.getElementById('btnFullscreenWorld');
+    const btnExitFs = document.getElementById('btnExitFullscreenWorld');
+    const btnMax = document.getElementById('btnMaxView');
 
-  function toggleAutoTour() {
-    state.tour.autoPlay = !state.tour.autoPlay;
-    const btn = document.getElementById('btnTourAuto');
-    const icon = document.getElementById('tourAutoIcon');
-    const text = document.getElementById('tourAutoText');
+    if (btnFs) {
+      btnFs.addEventListener('click', toggleFullscreenWorld);
+    }
+    if (btnExitFs) {
+      btnExitFs.addEventListener('click', toggleFullscreenWorld);
+    }
+    if (btnMax) {
+      btnMax.addEventListener('click', toggleFullscreenWorld);
+    }
 
-    if (state.tour.autoPlay) {
-      if (state.spectate && state.spectate.active) {
-        stopSpectatorMode();
+    const onFsChange = () => {
+      const viewport = document.getElementById('worldViewport');
+      const isNativeFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (!isNativeFs && viewport && !viewport.classList.contains('viewport-fullscreen-mode')) {
+        // Native exited
       }
-      if (icon) icon.textContent = '⏸';
-      if (text) text.textContent = 'Pause Tour';
-      if (btn) btn.className = 'px-2.5 py-1 rounded bg-amber-950/70 hover:bg-amber-900/90 text-amber-300 border border-amber-600/50 flex items-center gap-1 transition-all font-mono font-bold';
-      state.tour.timer = setInterval(nextTourStep, 7500);
-    } else {
-      if (icon) icon.textContent = '⚡';
-      if (text) text.textContent = 'Auto Tour';
-      if (btn) btn.className = 'px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-600/50 flex items-center gap-1 transition-all font-mono';
-      if (state.tour.timer) clearInterval(state.tour.timer);
+      updateFullscreenWorldUI();
+      handleThreeResize(true);
+      requestAnimationFrame(() => handleThreeResize(true));
+      setTimeout(() => handleThreeResize(true), 100);
+      setTimeout(() => handleThreeResize(true), 300);
+    };
+
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+    document.addEventListener('mozfullscreenchange', onFsChange);
+    document.addEventListener('MSFullscreenChange', onFsChange);
+  }
+
+  function isWorldFullscreen() {
+    const viewport = document.getElementById('worldViewport') || document.getElementById('threeContainer');
+    const fsElem = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    return Boolean((fsElem && (fsElem === viewport || (viewport && viewport.contains(fsElem)))) || (viewport && (viewport.classList.contains('viewport-fullscreen-mode') || viewport.classList.contains('viewport-maximized'))));
+  }
+
+  async function toggleFullscreenWorld() {
+    const viewport = document.getElementById('worldViewport') || document.getElementById('threeContainer');
+    if (!viewport) return;
+
+    const isFs = isWorldFullscreen();
+
+    try {
+      if (isFs) {
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            await document.webkitExitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            await document.mozCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+            await document.msExitFullscreen();
+          }
+        }
+        viewport.classList.remove('viewport-fullscreen-mode');
+        viewport.classList.remove('viewport-maximized');
+        state.fullscreen.active = false;
+      } else {
+        if (viewport.requestFullscreen) {
+          await viewport.requestFullscreen();
+        } else if (viewport.webkitRequestFullscreen) {
+          await viewport.webkitRequestFullscreen();
+        } else if (viewport.mozRequestFullScreen) {
+          await viewport.mozRequestFullScreen();
+        } else if (viewport.msRequestFullscreen) {
+          await viewport.msRequestFullscreen();
+        } else {
+          viewport.classList.add('viewport-fullscreen-mode');
+        }
+        viewport.classList.add('viewport-maximized');
+        state.fullscreen.active = true;
+      }
+    } catch (err) {
+      console.warn('HTML5 Fullscreen API notice, using CSS fullscreen fallback:', err);
+      viewport.classList.toggle('viewport-fullscreen-mode');
+      viewport.classList.toggle('viewport-maximized');
+      state.fullscreen.active = viewport.classList.contains('viewport-fullscreen-mode') || viewport.classList.contains('viewport-maximized');
+    }
+
+    updateFullscreenWorldUI();
+    handleThreeResize(true);
+    requestAnimationFrame(() => handleThreeResize(true));
+    setTimeout(() => handleThreeResize(true), 100);
+    setTimeout(() => handleThreeResize(true), 300);
+  }
+
+  function updateFullscreenWorldUI() {
+    const isFs = isWorldFullscreen();
+    const btnFs = document.getElementById('btnFullscreenWorld');
+    const iconFs = document.getElementById('fullscreenIcon');
+    const labelFs = document.getElementById('fullscreenLabel');
+    if (btnFs) {
+      if (isFs) {
+        btnFs.classList.add('active');
+        if (iconFs) iconFs.textContent = '🗗';
+        if (labelFs) labelFs.textContent = 'Exit Fullscreen';
+        btnFs.title = 'Exit Fullscreen World (Shortcut: F, M or ESC)';
+      } else {
+        btnFs.classList.remove('active');
+        if (iconFs) iconFs.textContent = '⛶';
+        if (labelFs) labelFs.textContent = 'Fullscreen World';
+        btnFs.title = 'Enter Fullscreen 3D World (Shortcut: F or M)';
+      }
+    }
+
+    const btnExitFs = document.getElementById('btnExitFullscreenWorld');
+    if (btnExitFs) {
+      btnExitFs.style.display = isFs ? 'flex' : 'none';
+    }
+
+    const btnMax = document.getElementById('btnMaxView');
+    const maxIcon = document.getElementById('maxViewIcon');
+    const maxLabel = document.getElementById('maxViewLabel');
+    if (btnMax) {
+      if (isFs) {
+        if (maxIcon) maxIcon.textContent = '🗗';
+        if (maxLabel) maxLabel.textContent = 'Exit Fullscreen';
+      } else {
+        if (maxIcon) maxIcon.textContent = '⛶';
+        if (maxLabel) maxLabel.textContent = 'Fullscreen World';
+      }
     }
   }
 
-  function renderTourStep(idx) {
-    const step = tourSteps[idx];
-    if (!step) return;
+  // --- Single Unified Cinematic Tour Engine ---
 
-    const elBadge = document.getElementById('tourStepBadge');
-    const elTitle = document.getElementById('tourStepTitle');
-    const elDesc = document.getElementById('tourStepDesc');
-
-    if (elBadge) elBadge.textContent = `STEP ${step.step}/6:`;
-    if (elTitle) elTitle.textContent = step.title;
-    if (elDesc) elDesc.textContent = step.desc;
-
-    document.querySelectorAll('.tour-dot').forEach((dot, dIdx) => {
-      dot.classList.toggle('active', dIdx === idx);
-    });
-
-    if (step.subsystem) setSubsystemDock(step.subsystem);
-    if (step.camera && state.three.camera) {
-      state.followingAgentId = null;
-      tweenCamera(step.camera.pos, step.camera.target);
-    }
-    if (step.action) step.action();
-  }
-
-  // =========================================================================
-  // Dedicated Cinematic Spectator Engine (state.spectate)
-  // =========================================================================
-  function initSpectatorEngine() {
+  function initCinematicTourEngine() {
+    const btnTour = document.getElementById('btnCinematicTour');
     const btnSpectate = document.getElementById('btnSpectateMode');
-    const btnExit = document.getElementById('btnExitSpectate');
+    const btnSpectateTop = document.getElementById('btnSpectateModeTop');
+    const btnAuto = document.getElementById('btnTourAuto');
+    const btnExit = document.getElementById('btnExitSpectate') || document.getElementById('btnExitTour');
     const btnNextAngle = document.getElementById('btnSpectateNextAngle');
     const btnNextAgent = document.getElementById('btnSpectateNextAgent');
-    const bookmarkBtns = document.querySelectorAll('.btn-spectate, [data-focus="spectate"]');
+    const bookmarkBtns = document.querySelectorAll('.btn-spectate, .btn-cinematic-tour, [data-focus="spectate"]');
 
+    if (btnTour) {
+      btnTour.addEventListener('click', () => toggleCinematicTour());
+    }
     if (btnSpectate) {
-      btnSpectate.addEventListener('click', toggleSpectatorMode);
+      btnSpectate.addEventListener('click', () => toggleCinematicTour());
+    }
+    if (btnSpectateTop) {
+      btnSpectateTop.addEventListener('click', () => toggleCinematicTour());
+    }
+    if (btnAuto) {
+      btnAuto.addEventListener('click', () => toggleCinematicTour());
     }
     if (btnExit) {
-      btnExit.addEventListener('click', stopSpectatorMode);
+      btnExit.addEventListener('click', () => stopCinematicTour());
     }
     if (btnNextAngle) {
-      btnNextAngle.addEventListener('click', cycleSpectatorShot);
+      btnNextAngle.addEventListener('click', cycleCinematicTourShot);
     }
     if (btnNextAgent) {
       btnNextAgent.addEventListener('click', () => {
-        state.spectate.countdownSeconds = 6;
-        updateSpectatorCountdown(6);
-        transitionSpectatorTarget(false);
+        state.cinematicTour.countdownSeconds = 6;
+        updateCinematicTourCountdown(6);
+        transitionCinematicTourTarget(false);
       });
     }
 
     bookmarkBtns.forEach(btn => {
-      if (btn !== btnSpectate) {
-        btn.addEventListener('click', toggleSpectatorMode);
+      if (btn !== btnTour && btn !== btnSpectate) {
+        btn.addEventListener('click', () => toggleCinematicTour());
       }
     });
+
+    // Tour step dots (fallback/guided portfolio)
+    const dots = document.querySelectorAll('.tour-dot');
+    dots.forEach((dot, idx) => {
+      dot.addEventListener('click', () => goToTourStep(idx));
+    });
+    const btnPrev = document.getElementById('btnTourPrev');
+    const btnNext = document.getElementById('btnTourNext');
+    if (btnPrev) btnPrev.addEventListener('click', prevTourStep);
+    if (btnNext) btnNext.addEventListener('click', nextTourStep);
+
+    renderTourStep(0);
   }
 
-  function toggleSpectatorMode() {
-    if (state.spectate && state.spectate.active) {
-      stopSpectatorMode();
+  function toggleCinematicTour(forceState) {
+    const shouldBeActive = forceState !== undefined ? Boolean(forceState) : !state.cinematicTour.active;
+    if (shouldBeActive) {
+      startCinematicTour();
     } else {
-      startSpectatorMode();
+      stopCinematicTour();
     }
   }
 
-  function startSpectatorMode() {
-    if (state.spectate.active) return;
-    state.spectate.active = true;
-
-    // Pause Auto Tour if active to prevent competing camera transitions
-    if (state.tour.autoPlay) {
-      toggleAutoTour();
-    }
+  function startCinematicTour() {
+    if (state.cinematicTour.active) return;
+    state.cinematicTour.active = true;
+    state.tour.autoPlay = true;
 
     // Switch view to 3D if in 2D map mode
     if (state.viewMode !== '3d') {
@@ -3288,40 +3468,36 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       });
     }
 
-    // Update Spectate Mode button visual states
-    const btn = document.getElementById('btnSpectateMode');
-    const icon = document.getElementById('spectateIcon');
-    const text = document.getElementById('spectateText');
-    if (btn) {
-      btn.className = 'btn-spectate px-2.5 py-1 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-500/80 flex items-center gap-1.5 transition-all font-mono font-bold shadow-lg shadow-rose-900/40 active';
-    }
-    if (icon) icon.textContent = '⏹';
-    if (text) text.textContent = 'Exit Spectate';
+    // Update buttons
+    updateCinematicTourButtonUI(true);
 
     // Start immediately with the first role
-    transitionSpectatorTarget(true);
+    transitionCinematicTourTarget(true);
 
     // Setup 6-second auto-transition timer with 1s countdown in HUD
-    state.spectate.countdownSeconds = 6;
-    updateSpectatorCountdown(6);
+    state.cinematicTour.countdownSeconds = 6;
+    updateCinematicTourCountdown(6);
 
-    if (state.spectate.countdownTimer) clearInterval(state.spectate.countdownTimer);
-    state.spectate.countdownTimer = setInterval(() => {
-      if (!state.spectate.active) return;
-      state.spectate.countdownSeconds--;
-      if (state.spectate.countdownSeconds <= 0) {
-        state.spectate.countdownSeconds = 6;
-        transitionSpectatorTarget(false);
+    if (state.cinematicTour.countdownTimer) clearInterval(state.cinematicTour.countdownTimer);
+    state.cinematicTour.countdownTimer = setInterval(() => {
+      if (!state.cinematicTour.active) return;
+      state.cinematicTour.countdownSeconds--;
+      if (state.cinematicTour.countdownSeconds <= 0) {
+        state.cinematicTour.countdownSeconds = 6;
+        transitionCinematicTourTarget(false);
       }
-      updateSpectatorCountdown(state.spectate.countdownSeconds);
+      updateCinematicTourCountdown(state.cinematicTour.countdownSeconds);
     }, 1000);
   }
 
-  function stopSpectatorMode() {
-    state.spectate.active = false;
+  function stopCinematicTour() {
+    state.cinematicTour.active = false;
+    state.tour.autoPlay = false;
 
-    if (state.spectate.countdownTimer) clearInterval(state.spectate.countdownTimer);
-    state.spectate.countdownTimer = null;
+    if (state.cinematicTour.countdownTimer) clearInterval(state.cinematicTour.countdownTimer);
+    state.cinematicTour.countdownTimer = null;
+    if (state.tour.timer) clearInterval(state.tour.timer);
+    state.tour.timer = null;
 
     // Hide letterbox overlay with fade out
     const overlay = document.getElementById('spectateLetterboxOverlay');
@@ -3329,74 +3505,128 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       overlay.classList.remove('opacity-100');
       overlay.classList.add('opacity-0');
       setTimeout(() => {
-        if (!state.spectate.active) overlay.classList.add('hidden');
+        if (!state.cinematicTour.active) overlay.classList.add('hidden');
       }, 400);
     }
 
     // Revert button styling
-    const btn = document.getElementById('btnSpectateMode');
-    const icon = document.getElementById('spectateIcon');
-    const text = document.getElementById('spectateText');
-    if (btn) {
-      btn.className = 'btn-spectate px-2.5 py-1 rounded bg-purple-950/70 hover:bg-purple-900/90 text-purple-300 border border-purple-600/50 flex items-center gap-1.5 transition-all font-mono font-bold shadow-sm';
-    }
-    if (icon) icon.textContent = '🎬';
-    if (text) text.textContent = 'Spectate Mode';
+    updateCinematicTourButtonUI(false);
   }
 
-  function cycleSpectatorShot() {
+  function updateCinematicTourButtonUI(isActive) {
+    const btnTour = document.getElementById('btnCinematicTour');
+    if (btnTour) {
+      const text = document.getElementById('cinematicTourText') || btnTour.querySelector('span:not(.rec-dot-indicator)');
+      const icon = document.getElementById('cinematicTourIcon');
+      if (isActive) {
+        btnTour.classList.add('active', 'border-rose-500/80', 'bg-rose-950/80', 'text-rose-200');
+        btnTour.classList.remove('border-slate-800');
+        if (icon) icon.textContent = '⏹';
+        if (text) text.textContent = 'EXIT TOUR';
+        btnTour.title = 'Exit Cinematic Tour (Shortcut: C or ESC)';
+      } else {
+        btnTour.classList.remove('active', 'border-rose-500/80', 'bg-rose-950/80', 'text-rose-200');
+        if (icon) icon.textContent = '🎬';
+        if (text) text.textContent = 'CINEMATIC TOUR';
+        btnTour.title = 'Launch Autonomous 1km Cinematic Tour (Shortcut: C)';
+      }
+    }
+
+    const btnSpectate = document.getElementById('btnSpectateMode');
+    const icon = document.getElementById('spectateIcon');
+    const text = document.getElementById('spectateText');
+    if (btnSpectate) {
+      if (isActive) {
+        btnSpectate.className = 'btn-spectate px-2.5 py-1 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-500/80 flex items-center gap-1.5 transition-all font-mono font-bold shadow-lg shadow-rose-900/40 active';
+        if (icon) icon.textContent = '⏹';
+        if (text) text.textContent = 'Exit Tour';
+      } else {
+        btnSpectate.className = 'btn-spectate px-2.5 py-1 rounded bg-purple-950/70 hover:bg-purple-900/90 text-purple-300 border border-purple-600/50 flex items-center gap-1.5 transition-all font-mono font-bold shadow-sm';
+        if (icon) icon.textContent = '🎬';
+        if (text) text.textContent = 'Cinematic Tour';
+      }
+    }
+
+    const btnAuto = document.getElementById('btnTourAuto');
+    if (btnAuto) {
+      const autoText = document.getElementById('tourAutoText');
+      const autoIcon = document.getElementById('tourAutoIcon');
+      if (isActive) {
+        if (autoText) autoText.textContent = 'Pause Tour';
+        if (autoIcon) autoIcon.textContent = '⏸';
+      } else {
+        if (autoText) autoText.textContent = 'Auto Tour';
+        if (autoIcon) autoIcon.textContent = '⚡';
+      }
+    }
+  }
+
+  function cycleCinematicTourShot() {
     const SHOT_TYPES = ['CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'];
-    state.spectate.shotAngleIndex = (state.spectate.shotAngleIndex + 1) % SHOT_TYPES.length;
-    state.spectate.currentShotType = SHOT_TYPES[state.spectate.shotAngleIndex];
+    state.cinematicTour.shotAngleIndex = (state.cinematicTour.shotAngleIndex + 1) % SHOT_TYPES.length;
+    state.cinematicTour.currentShotType = SHOT_TYPES[state.cinematicTour.shotAngleIndex];
 
     const elShot = document.getElementById('spectateShotType');
     if (elShot) {
-      elShot.textContent = state.spectate.shotNames[state.spectate.currentShotType] || 'OVER-SHOULDER CHASE CAM';
+      elShot.textContent = state.cinematicTour.shotNames[state.cinematicTour.currentShotType] || 'OVER-SHOULDER CHASE CAM';
     }
   }
 
-  function updateSpectatorCountdown(sec) {
+  function updateCinematicTourCountdown(sec) {
     const el = document.getElementById('spectateTimerCountdown');
     if (el) el.textContent = `${sec}s`;
   }
 
-  function transitionSpectatorTarget(isInitial = false) {
+  function transitionCinematicTourTarget(isInitial = false) {
     if (!state.agents || state.agents.length === 0) return;
 
     if (!isInitial) {
       // Automatic 6-second cycle across roles: Farmer -> Trader -> Builder -> Medic -> Crafter -> Generalist -> next
-      state.spectate.roleIndex = (state.spectate.roleIndex + 1) % state.spectate.roles.length;
+      state.cinematicTour.roleIndex = (state.cinematicTour.roleIndex + 1) % state.cinematicTour.roles.length;
       // Cycle through 4 dynamic camera shot angles
       const SHOT_TYPES = ['CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'];
-      state.spectate.shotAngleIndex = (state.spectate.shotAngleIndex + 1) % SHOT_TYPES.length;
-      state.spectate.currentShotType = SHOT_TYPES[state.spectate.shotAngleIndex];
+      state.cinematicTour.shotAngleIndex = (state.cinematicTour.shotAngleIndex + 1) % SHOT_TYPES.length;
+      state.cinematicTour.currentShotType = SHOT_TYPES[state.cinematicTour.shotAngleIndex];
     } else {
-      state.spectate.roleIndex = 0;
-      state.spectate.shotAngleIndex = 0;
-      state.spectate.currentShotType = 'CHASE';
+      state.cinematicTour.roleIndex = 0;
+      state.cinematicTour.shotAngleIndex = 0;
+      state.cinematicTour.currentShotType = 'CHASE';
     }
 
-    const currentRole = state.spectate.roles[state.spectate.roleIndex];
+    const currentRole = state.cinematicTour.roles[state.cinematicTour.roleIndex];
     let matchingAgents = state.agents.filter(a => a.role === currentRole);
     if (!matchingAgents || matchingAgents.length === 0) {
       matchingAgents = state.agents;
     }
 
-    const roleAgentIdx = (state.spectate.agentIndexByRole[currentRole] || 0);
+    const roleAgentIdx = (state.cinematicTour.agentIndexByRole[currentRole] || 0);
     const selectedAgent = matchingAgents[roleAgentIdx % matchingAgents.length];
-    state.spectate.agentIndexByRole[currentRole] = roleAgentIdx + 1;
+    state.cinematicTour.agentIndexByRole[currentRole] = roleAgentIdx + 1;
 
-    state.spectate.currentAgent = selectedAgent;
+    state.cinematicTour.currentAgent = selectedAgent;
     inspectAgent(selectedAgent, true, false);
 
-    if (state.spectate.currentShotType === 'DRONE_ORBIT') {
-      state.spectate.orbitAngle = Math.random() * Math.PI * 2;
+    // Sync docked console tab for landmark context
+    const roleTabs = {
+      Farmer: 'tab-environment',
+      Trader: 'tab-economy',
+      Builder: 'tab-library',
+      Medic: 'tab-cvt',
+      Crafter: 'tab-library',
+      Generalist: 'tab-environment'
+    };
+    if (roleTabs[currentRole]) {
+      setSubsystemDock(roleTabs[currentRole]);
     }
 
-    updateSpectatorHUD(selectedAgent);
+    if (state.cinematicTour.currentShotType === 'DRONE_ORBIT') {
+      state.cinematicTour.orbitAngle = Math.random() * Math.PI * 2;
+    }
+
+    updateCinematicTourHUD(selectedAgent);
   }
 
-  function updateSpectatorHUD(agent) {
+  function updateCinematicTourHUD(agent) {
     if (!agent) return;
 
     const elName = document.getElementById('spectateCitizenName');
@@ -3426,7 +3656,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     }
 
     if (elShot) {
-      elShot.textContent = state.spectate.shotNames[state.spectate.currentShotType] || 'OVER-SHOULDER CHASE CAM';
+      elShot.textContent = state.cinematicTour.shotNames[state.cinematicTour.currentShotType] || 'OVER-SHOULDER CHASE CAM';
     }
 
     if (elPos && agent.position) {
@@ -3447,6 +3677,52 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     }
   }
 
+  // --- Guided Portfolio Step Navigators (Compatibility) ---
+
+  function goToTourStep(idx) {
+    if (idx < 0) idx = 0;
+    if (idx >= tourSteps.length) idx = tourSteps.length - 1;
+    state.tour.step = idx;
+    renderTourStep(idx);
+  }
+
+  function nextTourStep() {
+    let nextIdx = state.tour.step + 1;
+    if (nextIdx >= tourSteps.length) nextIdx = 0;
+    goToTourStep(nextIdx);
+  }
+
+  function prevTourStep() {
+    let prevIdx = state.tour.step - 1;
+    if (prevIdx < 0) prevIdx = tourSteps.length - 1;
+    goToTourStep(prevIdx);
+  }
+
+  function renderTourStep(idx) {
+    const step = tourSteps[idx];
+    if (!step) return;
+
+    const elBadge = document.getElementById('tourStepBadge');
+    const elTitle = document.getElementById('tourStepTitle');
+    const elDesc = document.getElementById('tourStepDesc');
+
+    if (elBadge) elBadge.textContent = `STEP ${step.step}/6:`;
+    if (elTitle) elTitle.textContent = step.title;
+    if (elDesc) elDesc.textContent = step.desc;
+
+    document.querySelectorAll('.tour-dot').forEach((dot, dIdx) => {
+      dot.classList.toggle('active', dIdx === idx);
+    });
+
+    if (step.subsystem) setSubsystemDock(step.subsystem);
+    if (step.camera && state.three.camera) {
+      state.followingAgentId = null;
+      tweenCamera(step.camera.pos, step.camera.target);
+    }
+    if (step.action) step.action();
+  }
+
+  // Keyboard Shortcuts (Space: Play/Pause, C: Cinematic Tour, F: Fullscreen World, Esc: Exit)
   function initKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
@@ -3461,21 +3737,36 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         setLayoutMode('unified');
       } else if (key === 's') {
         setLayoutMode('split');
-      } else if (key === 'm') {
-        setLayoutMode('theater');
-      } else if (key === 'f') {
-        setLayoutMode('focus');
-      } else if (key === 't') {
-        nextTourStep();
-      } else if (key === 'c') {
-        toggleSpectatorMode();
+      } else if (key === 'm' || key === 'f') {
+        toggleFullscreenWorld();
+      } else if (key === 'c' || key === 't') {
+        toggleCinematicTour();
       } else if (e.key === 'Escape') {
-        if (state.spectate && state.spectate.active) {
-          stopSpectatorMode();
+        if (isWorldFullscreen()) {
+          toggleFullscreenWorld();
+        }
+        if ((state.cinematicTour && state.cinematicTour.active) || (state.spectate && state.spectate.active)) {
+          stopCinematicTour();
         }
       }
     });
   }
+
+  // Aliases for complete backward compatibility
+  const initSpectatorEngine = initCinematicTourEngine;
+  const initTourEngine = initCinematicTourEngine;
+  const toggleSpectatorMode = toggleCinematicTour;
+  const startSpectatorMode = startCinematicTour;
+  const stopSpectatorMode = stopCinematicTour;
+  const cycleSpectatorShot = cycleCinematicTourShot;
+  const updateSpectatorCountdown = updateCinematicTourCountdown;
+  const transitionSpectatorTarget = transitionCinematicTourTarget;
+  const updateSpectatorHUD = updateCinematicTourHUD;
+  const toggleAutoTour = toggleCinematicTour;
+
+  // Window exports for UI header and toolbar controls
+  window.evolzenToggleCinematicTour = toggleCinematicTour;
+  window.evolzenToggleFullscreenWorld = toggleFullscreenWorld;
 
   // =========================================================================
   // 12. 2D Orthographic Fallback Map
