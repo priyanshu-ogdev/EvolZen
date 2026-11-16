@@ -169,7 +169,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       desc: '10,378 Chunks · 340M Voxels Reconciled · Zero Water Mandate · 98.7% Connected Street Grid',
       layout: 'unified',
       subsystem: 'tab-environment',
-      camera: { pos: new THREE.Vector3(500, 420, 1150), target: new THREE.Vector3(500, 0, 500) }
+      camera: { pos: new THREE.Vector3(530, 85, 680), target: new THREE.Vector3(500, 10, 520) }
     },
     {
       step: 2,
@@ -272,14 +272,14 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     render2DWorldMap();
     renderPopulationCensus();
 
-    // If agents are loaded, select the first agent for initial inspector display
+    // If agents are loaded, select the first agent for initial inspector display (docked, zero modal popups)
     if (state.agents && state.agents.length > 0) {
-      inspectAgent(state.agents[0], false);
+      inspectAgent(state.agents[0], false, false);
     }
 
-    // 5. Automatically run simulation indefinitely on page load (calm, observable 850ms pace)
+    // 5. Automatically run simulation indefinitely on page load (calm, observable 1200ms pace)
     state.isRunning = true;
-    state.simIntervalMs = 850;
+    state.simIntervalMs = 1200;
     state.simSpeedFactor = 1.0;
     if (state.timer) clearInterval(state.timer);
     state.timer = setInterval(() => stepSimulation(1), state.simIntervalMs);
@@ -453,12 +453,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
       // 3. Perspective Camera
       const camera = new THREE.PerspectiveCamera(45, width / height, 1, 4000);
-      camera.position.set(500, 480, 1180);
+      camera.position.set(530, 85, 680);
       state.three.camera = camera;
 
       // 4. OrbitControls
       const controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.set(500, 0, 500);
+      controls.target.set(500, 10, 520);
       controls.enableDamping = true;
       controls.dampingFactor = 0.06;
       controls.maxPolarAngle = Math.PI / 2.04;
@@ -1415,6 +1415,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const group = new THREE.Group();
     group.name = `agent_${agentData.id}`;
     group.position.set(agentData.position.x, 0, agentData.position.z);
+    group.scale.set(3.5, 3.5, 3.5);
     group.userData = { isAgent: true, data: agentData };
 
     const roleName = agentData.role || 'Farmer';
@@ -1617,13 +1618,28 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const roleConfig = state.roles[roleName] || state.roles['Farmer'];
     const roleColorHex = agentData.color || roleConfig.color;
     const badgeSprite = createAgentBillboardSprite(agentData, roleColorHex);
-    badgeSprite.position.set(0, 3.2, 0);
+    badgeSprite.position.set(0, 3.4, 0);
+    badgeSprite.scale.set(5.0, 1.35, 1.0);
     group.add(badgeSprite);
 
-    // 6. Ground Selection Ring
+    // 6. Ground Role Aura Ring (Permanent glowing circle on ground in role color)
+    const auraMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(roleColorHex),
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85
+    });
+    const auraRing = new THREE.Mesh(assets.geos.ring, auraMat);
+    auraRing.rotation.x = -Math.PI / 2;
+    auraRing.position.y = 0.04;
+    auraRing.scale.set(1.4, 1.4, 1.4);
+    group.add(auraRing);
+
+    // 7. Ground Selection Highlight Ring (Enlarged on focused agent)
     const selRing = new THREE.Mesh(assets.geos.ring, assets.mats.ring);
     selRing.rotation.x = -Math.PI / 2;
-    selRing.position.y = 0.05;
+    selRing.position.y = 0.06;
+    selRing.scale.set(2.0, 2.0, 2.0);
     selRing.visible = false;
     group.add(selRing);
 
@@ -1776,8 +1792,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
   function createAgentBillboardSprite(agentData, colorHex) {
     const canvas = document.createElement('canvas');
-    canvas.width = 384;
-    canvas.height = 108;
+    canvas.width = 512;
+    canvas.height = 140;
     const ctx = canvas.getContext('2d');
 
     renderAgentBillboardCanvas(ctx, canvas, agentData, colorHex);
@@ -1786,7 +1802,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     texture.minFilter = THREE.LinearFilter;
     const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(4.6, 1.3, 1.0);
+    sprite.scale.set(5.0, 1.35, 1.0);
     sprite.userData = {
       canvas,
       texture,
@@ -1994,13 +2010,13 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       state.three.selectedObject = obj;
 
       if (obj.userData && obj.userData.isAgent) {
-        inspectAgent(obj.userData.data, true);
+        inspectAgent(obj.userData.data, true, true);
       } else if (obj.userData && obj.userData.isHouse) {
         state.followingAgentId = null;
-        inspectHouse(obj.userData);
+        inspectHouse(obj.userData, true);
       } else if (obj.userData && obj.userData.isCivic) {
         state.followingAgentId = null;
-        inspectCivic(obj.userData.data);
+        inspectCivic(obj.userData.data, true);
       }
     }
   }
@@ -2008,7 +2024,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   // =========================================================================
   // 8. Inspector Drawer & 8-Drive Chebyshev Homeostasis
   // =========================================================================
-  function inspectAgent(agent, enableFollow = true) {
+  function inspectAgent(agent, enableFollow = true, openDrawer = false) {
     if (!agent) return;
     state.selectedAgentId = agent.id;
     if (enableFollow) state.followingAgentId = agent.id;
@@ -2167,8 +2183,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       `;
     }
 
-    // Trigger sliding drawer open if helper is exposed
-    if (typeof window.evolzenOpenInspector === 'function') {
+    // Trigger sliding drawer open if helper is exposed and requested
+    if (openDrawer && typeof window.evolzenOpenInspector === 'function') {
       window.evolzenOpenInspector('agent', agent);
     }
 
@@ -2176,7 +2192,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     syncOrderBookWithAgent(agent.id);
   }
 
-  function inspectHouse(house) {
+  function inspectHouse(house, openDrawer = false) {
     const arch = house.arch || state.archetypes[house.archId] || state.archetypes[0];
     const elIcon = document.getElementById('selectedIcon');
     const elTitle = document.getElementById('selectedTitle');
@@ -2222,12 +2238,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (bTitle) bTitle.textContent = `House #${String(house.index).padStart(3, '0')} · ${arch.name}`;
     if (bType) bType.textContent = `Type ${house.archId} Archetype · ${arch.walls}`;
 
-    if (typeof window.evolzenOpenInspector === 'function') {
+    if (openDrawer && typeof window.evolzenOpenInspector === 'function') {
       window.evolzenOpenInspector('building', house);
     }
   }
 
-  function inspectCivic(civic) {
+  function inspectCivic(civic, openDrawer = false) {
     const elIcon = document.getElementById('selectedIcon');
     const elTitle = document.getElementById('selectedTitle');
     const elBadge = document.getElementById('selectedTypeBadge');
@@ -2270,7 +2286,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (bTitle) bTitle.textContent = civic.name;
     if (bType) bType.textContent = `Civic Anchor · ${civic.desc}`;
 
-    if (typeof window.evolzenOpenInspector === 'function') {
+    if (openDrawer && typeof window.evolzenOpenInspector === 'function') {
       window.evolzenOpenInspector('building', civic);
     }
   }
@@ -2483,7 +2499,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
       if (state.selectedAgentId) {
         const cur = state.agents.find(a => a.id === state.selectedAgentId);
-        if (cur) inspectAgent(cur, false);
+        if (cur) inspectAgent(cur, false, false);
       }
 
       if (typeof window.evolzenRenderCensus === 'function') {
@@ -2558,7 +2574,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         const agId = item.dataset.agentId;
         const ag = state.agents.find(a => a.id === agId);
         if (ag) {
-          inspectAgent(ag, true);
+          inspectAgent(ag, true, true);
           const tabAgent = document.getElementById('drawerTabAgent');
           if (tabAgent) tabAgent.click();
         }
@@ -2571,7 +2587,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         const agId = btn.dataset.agentId;
         const ag = state.agents.find(a => a.id === agId);
         if (ag) {
-          inspectAgent(ag, true);
+          inspectAgent(ag, true, true);
           state.followingAgentId = ag.id;
           if (state.three.camera && state.three.controls) {
             state.three.camTargetPos = new THREE.Vector3(ag.position.x - 12, 8, ag.position.z - 12);
@@ -2742,7 +2758,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
             if (state.selectedAgentId) {
               state.followingAgentId = state.selectedAgentId;
             } else if (state.agents && state.agents.length > 0) {
-              inspectAgent(state.agents[0], true);
+              inspectAgent(state.agents[0], true, true);
             }
             break;
           case 'shield':

@@ -258,12 +258,14 @@ function initializeAgents() {
     const roleInfo = ROLES[i % ROLES.length];
     const homeHouse = houses[i % houses.length] || [100, 100, 12, 10, 0];
     const homeX = homeHouse[0] + homeHouse[2] / 2;
-    const homeZ = homeHouse[1] + homeHouse[3] / 2;
+    // Place home resting location in front of house on sidewalk/porch, outdoors in plain sight
+    const homeZ = homeHouse[1] + homeHouse[3] + 3.0;
     
-    const isAtWork = Math.random() > 0.4;
-    const currentX = isAtWork ? (roleInfo.target.x + (Math.random() - 0.5) * 30) : homeX;
-    const currentZ = isAtWork ? (roleInfo.target.z + (Math.random() - 0.5) * 30) : homeZ;
-    const target = isAtWork ? { ...roleInfo.target } : { x: homeX, z: homeZ, label: 'Home Dwelling' };
+    // Spread agents actively across work zones and civic avenues so the population is prominently visible
+    const isAtWork = Math.random() > 0.15;
+    const currentX = isAtWork ? (roleInfo.target.x + (Math.random() - 0.5) * 45) : homeX;
+    const currentZ = isAtWork ? (roleInfo.target.z + (Math.random() - 0.5) * 45) : homeZ;
+    const target = isAtWork ? { ...roleInfo.target } : { x: homeX, z: homeZ, label: 'Front Porch / Dwelling' };
     
     const initialAction = isAtWork ? roleInfo.action : 'REST_HOME';
     const agentObj = {

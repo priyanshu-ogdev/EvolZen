@@ -1020,37 +1020,26 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 }
 
 /* ==========================================================================
-   SLIDING INTERACTIVE INSPECTOR DRAWER
+   DOCKED COCKPIT INSPECTOR SIDEBAR
+   Permanent side-by-side telemetry dock (zero modal backdrop / zero viewport obstruction)
    ========================================================================== */
 .inspector-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 440px;
-  max-width: 95vw;
-  z-index: 1000;
-  transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.75);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  z-index: 10;
+  box-shadow: none;
+  transition: all 0.25s ease;
 }
 .inspector-drawer.drawer-open {
-  transform: translateX(0);
+  transform: none;
 }
 .drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(4, 7, 15, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.drawer-backdrop.backdrop-visible {
-  opacity: 1;
-  pointer-events: auto;
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 /* Drawer Tab Switcher */

@@ -267,7 +267,7 @@
   <!-- ========================================================================= -->
   <!-- Tab Contents & Unified Workspace Container                                -->
   <!-- ========================================================================= -->
-  <main id="mainWorkspace" class="workspace-layout-unified max-w-7xl mx-auto px-4 lg:px-8 py-4 space-y-6">
+  <main id="mainWorkspace" class="workspace-layout-unified w-full max-w-[1720px] mx-auto px-4 lg:px-6 py-4 space-y-6">
 
     <!-- ======================================================================= -->
     <!-- TAB 1: 3D WORLD SPATIAL SUBSTRATE & HUMAN POPULATION                    -->
@@ -316,61 +316,328 @@
 
       </div>
 
-      <!-- Full-Width Interactive 3D / 2D Max Viewport -->
-      <div class="w-full flex flex-col gap-3">
+      <!-- Cockpit Side-by-Side: 3D Viewport on Left + Inspector Sidebar on Right -->
+      <div id="cockpitGrid" class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
+        
+        <!-- Left: 3D World Viewport & Controls (8 cols on XL screens, 12 cols when maximized) -->
+        <div id="viewportCol" class="xl:col-span-8 flex flex-col gap-3 transition-all duration-300">
 
-        <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group shadow-2xl transition-all duration-300" id="worldViewport" style="height:76vh;min-height:580px;">
-          
-          <!-- 3D Three.js WebGL Container -->
-          <div id="threeContainer" class="w-full h-full cursor-grab active:cursor-grabbing block"></div>
+          <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group shadow-2xl transition-all duration-300" id="worldViewport" style="height:76vh;min-height:580px;">
+            
+            <!-- 3D Three.js WebGL Container -->
+            <div id="threeContainer" class="w-full h-full cursor-grab active:cursor-grabbing block"></div>
 
-          <!-- 2D Canvas Fallback Container -->
-          <canvas id="worldMapCanvas" width="1000" height="1000" class="w-full h-full cursor-crosshair object-contain hidden"></canvas>
-          
-          <!-- Floating Zoom / Control Overlay (for 2D map) -->
-          <div id="map2dControls" class="absolute top-4 right-4 flex flex-col gap-1.5 bg-slate-950/80 backdrop-blur border border-slate-800 p-1.5 rounded-lg shadow-lg hidden z-10">
-            <button id="mapZoomIn" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-base font-bold flex items-center justify-center transition-all">+</button>
-            <button id="mapZoomOut" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-base font-bold flex items-center justify-center transition-all">−</button>
-            <button id="mapZoomReset" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center justify-center transition-all">1x</button>
+            <!-- 2D Canvas Fallback Container -->
+            <canvas id="worldMapCanvas" width="1000" height="1000" class="w-full h-full cursor-crosshair object-contain hidden"></canvas>
+            
+            <!-- Floating Zoom / Control Overlay (for 2D map) -->
+            <div id="map2dControls" class="absolute top-4 right-4 flex flex-col gap-1.5 bg-slate-950/80 backdrop-blur border border-slate-800 p-1.5 rounded-lg shadow-lg hidden z-10">
+              <button id="mapZoomIn" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-base font-bold flex items-center justify-center transition-all">+</button>
+              <button id="mapZoomOut" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-base font-bold flex items-center justify-center transition-all">−</button>
+              <button id="mapZoomReset" class="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono flex items-center justify-center transition-all">1x</button>
+            </div>
+
+            <!-- 3D Overlay Telemetry HUD -->
+            <div class="absolute bottom-4 left-4 bg-slate-950/90 backdrop-blur border border-cyan-800/50 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex items-center gap-3 shadow-xl z-10">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>COORD: <strong id="mouseCoords" class="text-white">X: 500m · Z: 500m</strong></span>
+              </div>
+              <span class="text-slate-600">|</span>
+              <div>
+                <span>SECTOR: <strong id="sectorName" class="text-amber-400">Central Civic Anchor</strong></span>
+              </div>
+              <span class="text-slate-600">|</span>
+              <div class="hidden sm:block">
+                <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400">64 Active</strong></span>
+              </div>
+            </div>
+
+            <!-- Instructions badge overlay -->
+            <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur border border-slate-800/80 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 select-none pointer-events-none z-10">
+              <span>🖱️ Drag: Orbit Camera · Scroll: Zoom · Click: Focus Agent/Building</span>
+            </div>
+
           </div>
 
-          <!-- 3D Overlay Telemetry HUD -->
-          <div class="absolute bottom-4 left-4 bg-slate-950/90 backdrop-blur border border-cyan-800/50 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 flex items-center gap-3 shadow-xl z-10">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span>COORD: <strong id="mouseCoords" class="text-white">X: 500m · Z: 500m</strong></span>
+          <!-- Bottom Layer Toggles & 3D Controls -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 p-2.5 rounded-xl text-xs font-mono">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] uppercase text-slate-500 font-bold mr-1">LAYERS:</span>
+              <button class="layer-toggle active px-2.5 py-1 rounded bg-yellow-950/50 text-yellow-300 border border-yellow-700/50" data-layer="houses">Houses (345)</button>
+              <button class="layer-toggle active px-2.5 py-1 rounded bg-red-950/50 text-red-300 border border-red-700/50" data-layer="civic">Civic Core (6)</button>
+              <button class="layer-toggle active px-2.5 py-1 rounded bg-emerald-950/50 text-emerald-300 border border-emerald-700/50" data-layer="farms">West Farms (10)</button>
+              <button class="layer-toggle active px-2.5 py-1 rounded bg-cyan-950/50 text-cyan-300 border border-cyan-700/50" data-layer="agents">64 Agents</button>
+              <button class="layer-toggle active px-2.5 py-1 rounded bg-purple-950/50 text-purple-300 border border-purple-700/50" data-layer="shield">gVisor Shield</button>
             </div>
-            <span class="text-slate-600">|</span>
-            <div>
-              <span>SECTOR: <strong id="sectorName" class="text-amber-400">Central Civic Anchor</strong></span>
-            </div>
-            <span class="text-slate-600">|</span>
-            <div class="hidden sm:block">
-              <span>AGENTS: <strong id="activeAgentsBadge" class="text-emerald-400">64 Active</strong></span>
-            </div>
+            
+            <span class="text-slate-400 text-[11px] italic">
+              * 3D Overhaul View: 1×1 km Substrate · 345 Wired Houses · 64 Multi-Agent Chebyshev Avatars
+            </span>
           </div>
-
-          <!-- Instructions badge overlay -->
-          <div class="absolute top-4 left-4 bg-slate-950/80 backdrop-blur border border-slate-800/80 px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 select-none pointer-events-none z-10">
-            <span>🖱️ Drag: Rotate 3D Camera · Scroll: Zoom · Click: Inspect Agent or Building</span>
-          </div>
-
         </div>
 
-        <!-- Bottom Layer Toggles & 3D Controls -->
-        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 p-2.5 rounded-xl text-xs font-mono">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="text-[10px] uppercase text-slate-500 font-bold mr-1">LAYERS:</span>
-            <button class="layer-toggle active px-2.5 py-1 rounded bg-yellow-950/50 text-yellow-300 border border-yellow-700/50" data-layer="houses">Houses (345)</button>
-            <button class="layer-toggle active px-2.5 py-1 rounded bg-red-950/50 text-red-300 border border-red-700/50" data-layer="civic">Civic Core (6)</button>
-            <button class="layer-toggle active px-2.5 py-1 rounded bg-emerald-950/50 text-emerald-300 border border-emerald-700/50" data-layer="farms">West Farms (10)</button>
-            <button class="layer-toggle active px-2.5 py-1 rounded bg-cyan-950/50 text-cyan-300 border border-cyan-700/50" data-layer="agents">64 Agents</button>
-            <button class="layer-toggle active px-2.5 py-1 rounded bg-purple-950/50 text-purple-300 border border-purple-700/50" data-layer="shield">gVisor Shield</button>
-          </div>
-          
-          <span class="text-slate-400 text-[11px] italic">
-            * 3D Overhaul View: 1×1 km Substrate · 345 Wired Houses · 64 Multi-Agent Chebyshev Avatars
-          </span>
+        <!-- Right: Docked Interactive Entity Inspector Sidebar (4 cols on XL screens) -->
+        <div id="inspectorCol" class="xl:col-span-4 flex flex-col transition-all duration-300">
+          <aside id="inspectorDrawer" class="inspector-drawer flex flex-col h-full rounded-xl bg-slate-950/95 border border-cyan-800/40 text-slate-100 font-mono shadow-2xl overflow-hidden" style="height:76vh;min-height:580px;" role="complementary" aria-label="Selected Entity Inspector Drawer">
+            <div class="drawer-inner flex flex-col h-full bg-slate-950/95 backdrop-blur-xl text-slate-100 font-mono">
+              
+              <!-- Drawer Header -->
+              <div class="drawer-header p-3.5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-cyan-400 text-base">📋</span>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-white">Interactive Entity Inspector</h3>
+                </div>
+                <button id="btnCloseDrawer" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition-all flex items-center gap-1" title="Collapse Sidebar to Max View">
+                  <span>⛶</span> <span>Hide Sidebar</span>
+                </button>
+              </div>
+
+              <!-- Drawer Internal Tab Switcher: Agent vs Population vs Building -->
+              <div class="px-3.5 py-2 border-b border-slate-800 flex items-center gap-1.5 text-xs">
+                <button id="drawerTabAgent" class="drawer-tab active flex-1 py-1.5 rounded-lg text-center font-bold bg-cyan-950/60 border border-cyan-700/50 text-cyan-300">
+                  👤 Focused Agent
+                </button>
+                <button id="drawerTabPopulation" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
+                  👥 Census (64)
+                </button>
+                <button id="drawerTabBuilding" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
+                  🏡 Buildings (345)
+                </button>
+              </div>
+
+              <!-- Drawer Body Content -->
+              <div class="drawer-body flex-1 overflow-y-auto p-3.5 space-y-3.5">
+                
+                <!-- SECTION 1: HUMAN AGENT INSPECTOR (8-DRIVE CHEBYSHEV HOMEOSTASIS) -->
+                <div id="agentInspectorSection" class="space-y-3.5">
+                  
+                  <!-- Agent Overview Card -->
+                  <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md">
+                    <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 p-0.5 flex items-center justify-center text-lg">
+                          <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center" id="agentDrawerIcon">
+                            🌾
+                          </div>
+                        </div>
+                        <div>
+                          <h4 id="agentDrawerName" class="text-xs font-bold text-white">Agent #04 · Lyra</h4>
+                          <span id="agentDrawerRole" class="text-[10px] text-emerald-400">Role: FARMER · Gen 2 · Age: 420 ticks</span>
+                        </div>
+                      </div>
+                      <span id="agentDrawerStateBadge" class="text-[10px] px-2 py-0.5 rounded font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                        GATHER_CROP
+                      </span>
+                    </div>
+
+                    <!-- Dynamic Real-Time Activity Plaque -->
+                    <div class="mt-2.5 p-2.5 rounded-lg neu-well text-xs border border-cyan-900/30">
+                      <span class="text-slate-400 text-[10px] uppercase font-mono block mb-1">Current Real-Time Activity:</span>
+                      <span id="agentDrawerActivityText" class="font-bold text-cyan-300 font-mono flex items-center gap-1.5 text-xs">
+                        🌾 Harvesting wheat at West Farm Belt (Plot #3)
+                      </span>
+                    </div>
+
+                    <!-- Chebyshev Distance Metric & Follow Camera Toggle -->
+                    <div class="mt-3 p-2 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+                      <div>
+                        <span class="text-slate-400 text-[10px] block">Chebyshev Distance L∞:</span>
+                        <span id="chebyshevMetricValue" class="text-cyan-400 font-bold">0.16 (Equilibrium)</span>
+                      </div>
+                      <button id="btnToggleFollowCam" class="px-2.5 py-1 text-[11px] rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/50 flex items-center gap-1 font-mono transition-all" title="Toggle 3rd-Person Follow Camera on Agent">
+                        <span>🎥</span> <span>Follow Cam</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 8-Drive Chebyshev Homeostatic Gauges Grid -->
+                  <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2.5">
+                    <h4 class="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                      <span>8-Drive Chebyshev Homeostasis Gauges</span>
+                      <span class="text-emerald-400 font-bold">EQUILIBRIUM ACTIVE</span>
+                    </h4>
+
+                    <!-- Gauge 1: Food -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">🍎 Food Satiety</span>
+                        <span id="gaugeFoodText" class="text-emerald-400 font-bold">84%</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeFoodBar" class="h-full bg-emerald-500 rounded-full" style="width: 84%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 2: Hydration -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">💧 Hydration Level</span>
+                        <span id="gaugeHydrationText" class="text-cyan-400 font-bold">78%</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeHydrationBar" class="h-full bg-cyan-500 rounded-full" style="width: 78%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 3: Rest / Energy -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">⚡ Rest &amp; Energy</span>
+                        <span id="gaugeRestText" class="text-amber-400 font-bold">92%</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeRestBar" class="h-full bg-amber-500 rounded-full" style="width: 92%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 4: Health -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">❤️ Physical Health</span>
+                        <span id="gaugeHealthText" class="text-rose-400 font-bold">95%</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeHealthBar" class="h-full bg-rose-500 rounded-full" style="width: 95%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 5: Currency / Wealth -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">💰 Currency Balance</span>
+                        <span id="gaugeCurrencyText" class="text-yellow-400 font-bold">12.5 C</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeCurrencyBar" class="h-full bg-yellow-500 rounded-full" style="width: 65%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 6: Shelter -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">🏠 Shelter Security</span>
+                        <span id="gaugeShelterText" class="text-orange-400 font-bold">95% (House #1)</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeShelterBar" class="h-full bg-orange-500 rounded-full" style="width: 95%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 7: Tools & Equipment -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">🔨 Tools &amp; Durability</span>
+                        <span id="gaugeToolsText" class="text-purple-400 font-bold">88% (Pitchfork)</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeToolsBar" class="h-full bg-purple-500 rounded-full" style="width: 88%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Gauge 8: Kinship & Social Ties -->
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-300">🤝 Kinship &amp; Cooperation</span>
+                        <span id="gaugeKinshipText" class="text-blue-400 font-bold">82% (3 Offspring)</span>
+                      </div>
+                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                        <div id="gaugeKinshipBar" class="h-full bg-blue-500 rounded-full" style="width: 82%;"></div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Inventory & Communal Granary Access -->
+                  <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2">
+                    <h4 class="text-[10px] uppercase tracking-wider text-slate-400">Inventory &amp; Silo Privilege</h4>
+                    <div id="agentInventoryChips" class="flex flex-wrap gap-1.5 text-[11px]">
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">🌾 Grain: 6</span>
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">🪵 Wood: 2</span>
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">🪓 Axe: 1</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-800 text-[11px] text-cyan-300 flex justify-between">
+                      <span>Communal Silo Access:</span>
+                      <span class="text-emerald-400 font-bold">AUTHORIZED</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- SECTION 2: FULL POPULATION CENSUS (64 CITIZENS) -->
+                <div id="populationSection" class="space-y-3 hidden">
+                  <div class="neu-panel p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-bold text-white uppercase tracking-wider">Demographic Census</span>
+                      <span class="text-[10px] text-cyan-400 font-mono font-bold" id="censusCountBadge">64 Citizens</span>
+                    </div>
+                    <input type="text" id="censusSearchInput" placeholder="Filter by name, role, activity..." class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono">
+                    
+                    <div class="flex flex-wrap gap-1 mt-2.5" id="censusRoleFilters">
+                      <button class="census-role-filter active px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 border border-cyan-700 text-cyan-300 font-bold" data-role="ALL">ALL (64)</button>
+                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Farmer">🌾 Farmer</button>
+                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Builder">🏗️ Builder</button>
+                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Crafter">🛠️ Crafter</button>
+                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Trader">⚖️ Trader</button>
+                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Medic">🏥 Medic</button>
+                      <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Generalist">🌳 Generalist</button>
+                    </div>
+                  </div>
+
+                  <!-- Scrollable Census Citizen Roster -->
+                  <div id="censusListContainer" class="space-y-2 max-h-[58vh] overflow-y-auto pr-1">
+                    <!-- Dynamic citizen cards rendered here -->
+                  </div>
+                </div>
+
+                <!-- SECTION 3: BUILDING & ANCHOR INSPECTOR -->
+                <div id="buildingInspectorSection" class="space-y-4 hidden">
+                  <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md">
+                    <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                      <div>
+                        <h4 id="drawerBuildingTitle" class="text-xs font-bold text-white">House #001 · Ranch</h4>
+                        <span id="drawerBuildingType" class="text-[10px] text-yellow-400">Type 0 Archetype</span>
+                      </div>
+                      <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        WIRED
+                      </span>
+                    </div>
+
+                    <div class="mt-3 space-y-1.5 text-xs">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Coordinates:</span>
+                        <span class="text-cyan-300">X: 114m · Z: 14m</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Dimensions:</span>
+                        <span class="text-slate-200">14m × 10m · 1 Floor</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Wall / Roof:</span>
+                        <span class="text-amber-300">VINYL / GREY SHINGLE</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Street Walkway:</span>
+                        <span class="text-emerald-400">1.2m Network Link</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2">
+                    <h4 class="text-[10px] uppercase tracking-wider text-slate-400">Interior Voxel Manifest</h4>
+                    <div class="flex flex-wrap gap-1.5 text-[11px]">
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🛋️ Fabric Sofa</span>
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">📺 CRT TV</span>
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🍳 Cooking Stove</span>
+                      <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🛏️ Oak Bed</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </aside>
         </div>
       </div>
 
@@ -1300,272 +1567,6 @@
   </main>
 
   <!-- ========================================================================= -->
-  <!-- Sliding Interactive Inspector Drawer (Chebyshev Gauges & Buildings)       -->
-  <!-- ========================================================================= -->
-  <aside id="inspectorDrawer" class="inspector-drawer" role="complementary" aria-label="Selected Entity Inspector Drawer">
-    <div class="drawer-inner flex flex-col h-full bg-slate-950/95 backdrop-blur-xl border-l border-cyan-800/40 text-slate-100 font-mono shadow-2xl">
-      
-      <!-- Drawer Header -->
-      <div class="drawer-header p-4 border-b border-slate-800 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-cyan-400 text-base">📋</span>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-white">Interactive Entity Inspector</h3>
-        </div>
-        <button id="btnCloseDrawer" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all text-sm font-bold" title="Close Drawer">
-          ✕
-        </button>
-      </div>
-
-      <!-- Drawer Internal Tab Switcher: Agent vs Population vs Building -->
-      <div class="px-4 py-2 border-b border-slate-800 flex items-center gap-1.5 text-xs">
-        <button id="drawerTabAgent" class="drawer-tab active flex-1 py-1.5 rounded-lg text-center font-bold bg-cyan-950/60 border border-cyan-700/50 text-cyan-300">
-          👤 Focused Agent
-        </button>
-        <button id="drawerTabPopulation" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
-          👥 Census (64)
-        </button>
-        <button id="drawerTabBuilding" class="drawer-tab flex-1 py-1.5 rounded-lg text-center font-medium text-slate-400 hover:text-slate-200">
-          🏡 Buildings (345)
-        </button>
-      </div>
-
-      <!-- Drawer Body Content -->
-      <div class="drawer-body flex-1 overflow-y-auto p-4 space-y-4">
-        
-        <!-- SECTION 1: HUMAN AGENT INSPECTOR (8-DRIVE CHEBYSHEV HOMEOSTASIS) -->
-        <div id="agentInspectorSection" class="space-y-4">
-          
-          <!-- Agent Overview Card -->
-          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md">
-            <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 p-0.5 flex items-center justify-center text-lg">
-                  <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center" id="agentDrawerIcon">
-                    🌾
-                  </div>
-                </div>
-                <div>
-                  <h4 id="agentDrawerName" class="text-xs font-bold text-white">Agent #04 · Lyra</h4>
-                  <span id="agentDrawerRole" class="text-[10px] text-emerald-400">Role: FARMER · Gen 2 · Age: 420 ticks</span>
-                </div>
-              </div>
-              <span id="agentDrawerStateBadge" class="text-[10px] px-2 py-0.5 rounded font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                GATHER_CROP
-              </span>
-            </div>
-
-            <!-- Dynamic Real-Time Activity Plaque -->
-            <div class="mt-2.5 p-2.5 rounded-lg neu-well text-xs border border-cyan-900/30">
-              <span class="text-slate-400 text-[10px] uppercase font-mono block mb-1">Current Real-Time Activity:</span>
-              <span id="agentDrawerActivityText" class="font-bold text-cyan-300 font-mono flex items-center gap-1.5 text-xs">
-                🌾 Harvesting wheat at West Farm Belt (Plot #3)
-              </span>
-            </div>
-
-            <!-- Chebyshev Distance Metric & Follow Camera Toggle -->
-            <div class="mt-3 p-2 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-              <div>
-                <span class="text-slate-400 text-[10px] block">Chebyshev Distance L∞:</span>
-                <span id="chebyshevMetricValue" class="text-cyan-400 font-bold">0.16 (Equilibrium)</span>
-              </div>
-              <button id="btnToggleFollowCam" class="px-2.5 py-1 text-[11px] rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-700/50 flex items-center gap-1 font-mono transition-all" title="Toggle 3rd-Person Follow Camera on Agent">
-                <span>🎥</span> <span>Follow Cam</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 8-Drive Chebyshev Homeostatic Gauges Grid -->
-          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2.5">
-            <h4 class="text-[10px] uppercase tracking-wider text-slate-400 flex items-center justify-between">
-              <span>8-Drive Chebyshev Homeostasis Gauges</span>
-              <span class="text-emerald-400 font-bold">EQUILIBRIUM ACTIVE</span>
-            </h4>
-
-            <!-- Gauge 1: Food -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">🍎 Food Satiety</span>
-                <span id="gaugeFoodText" class="text-emerald-400 font-bold">84%</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeFoodBar" class="h-full bg-emerald-500 rounded-full" style="width: 84%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 2: Hydration -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">💧 Hydration Level</span>
-                <span id="gaugeHydrationText" class="text-cyan-400 font-bold">78%</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeHydrationBar" class="h-full bg-cyan-500 rounded-full" style="width: 78%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 3: Rest / Energy -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">⚡ Rest &amp; Energy</span>
-                <span id="gaugeRestText" class="text-amber-400 font-bold">92%</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeRestBar" class="h-full bg-amber-500 rounded-full" style="width: 92%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 4: Health -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">❤️ Physical Health</span>
-                <span id="gaugeHealthText" class="text-rose-400 font-bold">96%</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeHealthBar" class="h-full bg-rose-500 rounded-full" style="width: 96%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 5: Currency / Wealth -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">💰 Currency Balance</span>
-                <span id="gaugeCurrencyText" class="text-amber-300 font-bold">45.0 C</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeCurrencyBar" class="h-full bg-amber-400 rounded-full" style="width: 70%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 6: Shelter Quality -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">🏡 Shelter Security</span>
-                <span id="gaugeShelterText" class="text-yellow-400 font-bold">100% (House #014)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeShelterBar" class="h-full bg-yellow-500 rounded-full" style="width: 100%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 7: Tools & Equipment -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">🔨 Tools &amp; Durability</span>
-                <span id="gaugeToolsText" class="text-purple-400 font-bold">88% (Pitchfork)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeToolsBar" class="h-full bg-purple-500 rounded-full" style="width: 88%;"></div>
-              </div>
-            </div>
-
-            <!-- Gauge 8: Kinship & Social Ties -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-300">🤝 Kinship &amp; Cooperation</span>
-                <span id="gaugeKinshipText" class="text-blue-400 font-bold">82% (3 Offspring)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                <div id="gaugeKinshipBar" class="h-full bg-blue-500 rounded-full" style="width: 82%;"></div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Inventory & Communal Granary Access -->
-          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2">
-            <h4 class="text-[10px] uppercase tracking-wider text-slate-400">Inventory &amp; Silo Privilege</h4>
-            <div id="agentInventoryChips" class="flex flex-wrap gap-1.5 text-[11px]">
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">🌾 Grain: 6</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">🪵 Wood: 2</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200">🪓 Axe: 1</span>
-            </div>
-            <div class="pt-2 border-t border-slate-800 text-[11px] text-cyan-300 flex justify-between">
-              <span>Communal Silo Access:</span>
-              <span class="text-emerald-400 font-bold">AUTHORIZED</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- SECTION 2: FULL POPULATION CENSUS (64 CITIZENS) -->
-        <div id="populationSection" class="space-y-3 hidden">
-          <div class="neu-panel p-3">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-white uppercase tracking-wider">Demographic Census</span>
-              <span class="text-[10px] text-cyan-400 font-mono font-bold" id="censusCountBadge">64 Citizens</span>
-            </div>
-            <input type="text" id="censusSearchInput" placeholder="Filter by name, role, activity..." class="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono">
-            
-            <div class="flex flex-wrap gap-1 mt-2.5" id="censusRoleFilters">
-              <button class="census-role-filter active px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 border border-cyan-700 text-cyan-300 font-bold" data-role="ALL">ALL (64)</button>
-              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Farmer">🌾 Farmer</button>
-              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Builder">🏗️ Builder</button>
-              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Crafter">🛠️ Crafter</button>
-              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Trader">⚖️ Trader</button>
-              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Medic">🏥 Medic</button>
-              <button class="census-role-filter px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white" data-role="Generalist">🌳 Generalist</button>
-            </div>
-          </div>
-
-          <!-- Scrollable Census Citizen Roster -->
-          <div id="censusListContainer" class="space-y-2 max-h-[62vh] overflow-y-auto pr-1">
-            <!-- Dynamic citizen cards rendered here -->
-          </div>
-        </div>
-
-        <!-- SECTION 3: BUILDING & ANCHOR INSPECTOR -->
-        <div id="buildingInspectorSection" class="space-y-4 hidden">
-          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md">
-            <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
-              <div>
-                <h4 id="drawerBuildingTitle" class="text-xs font-bold text-white">House #001 · Ranch</h4>
-                <span id="drawerBuildingType" class="text-[10px] text-yellow-400">Type 0 Archetype</span>
-              </div>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                WIRED
-              </span>
-            </div>
-
-            <div class="mt-3 space-y-1.5 text-xs">
-              <div class="flex justify-between">
-                <span class="text-slate-400">Coordinates:</span>
-                <span class="text-cyan-300">X: 114m · Z: 14m</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Dimensions:</span>
-                <span class="text-slate-200">14m × 10m · 1 Floor</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Wall / Roof:</span>
-                <span class="text-amber-300">VINYL / GREY SHINGLE</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Street Walkway:</span>
-                <span class="text-emerald-400">1.2m Network Link</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 shadow-md space-y-2">
-            <h4 class="text-[10px] uppercase tracking-wider text-slate-400">Interior Voxel Manifest</h4>
-            <div class="flex flex-wrap gap-1.5 text-[11px]">
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🛋️ Fabric Sofa</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">📺 CRT TV</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🍳 Cooking Stove</span>
-              <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">🛏️ Oak Bed</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </aside>
-
-  <!-- Drawer Backdrop Blur Overlay -->
-  <div id="drawerBackdrop" class="drawer-backdrop"></div>
-
-  <!-- ========================================================================= -->
   <!-- Footer                                                                    -->
   <!-- ========================================================================= -->
   <footer class="border-t border-slate-800/60 bg-slate-950 py-5 text-xs text-slate-500 font-mono text-center">
@@ -1579,12 +1580,12 @@
     </div>
   </footer>
 
-  <!-- Internal Lightweight Cockpit UI Controller for Drawer & Fast Shortcuts -->
+  <!-- Internal Lightweight Cockpit UI Controller for Docked Sidebar & Fast Shortcuts -->
   <script>
     (function() {
-      // Inspector Drawer controls
-      const drawer = document.getElementById('inspectorDrawer');
-      const backdrop = document.getElementById('drawerBackdrop');
+      // Docked Cockpit Inspector Sidebar controls
+      const inspectorCol = document.getElementById('inspectorCol');
+      const viewportCol = document.getElementById('viewportCol');
       const btnToggle = document.getElementById('btnToggleDrawer');
       const btnClose = document.getElementById('btnCloseDrawer');
       const btnOpenCensus = document.getElementById('btnOpenCensus');
@@ -1595,31 +1596,42 @@
       const secPopulation = document.getElementById('populationSection');
       const secBuilding = document.getElementById('buildingInspectorSection');
 
-      function openDrawer() {
-        if (drawer) drawer.classList.add('drawer-open');
-        if (backdrop) backdrop.classList.add('backdrop-visible');
+      let isSidebarVisible = true;
+
+      function showSidebar() {
+        if (!inspectorCol || !viewportCol) return;
+        inspectorCol.classList.remove('hidden');
+        viewportCol.classList.remove('xl:col-span-12');
+        viewportCol.classList.add('xl:col-span-8');
+        isSidebarVisible = true;
+        if (btnClose) btnClose.innerHTML = '<span>⛶</span> <span>Hide Sidebar</span>';
+        window.dispatchEvent(new Event('resize'));
       }
 
-      function closeDrawer() {
-        if (drawer) drawer.classList.remove('drawer-open');
-        if (backdrop) backdrop.classList.remove('backdrop-visible');
+      function hideSidebar() {
+        if (!inspectorCol || !viewportCol) return;
+        inspectorCol.classList.add('hidden');
+        viewportCol.classList.remove('xl:col-span-8');
+        viewportCol.classList.add('xl:col-span-12');
+        isSidebarVisible = false;
+        window.dispatchEvent(new Event('resize'));
       }
 
-      if (btnToggle) btnToggle.addEventListener('click', () => {
-        if (drawer && drawer.classList.contains('drawer-open')) {
-          closeDrawer();
+      function toggleSidebar() {
+        if (isSidebarVisible) {
+          hideSidebar();
         } else {
-          openDrawer();
+          showSidebar();
         }
-      });
+      }
+
+      if (btnToggle) btnToggle.addEventListener('click', toggleSidebar);
+      if (btnClose) btnClose.addEventListener('click', toggleSidebar);
 
       if (btnOpenCensus) btnOpenCensus.addEventListener('click', () => {
-        openDrawer();
+        showSidebar();
         if (tabPopulation) tabPopulation.click();
       });
-
-      if (btnClose) btnClose.addEventListener('click', closeDrawer);
-      if (backdrop) backdrop.addEventListener('click', closeDrawer);
 
       function selectDrawerTab(activeTab, activeSec) {
         [tabAgent, tabPopulation, tabBuilding].forEach(t => {
@@ -1651,7 +1663,7 @@
 
       // Expose globally for 3D engine raycaster click integration
       window.evolzenOpenInspector = function(type, data) {
-        openDrawer();
+        showSidebar();
         if (type === 'building' && tabBuilding) {
           tabBuilding.click();
         } else if (type === 'population' && tabPopulation) {
