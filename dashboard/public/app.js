@@ -416,10 +416,14 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       const width = container.clientWidth || container.offsetWidth || window.innerWidth || 1200;
       const height = container.clientHeight || container.offsetHeight || Math.round(window.innerHeight * 0.76) || 600;
 
-      // 1. Renderer
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      // 1. Renderer: Optimized for Apple Silicon & WebKit GPUProcess Stability
+      const renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        alpha: false,
+        powerPreference: 'default'
+      });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -427,6 +431,19 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       container.innerHTML = '';
       container.appendChild(renderer.domElement);
       state.three.renderer = renderer;
+
+      // Robust WebGL Context Loss Recovery (guards against browser GPU process resets)
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        console.warn('WebGL context lost - holding animation loop to prevent crash');
+        state.three.isContextLost = true;
+      }, false);
+
+      renderer.domElement.addEventListener('webglcontextrestored', () => {
+        console.info('WebGL context restored - recovering 3D scene');
+        state.three.isContextLost = false;
+        initThreeEngine();
+      }, false);
 
       // 2. Scene & Fog
       const scene = new THREE.Scene();
@@ -497,8 +514,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const sun = new THREE.DirectionalLight(0xe0f2fe, 1.8);
     sun.position.set(350, 650, 450);
     sun.castShadow = true;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
+    sun.shadow.mapSize.width = 1024;
+    sun.shadow.mapSize.height = 1024;
     sun.shadow.camera.near = 10;
     sun.shadow.camera.far = 1800;
     sun.shadow.camera.left = -650;
@@ -646,13 +663,15 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     scene.add(groundGroup);
   }
 
-  // Street Lighting with Warm Point Lights
+  // Street Lighting with Emissive Lantern Spheres (Optimized Geometry Sharing)
   function build3DStreetLighting(scene) {
     const lightsGroup = new THREE.Group();
     state.three.streetLightsGroup = lightsGroup;
 
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.2 });
     const lampMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const poleGeo = new THREE.CylinderGeometry(0.12, 0.16, 6.5, 6);
+    const lanternGeo = new THREE.SphereGeometry(0.35, 8, 8);
 
     const lightPositions = [
       { x: 100, z: 250 }, { x: 100, z: 500 }, { x: 100, z: 750 },
@@ -665,26 +684,19 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     ];
 
     lightPositions.forEach(pos => {
-      const poleGeo = new THREE.CylinderGeometry(0.12, 0.16, 6.5, 6);
       const pole = new THREE.Mesh(poleGeo, poleMat);
       pole.position.set(pos.x + 6, 3.25, pos.z + 6);
-      pole.castShadow = true;
       lightsGroup.add(pole);
 
-      const lanternGeo = new THREE.SphereGeometry(0.35, 8, 8);
       const lantern = new THREE.Mesh(lanternGeo, lampMat);
       lantern.position.set(pos.x + 5.2, 6.4, pos.z + 5.2);
       lightsGroup.add(lantern);
-
-      const pLight = new THREE.PointLight(0xfef08a, 1.4, 45);
-      pLight.position.set(pos.x + 5.2, 6.2, pos.z + 5.2);
-      lightsGroup.add(pLight);
     });
 
     scene.add(lightsGroup);
   }
 
-  // West Farm Belts: 10 plots with Golden Crops, Fences, Barns & Silos
+  // West Farm Belts: 10 plots with Golden Crops, Fences, Barns & Silos (Shared Geometries)
   function build3DWestFarmBelts(scene) {
     const farmsGroup = new THREE.Group();
     state.three.farmsGroup = farmsGroup;
@@ -703,55 +715,55 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const barnRoofMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
     const siloMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.85, roughness: 0.25 });
 
+    const bedGeo = new THREE.BoxGeometry(82, 0.4, 76);
+    const cropGeo = new THREE.BoxGeometry(72, 1.3, 4.5);
+    const fenceGeo = new THREE.BoxGeometry(82, 0.8, 0.2);
+    const barnGeo = new THREE.BoxGeometry(16, 9, 22);
+    const barnRoofGeo = new THREE.ConeGeometry(14, 5, 4);
+    const siloGeo = new THREE.CylinderGeometry(3.6, 3.6, 15, 14);
+    const siloCapGeo = new THREE.ConeGeometry(3.8, 3.2, 14);
+
     for (let b = 0; b < 10; b++) {
       const z = b * 100 + 50;
 
       // 1. Agricultural plot bed
-      const bedGeo = new THREE.BoxGeometry(82, 0.4, 76);
       const bed = new THREE.Mesh(bedGeo, soilMat);
       bed.position.set(48, 0.2, z);
       bed.receiveShadow = true;
       farmsGroup.add(bed);
 
-      // 2. Golden crop rows (waving wheat)
+      // 2. Golden crop rows
       for (let r = 0; r < 6; r++) {
-        const cropGeo = new THREE.BoxGeometry(72, 1.3, 4.5);
         const crop = new THREE.Mesh(cropGeo, cropMat);
         crop.position.set(48, 0.85, z - 28 + r * 11);
-        crop.castShadow = true;
         farmsGroup.add(crop);
       }
 
-      // 3. Wooden perimeter split-rail fences around plots
-      const fenceH = new THREE.BoxGeometry(82, 0.8, 0.2);
-      const fNorth = new THREE.Mesh(fenceH, fenceMat);
+      // 3. Perimeter fences
+      const fNorth = new THREE.Mesh(fenceGeo, fenceMat);
       fNorth.position.set(48, 0.6, z - 38);
-      const fSouth = new THREE.Mesh(fenceH, fenceMat);
+      const fSouth = new THREE.Mesh(fenceGeo, fenceMat);
       fSouth.position.set(48, 0.6, z + 38);
       farmsGroup.add(fNorth);
       farmsGroup.add(fSouth);
 
       // 4. Rustic Red Farm Barn
-      const barnGeo = new THREE.BoxGeometry(16, 9, 22);
       const barn = new THREE.Mesh(barnGeo, barnMat);
       barn.position.set(90, 4.5, z);
       barn.castShadow = true;
       barn.receiveShadow = true;
 
-      const roofGeo = new THREE.ConeGeometry(14, 5, 4);
-      const barnRoof = new THREE.Mesh(roofGeo, barnRoofMat);
+      const barnRoof = new THREE.Mesh(barnRoofGeo, barnRoofMat);
       barnRoof.rotation.y = Math.PI / 4;
       barnRoof.position.set(0, 7, 0);
       barn.add(barnRoof);
       farmsGroup.add(barn);
 
       // 5. Cylindrical Communal Grain Silo
-      const siloGeo = new THREE.CylinderGeometry(3.6, 3.6, 15, 18);
       const silo = new THREE.Mesh(siloGeo, siloMat);
       silo.position.set(90, 7.5, z + 18);
       silo.castShadow = true;
 
-      const siloCapGeo = new THREE.ConeGeometry(3.8, 3.2, 18);
       const siloCap = new THREE.Mesh(siloCapGeo, siloMat);
       siloCap.position.set(0, 9.1, 0);
       silo.add(siloCap);
@@ -773,11 +785,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     parkGroup.add(park);
 
     const pathMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 });
-    const path1 = new THREE.Mesh(new THREE.PlaneGeometry(130, 4), pathMat);
+    const pathGeo = new THREE.PlaneGeometry(130, 4);
+    const path1 = new THREE.Mesh(pathGeo, pathMat);
     path1.rotation.x = -Math.PI / 2;
     path1.rotation.z = Math.PI / 4;
     path1.position.set(500, 0.28, 500);
-    const path2 = new THREE.Mesh(new THREE.PlaneGeometry(130, 4), pathMat);
+    const path2 = new THREE.Mesh(pathGeo, pathMat);
     path2.rotation.x = -Math.PI / 2;
     path2.rotation.z = -Math.PI / 4;
     path2.position.set(500, 0.28, 500);
@@ -786,6 +799,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x713f12, roughness: 0.9 });
     const leafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.65 });
+    const trunkGeo = new THREE.CylinderGeometry(0.5, 0.7, 4.5, 5);
+    const crownGeo = new THREE.DodecahedronGeometry(2.6, 1);
 
     for (let t = 0; t < 28; t++) {
       const angle = (t / 28) * Math.PI * 2;
@@ -793,13 +808,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       const tx = 500 + Math.cos(angle) * radius;
       const tz = 500 + Math.sin(angle) * radius;
 
-      const trunkGeo = new THREE.CylinderGeometry(0.5, 0.7, 4.5, 5);
       const trunk = new THREE.Mesh(trunkGeo, trunkMat);
       trunk.position.set(tx, 2.3, tz);
-      trunk.castShadow = true;
       parkGroup.add(trunk);
 
-      const crownGeo = new THREE.DodecahedronGeometry(2.6, 1);
       const crown = new THREE.Mesh(crownGeo, leafMat);
       crown.position.set(tx, 5.8, tz);
       crown.castShadow = true;
@@ -819,13 +831,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     consBase.position.set(500, 2.0, 500);
     parkGroup.add(consBase);
 
-    const consDome = new THREE.Mesh(new THREE.SphereGeometry(11, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), glassMat);
+    const consDome = new THREE.Mesh(new THREE.SphereGeometry(11, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.5), glassMat);
     consDome.position.set(500, 4.0, 500);
     parkGroup.add(consDome);
-
-    const plantLight = new THREE.PointLight(0x22c55e, 2.0, 25);
-    plantLight.position.set(500, 4.5, 500);
-    parkGroup.add(plantLight);
 
     scene.add(parkGroup);
   }
@@ -937,10 +945,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         const awningGroup = new THREE.Group();
         const redCloth = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.7 });
         const whiteCloth = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.7 });
+        const stripGeo = new THREE.BoxGeometry(4, 1.2, size + 6);
 
         for (let s = -size / 2; s < size / 2; s += 4) {
           const mat = Math.abs(s / 4) % 2 === 0 ? redCloth : whiteCloth;
-          const strip = new THREE.Mesh(new THREE.BoxGeometry(4, 1.2, size + 6), mat);
+          const strip = new THREE.Mesh(stripGeo, mat);
           strip.position.set(s + 2, height / 2 + 1, 0);
           awningGroup.add(strip);
         }
@@ -948,14 +957,15 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
         const crateMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
         const stoneCrateMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+        const crateGeo = new THREE.BoxGeometry(3, 3, 3);
         for (let cr = 0; cr < 8; cr++) {
-          const crate = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), cr % 2 === 0 ? crateMat : stoneCrateMat);
+          const crate = new THREE.Mesh(crateGeo, cr % 2 === 0 ? crateMat : stoneCrateMat);
           crate.position.set(c.x + size / 2 + 5, 1.5, c.z - 15 + cr * 4.5);
           crate.castShadow = true;
           civicGroup.add(crate);
         }
 
-        const ringGeo = new THREE.TorusGeometry(size * 0.7, 0.9, 16, 64);
+        const ringGeo = new THREE.TorusGeometry(size * 0.7, 0.9, 16, 32);
         const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: true });
         const ring = new THREE.Mesh(ringGeo, ringMat);
         ring.rotation.x = Math.PI / 2;
@@ -986,8 +996,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       // 4. MUNICIPAL OFFICE: Colonnade Columns & Pediment
       if (c.id === 'municipal') {
         const colMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.3 });
+        const columnGeo = new THREE.CylinderGeometry(0.9, 0.9, height, 10);
         for (let col = -size / 2 + 4; col <= size / 2 - 4; col += 7) {
-          const column = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, height, 12), colMat);
+          const column = new THREE.Mesh(columnGeo, colMat);
           column.position.set(col, 0, size / 2 + 3);
           column.castShadow = true;
           bldg.add(column);
@@ -1005,7 +1016,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         hoseTower.position.set(size / 2 - 5, height / 2 + 11, -size / 2 + 5);
         bldg.add(hoseTower);
 
-        const sirenDome = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 8), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+        const sirenDome = new THREE.Mesh(new THREE.SphereGeometry(1.6, 10, 6), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
         sirenDome.position.set(0, 12, 0);
         hoseTower.add(sirenDome);
       }
@@ -1014,13 +1025,16 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       if (c.id === 'silo') {
         const siloMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
         const domeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 });
+        const siloCylGeo = new THREE.CylinderGeometry(5.0, 5.0, height, 14);
+        const siloCapGeo = new THREE.SphereGeometry(5.0, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.5);
+
         [-9, 0, 9].forEach(ox => {
-          const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, height, 20), siloMat);
+          const cylinder = new THREE.Mesh(siloCylGeo, siloMat);
           cylinder.position.set(ox, 0, 0);
           cylinder.castShadow = true;
           bldg.add(cylinder);
 
-          const cap = new THREE.Mesh(new THREE.SphereGeometry(5.0, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.5), domeMat);
+          const cap = new THREE.Mesh(siloCapGeo, domeMat);
           cap.position.set(ox, height / 2, 0);
           bldg.add(cap);
         });
@@ -1030,8 +1044,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       if (c.id === 'workshop') {
         const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
         const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+        const blockGeo = new THREE.BoxGeometry(3.5, 3.5, 3.5);
         for (let q = 0; q < 6; q++) {
-          const block = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3.5, 3.5), q % 2 === 0 ? stoneMat : woodMat);
+          const block = new THREE.Mesh(blockGeo, q % 2 === 0 ? stoneMat : woodMat);
           block.position.set(c.x + size / 2 + 5, 1.8, c.z - 10 + q * 4.5);
           block.castShadow = true;
           civicGroup.add(block);
@@ -1070,7 +1085,86 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     scene.add(civicGroup);
   }
 
-  // 345 Volumetric Houses across 5 Archetypes
+  // 345 Volumetric Houses across 5 Archetypes (Optimized Geometry & Material Caching)
+  const houseAssets = {
+    initialized: false,
+    bodyGeos: {},
+    roofGeos: {},
+    mats: {},
+    doorGeo: null,
+    ribbonWinGeo: null,
+    winGeo1: null,
+    winGeo2: null,
+    winGeoDef: null,
+    chimGeo1: null,
+    chimGeo2: null,
+    chimGeoDef: null
+  };
+
+  function getHouseAssets() {
+    if (houseAssets.initialized) return houseAssets;
+
+    const archDims = {
+      0: { w: 14, h: 4.0, d: 10 },
+      1: { w: 12, h: 7.2, d: 14 },
+      2: { w: 16, h: 8.5, d: 18 },
+      3: { w: 8, h: 4.2, d: 10 },
+      4: { w: 12, h: 6.8, d: 14 }
+    };
+
+    for (let id = 0; id <= 4; id++) {
+      const dim = archDims[id];
+      houseAssets.bodyGeos[id] = new THREE.BoxGeometry(dim.w, dim.h, dim.d);
+
+      if (id === 4) {
+        houseAssets.roofGeos[id] = new THREE.BoxGeometry(dim.w + 1.2, 0.45, dim.d + 1.2);
+      } else if (id === 1) {
+        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.72, 3.2, 4);
+      } else if (id === 2) {
+        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.75, 3.6, 4);
+      } else {
+        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.68, 2.4, 4);
+      }
+
+      const arch = state.archetypes[id] || state.archetypes[0];
+      houseAssets.mats[`body_${id}`] = new THREE.MeshStandardMaterial({
+        color: arch.color,
+        roughness: 0.65,
+        metalness: 0.08
+      });
+      houseAssets.mats[`roof_${id}`] = new THREE.MeshStandardMaterial({
+        color: arch.roofColor,
+        roughness: id === 4 ? 0.5 : 0.75
+      });
+    }
+
+    houseAssets.doorGeo = new THREE.BoxGeometry(1.4, 2.4, 0.15);
+    houseAssets.ribbonWinGeo = new THREE.BoxGeometry(12 * 0.75, 1.4, 0.2);
+    houseAssets.winGeo1 = new THREE.BoxGeometry(1.6, 1.4, 0.15);
+    houseAssets.winGeo2 = new THREE.BoxGeometry(1.8, 1.6, 0.15);
+    houseAssets.winGeoDef = new THREE.BoxGeometry(1.6, 1.3, 0.15);
+
+    houseAssets.chimGeo1 = new THREE.BoxGeometry(1.2, 2.8, 1.2);
+    houseAssets.chimGeo2 = new THREE.BoxGeometry(1.6, 3.8, 1.6);
+    houseAssets.chimGeoDef = new THREE.BoxGeometry(1.0, 2.2, 1.0);
+
+    const windowMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: state.isNightMode ? 0xfef08a : 0x0e7490,
+      emissiveIntensity: state.isNightMode ? 0.65 : 0.25,
+      roughness: 0.15,
+      metalness: 0.85
+    });
+    houseAssets.mats.window = windowMat;
+    state.three.windowMaterials.push(windowMat);
+
+    houseAssets.mats.door = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+    houseAssets.mats.chimney = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+
+    houseAssets.initialized = true;
+    return houseAssets;
+  }
+
   function build3DHouses(scene) {
     if (!scene) scene = state.three.scene;
     if (!scene || !state.worldMeta || !state.worldMeta.houses) return;
@@ -1084,106 +1178,83 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const housesGroup = new THREE.Group();
     state.three.housesGroup = housesGroup;
     const houses = state.worldMeta.houses;
-
-    const windowMat = new THREE.MeshStandardMaterial({
-      color: 0x38bdf8,
-      emissive: state.isNightMode ? 0xfef08a : 0x0e7490,
-      emissiveIntensity: state.isNightMode ? 0.65 : 0.25,
-      roughness: 0.15,
-      metalness: 0.85
-    });
-    state.three.windowMaterials.push(windowMat);
-
-    const doorMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
-    const chimneyMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+    const assets = getHouseAssets();
 
     houses.forEach((h, idx) => {
       const [x, z, w, d, archId] = h;
       const arch = state.archetypes[archId] || state.archetypes[0];
       const hHeight = arch.height || 4.0;
 
-      const houseGeo = new THREE.BoxGeometry(w, hHeight, d);
-      const houseMat = new THREE.MeshStandardMaterial({
-        color: arch.color,
-        roughness: 0.65,
-        metalness: 0.08
-      });
-      const houseMesh = new THREE.Mesh(houseGeo, houseMat);
+      const bodyGeo = assets.bodyGeos[archId] || assets.bodyGeos[0];
+      const bodyMat = assets.mats[`body_${archId}`] || assets.mats.body_0;
+      const houseMesh = new THREE.Mesh(bodyGeo, bodyMat);
       houseMesh.position.set(x + w / 2, hHeight / 2, z + d / 2);
       houseMesh.castShadow = true;
       houseMesh.receiveShadow = true;
 
+      const roofGeo = assets.roofGeos[archId] || assets.roofGeos[0];
+      const roofMat = assets.mats[`roof_${archId}`] || assets.mats.roof_0;
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+
       // 1. Architectural Roof Design
       if (archId === 4) {
-        const roofGeo = new THREE.BoxGeometry(w + 1.2, 0.45, d + 1.2);
-        const roofMat = new THREE.MeshStandardMaterial({ color: arch.roofColor });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
         roof.position.set(0, hHeight / 2 + 0.22, 0);
         houseMesh.add(roof);
 
-        const ribbonWin = new THREE.Mesh(new THREE.BoxGeometry(w * 0.75, 1.4, 0.2), windowMat);
+        const ribbonWin = new THREE.Mesh(assets.ribbonWinGeo, assets.mats.window);
         ribbonWin.position.set(0, 0.8, d / 2 + 0.1);
         houseMesh.add(ribbonWin);
       } else if (archId === 1) {
-        const roofGeo = new THREE.ConeGeometry(Math.max(w, d) * 0.72, 3.2, 4);
-        const roofMat = new THREE.MeshStandardMaterial({ color: arch.roofColor, roughness: 0.75 });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
         roof.rotation.y = Math.PI / 4;
         roof.position.set(0, hHeight / 2 + 1.6, 0);
         houseMesh.add(roof);
 
         [-w / 3, w / 3].forEach(cx => {
-          const chim = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.8, 1.2), chimneyMat);
+          const chim = new THREE.Mesh(assets.chimGeo1, assets.mats.chimney);
           chim.position.set(cx, hHeight / 2 + 2.2, 0);
           houseMesh.add(chim);
         });
 
         [-w / 4, w / 4].forEach(wx => {
           [0.8, -1.2].forEach(wy => {
-            const win = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.15), windowMat);
+            const win = new THREE.Mesh(assets.winGeo1, assets.mats.window);
             win.position.set(wx, wy, d / 2 + 0.08);
             houseMesh.add(win);
           });
         });
       } else if (archId === 2) {
-        const roofGeo = new THREE.ConeGeometry(Math.max(w, d) * 0.75, 3.6, 4);
-        const roofMat = new THREE.MeshStandardMaterial({ color: arch.roofColor, roughness: 0.7 });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
         roof.rotation.y = Math.PI / 4;
         roof.position.set(0, hHeight / 2 + 1.8, 0);
         houseMesh.add(roof);
 
-        const chim = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3.8, 1.6), chimneyMat);
+        const chim = new THREE.Mesh(assets.chimGeo2, assets.mats.chimney);
         chim.position.set(-w / 2 + 1.2, hHeight / 2 + 2.2, 0);
         houseMesh.add(chim);
 
         [-w / 3, 0, w / 3].forEach(wx => {
           [1.0, -1.4].forEach(wy => {
-            const win = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.6, 0.15), windowMat);
+            const win = new THREE.Mesh(assets.winGeo2, assets.mats.window);
             win.position.set(wx, wy, d / 2 + 0.08);
             houseMesh.add(win);
           });
         });
       } else {
-        const roofGeo = new THREE.ConeGeometry(Math.max(w, d) * 0.68, 2.4, 4);
-        const roofMat = new THREE.MeshStandardMaterial({ color: arch.roofColor, roughness: 0.8 });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
         roof.rotation.y = Math.PI / 4;
         roof.position.set(0, hHeight / 2 + 1.2, 0);
         houseMesh.add(roof);
 
-        const chim = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.2, 1.0), chimneyMat);
+        const chim = new THREE.Mesh(assets.chimGeoDef, assets.mats.chimney);
         chim.position.set(w / 3, hHeight / 2 + 1.4, 0);
         houseMesh.add(chim);
 
         [-w / 3, w / 3].forEach(wx => {
-          const win = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.3, 0.15), windowMat);
+          const win = new THREE.Mesh(assets.winGeoDef, assets.mats.window);
           win.position.set(wx, 0.2, d / 2 + 0.08);
           houseMesh.add(win);
         });
       }
 
-      const door = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.4, 0.15), doorMat);
+      const door = new THREE.Mesh(assets.doorGeo, assets.mats.door);
       door.position.set(0, -hHeight / 2 + 1.2, d / 2 + 0.08);
       houseMesh.add(door);
 
@@ -1248,58 +1319,135 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     scene.add(agentsGroup);
   }
 
+  // Shared Humanoid Geometry & Material Assets Pool (Reduces 1,000+ GPU buffers to ~20)
+  const humanoidAssets = {
+    initialized: false,
+    geos: {},
+    mats: {}
+  };
+
+  function getHumanoidAssets() {
+    if (humanoidAssets.initialized) return humanoidAssets;
+
+    const g = humanoidAssets.geos;
+    g.torso = new THREE.BoxGeometry(0.65, 0.75, 0.38);
+    g.belt = new THREE.BoxGeometry(0.67, 0.12, 0.40);
+    g.neck = new THREE.CylinderGeometry(0.12, 0.14, 0.16, 6);
+    g.head = new THREE.SphereGeometry(0.28, 8, 8);
+    g.eye = new THREE.SphereGeometry(0.04, 4, 4);
+
+    const armGeo = new THREE.BoxGeometry(0.18, 0.65, 0.18);
+    armGeo.translate(0, -0.28, 0);
+    g.arm = armGeo;
+
+    const legGeo = new THREE.BoxGeometry(0.22, 0.65, 0.22);
+    legGeo.translate(0, -0.32, 0);
+    g.leg = legGeo;
+
+    g.hand = new THREE.SphereGeometry(0.09, 6, 6);
+    g.boot = new THREE.BoxGeometry(0.24, 0.14, 0.32);
+    g.ring = new THREE.RingGeometry(0.85, 1.15, 16);
+
+    // Hats and accessories
+    g.strawBrim = new THREE.CylinderGeometry(0.65, 0.65, 0.04, 12);
+    g.strawCrown = new THREE.CylinderGeometry(0.28, 0.35, 0.22, 12);
+    g.strawBand = new THREE.CylinderGeometry(0.36, 0.36, 0.05, 12);
+    g.hardhat = new THREE.SphereGeometry(0.32, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    g.hardhatBrim = new THREE.CylinderGeometry(0.38, 0.38, 0.04, 12);
+    g.medicCap = new THREE.CylinderGeometry(0.30, 0.30, 0.18, 12);
+    g.medicCrossH = new THREE.BoxGeometry(0.14, 0.04, 0.02);
+    g.medicCrossV = new THREE.BoxGeometry(0.04, 0.14, 0.02);
+    g.traderBeret = new THREE.CylinderGeometry(0.38, 0.22, 0.12, 12);
+    g.crafterStrap = new THREE.CylinderGeometry(0.30, 0.30, 0.05, 12);
+    g.crafterLens = new THREE.CylinderGeometry(0.08, 0.08, 0.08, 8);
+    g.crafterGlass = new THREE.CircleGeometry(0.07, 8);
+    g.genCap = new THREE.SphereGeometry(0.30, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.5);
+
+    // Props
+    g.pitchforkShaft = new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6);
+    g.pitchforkBar = new THREE.BoxGeometry(0.24, 0.03, 0.03);
+    g.pitchforkTine = new THREE.CylinderGeometry(0.015, 0.005, 0.35, 4);
+    g.hammerShaft = new THREE.CylinderGeometry(0.035, 0.035, 0.6, 6);
+    g.hammerHead = new THREE.BoxGeometry(0.12, 0.10, 0.22);
+    g.medkitBox = new THREE.BoxGeometry(0.28, 0.22, 0.14);
+    g.pouchBag = new THREE.SphereGeometry(0.13, 6, 6);
+    g.pouchCoin = new THREE.CylinderGeometry(0.05, 0.05, 0.02, 6);
+    g.wrenchStem = new THREE.BoxGeometry(0.04, 0.45, 0.02);
+    g.wrenchJaw = new THREE.BoxGeometry(0.12, 0.08, 0.03);
+    g.satchel = new THREE.BoxGeometry(0.24, 0.20, 0.08);
+
+    // Materials
+    const m = humanoidAssets.mats;
+    const skinTones = [0xfcd5b5, 0xe0ac69, 0xc68642, 0x8d5524, 0xd4a373];
+    m.skin = skinTones.map(hex => new THREE.MeshStandardMaterial({ color: hex, roughness: 0.65 }));
+    m.dark = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
+    m.metal = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.35, metalness: 0.8 });
+    m.eye = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+    m.boot = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+    m.wood = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
+    m.straw = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.85 });
+    m.strawBand = new THREE.MeshBasicMaterial({ color: 0x78350f });
+    m.hardhat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3, metalness: 0.1 });
+    m.medicCap = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+    m.redBasic = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    m.beret = new THREE.MeshStandardMaterial({ color: 0x1e1b4b, roughness: 0.8 });
+    m.brass = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.8, roughness: 0.2 });
+    m.cyanBasic = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+    m.genCap = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+    m.ring = new THREE.MeshBasicMaterial({ color: 0x06b6d4, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+
+    m.roles = {};
+    Object.keys(state.roles).forEach(r => {
+      const cfg = state.roles[r];
+      m.roles[r] = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(cfg.colorHex || cfg.color),
+        roughness: 0.45,
+        metalness: 0.1
+      });
+    });
+
+    humanoidAssets.initialized = true;
+    return humanoidAssets;
+  }
+
   function createHumanoidAvatar(agentData, index) {
+    const assets = getHumanoidAssets();
     const group = new THREE.Group();
     group.name = `agent_${agentData.id}`;
     group.position.set(agentData.position.x, 0, agentData.position.z);
     group.userData = { isAgent: true, data: agentData };
 
     const roleName = agentData.role || 'Farmer';
-    const roleConfig = state.roles[roleName] || state.roles['Farmer'];
-    const roleColorHex = agentData.color || roleConfig.color;
-    const roleColor = new THREE.Color(roleColorHex);
-
-    const skinTones = [0xfcd5b5, 0xe0ac69, 0xc68642, 0x8d5524, 0xd4a373];
-    const skinColor = skinTones[index % skinTones.length];
-    const skinMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.65 });
-    const roleMat = new THREE.MeshStandardMaterial({ color: roleColor, roughness: 0.45, metalness: 0.1 });
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
-    const metalMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.35, metalness: 0.8 });
+    const roleMat = assets.mats.roles[roleName] || assets.mats.roles['Farmer'] || assets.mats.dark;
+    const skinMat = assets.mats.skin[index % assets.mats.skin.length];
 
     // 1. Torso Group
     const torsoGroup = new THREE.Group();
     const baseTorsoY = 1.0;
     torsoGroup.position.y = baseTorsoY;
 
-    const torsoGeo = new THREE.BoxGeometry(0.65, 0.75, 0.38);
-    const torsoMesh = new THREE.Mesh(torsoGeo, roleMat);
+    const torsoMesh = new THREE.Mesh(assets.geos.torso, roleMat);
     torsoMesh.castShadow = true;
     torsoMesh.receiveShadow = true;
     torsoGroup.add(torsoMesh);
 
-    const beltGeo = new THREE.BoxGeometry(0.67, 0.12, 0.40);
-    const beltMesh = new THREE.Mesh(beltGeo, darkMat);
+    const beltMesh = new THREE.Mesh(assets.geos.belt, assets.mats.dark);
     beltMesh.position.y = -0.32;
     torsoGroup.add(beltMesh);
 
-    const neckGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.16, 8);
-    const neckMesh = new THREE.Mesh(neckGeo, skinMat);
+    const neckMesh = new THREE.Mesh(assets.geos.neck, skinMat);
     neckMesh.position.y = 0.45;
     torsoGroup.add(neckMesh);
 
     // 2. Head
-    const headGeo = new THREE.SphereGeometry(0.28, 12, 12);
-    const headMesh = new THREE.Mesh(headGeo, skinMat);
+    const headMesh = new THREE.Mesh(assets.geos.head, skinMat);
     headMesh.position.y = 0.68;
-    headMesh.castShadow = true;
     torsoGroup.add(headMesh);
 
     // Eyes
-    const eyeGeo = new THREE.SphereGeometry(0.04, 6, 6);
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
-    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    const eyeL = new THREE.Mesh(assets.geos.eye, assets.mats.eye);
     eyeL.position.set(-0.09, 0.72, 0.25);
-    const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+    const eyeR = new THREE.Mesh(assets.geos.eye, assets.mats.eye);
     eyeR.position.set(0.09, 0.72, 0.25);
     torsoGroup.add(eyeL);
     torsoGroup.add(eyeR);
@@ -1307,100 +1455,86 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     // Role-Specific Hat
     if (roleName === 'Farmer') {
       const hatGroup = new THREE.Group();
-      const strawMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.85 });
-      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.04, 16), strawMat);
+      const brim = new THREE.Mesh(assets.geos.strawBrim, assets.mats.straw);
       hatGroup.add(brim);
-      const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 0.22, 16), strawMat);
+      const crown = new THREE.Mesh(assets.geos.strawCrown, assets.mats.straw);
       crown.position.y = 0.11;
       hatGroup.add(crown);
-      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0x78350f }));
+      const band = new THREE.Mesh(assets.geos.strawBand, assets.mats.strawBand);
       band.position.y = 0.03;
       hatGroup.add(band);
       hatGroup.position.set(0, 0.94, 0);
       torsoGroup.add(hatGroup);
     } else if (roleName === 'Builder') {
-      const hardhatMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3, metalness: 0.1 });
-      const hardhat = new THREE.Mesh(new THREE.SphereGeometry(0.32, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), hardhatMat);
+      const hardhat = new THREE.Mesh(assets.geos.hardhat, assets.mats.hardhat);
       hardhat.position.set(0, 0.78, 0);
-      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.04, 16), hardhatMat);
+      const brim = new THREE.Mesh(assets.geos.hardhatBrim, assets.mats.hardhat);
       brim.position.set(0, 0.78, 0.05);
       torsoGroup.add(hardhat);
       torsoGroup.add(brim);
     } else if (roleName === 'Medic') {
-      const capMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.30, 0.18, 16), capMat);
+      const cap = new THREE.Mesh(assets.geos.medicCap, assets.mats.medicCap);
       cap.position.set(0, 0.92, 0);
       torsoGroup.add(cap);
-      const redMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-      const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.02), redMat);
+      const crossH = new THREE.Mesh(assets.geos.medicCrossH, assets.mats.redBasic);
       crossH.position.set(0, 0.92, 0.31);
-      const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.02), redMat);
+      const crossV = new THREE.Mesh(assets.geos.medicCrossV, assets.mats.redBasic);
       crossV.position.set(0, 0.92, 0.31);
       torsoGroup.add(crossH);
       torsoGroup.add(crossV);
     } else if (roleName === 'Trader') {
-      const beretMat = new THREE.MeshStandardMaterial({ color: 0x1e1b4b, roughness: 0.8 });
-      const beret = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.22, 0.12, 16), beretMat);
+      const beret = new THREE.Mesh(assets.geos.traderBeret, assets.mats.beret);
       beret.rotation.z = -0.22;
       beret.position.set(0.06, 0.94, -0.02);
       torsoGroup.add(beret);
     } else if (roleName === 'Crafter') {
-      const strap = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.30, 0.05, 16), new THREE.MeshBasicMaterial({ color: 0x78350f }));
+      const strap = new THREE.Mesh(assets.geos.crafterStrap, assets.mats.wood);
       strap.position.set(0, 0.78, 0);
       torsoGroup.add(strap);
-      const lensGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.08, 10);
-      const brassMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.8, roughness: 0.2 });
-      const lensMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
       [-0.11, 0.11].forEach(lx => {
-        const goggle = new THREE.Mesh(lensGeo, brassMat);
+        const goggle = new THREE.Mesh(assets.geos.crafterLens, assets.mats.brass);
         goggle.rotation.x = Math.PI / 2;
         goggle.position.set(lx, 0.78, 0.28);
-        const glass = new THREE.Mesh(new THREE.CircleGeometry(0.07, 8), lensMat);
+        const glass = new THREE.Mesh(assets.geos.crafterGlass, assets.mats.cyanBasic);
         glass.position.set(lx, 0.78, 0.32);
         torsoGroup.add(goggle);
         torsoGroup.add(glass);
       });
     } else {
-      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.30, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.5), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+      const cap = new THREE.Mesh(assets.geos.genCap, assets.mats.genCap);
       cap.position.set(0, 0.80, 0);
       torsoGroup.add(cap);
     }
 
     // 3. Articulated Arms
-    const armGeo = new THREE.BoxGeometry(0.18, 0.65, 0.18);
-    armGeo.translate(0, -0.28, 0);
-
     const armLGroup = new THREE.Group();
     armLGroup.position.set(-0.42, 0.28, 0);
-    const armLMesh = new THREE.Mesh(armGeo, roleMat);
-    armLMesh.castShadow = true;
+    const armLMesh = new THREE.Mesh(assets.geos.arm, roleMat);
     armLGroup.add(armLMesh);
-    const handL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), skinMat);
+    const handL = new THREE.Mesh(assets.geos.hand, skinMat);
     handL.position.y = -0.60;
     armLGroup.add(handL);
     torsoGroup.add(armLGroup);
 
     const armRGroup = new THREE.Group();
     armRGroup.position.set(0.42, 0.28, 0);
-    const armRMesh = new THREE.Mesh(armGeo, roleMat);
-    armRMesh.castShadow = true;
+    const armRMesh = new THREE.Mesh(assets.geos.arm, roleMat);
     armRGroup.add(armRMesh);
-    const handR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 6), skinMat);
+    const handR = new THREE.Mesh(assets.geos.hand, skinMat);
     handR.position.y = -0.60;
     armRGroup.add(handR);
 
     // Handheld Props
     if (roleName === 'Farmer') {
       const pitchfork = new THREE.Group();
-      const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6), woodMat);
+      const shaft = new THREE.Mesh(assets.geos.pitchforkShaft, assets.mats.wood);
       shaft.position.y = 0.15;
       pitchfork.add(shaft);
-      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.03), metalMat);
+      const bar = new THREE.Mesh(assets.geos.pitchforkBar, assets.mats.metal);
       bar.position.y = 0.85;
       pitchfork.add(bar);
       [-0.10, 0, 0.10].forEach(tx => {
-        const tine = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.005, 0.35, 4), metalMat);
+        const tine = new THREE.Mesh(assets.geos.pitchforkTine, assets.mats.metal);
         tine.position.set(tx, 1.02, 0);
         pitchfork.add(tine);
       });
@@ -1409,9 +1543,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       armRGroup.add(pitchfork);
     } else if (roleName === 'Builder') {
       const hammer = new THREE.Group();
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.6, 6), new THREE.MeshStandardMaterial({ color: 0x92400e }));
+      const shaft = new THREE.Mesh(assets.geos.hammerShaft, assets.mats.wood);
       hammer.add(shaft);
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.10, 0.22), metalMat);
+      const head = new THREE.Mesh(assets.geos.hammerHead, assets.mats.metal);
       head.position.y = 0.30;
       hammer.add(head);
       hammer.position.set(0, -0.55, 0.12);
@@ -1419,13 +1553,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       armRGroup.add(hammer);
     } else if (roleName === 'Medic') {
       const medkit = new THREE.Group();
-      const box = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.22, 0.14), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }));
+      const box = new THREE.Mesh(assets.geos.medkitBox, assets.mats.medicCap);
       medkit.add(box);
-      const redMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
       [-0.075, 0.075].forEach(zPos => {
-        const cH = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.01), redMat);
+        const cH = new THREE.Mesh(assets.geos.medicCrossH, assets.mats.redBasic);
         cH.position.z = zPos;
-        const cV = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.01), redMat);
+        const cV = new THREE.Mesh(assets.geos.medicCrossV, assets.mats.redBasic);
         cV.position.z = zPos;
         medkit.add(cH);
         medkit.add(cV);
@@ -1434,26 +1567,26 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       armRGroup.add(medkit);
     } else if (roleName === 'Trader') {
       const pouch = new THREE.Group();
-      const bag = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.9 }));
+      const bag = new THREE.Mesh(assets.geos.pouchBag, assets.mats.wood);
       bag.scale.set(1.0, 1.2, 0.9);
       pouch.add(bag);
-      const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 8), new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.9, roughness: 0.2 }));
+      const coin = new THREE.Mesh(assets.geos.pouchCoin, assets.mats.hardhat);
       coin.position.y = 0.12;
       pouch.add(coin);
       pouch.position.set(0, -0.65, 0.08);
       armRGroup.add(pouch);
     } else if (roleName === 'Crafter') {
       const wrench = new THREE.Group();
-      const stem = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.02), metalMat);
+      const stem = new THREE.Mesh(assets.geos.wrenchStem, assets.mats.metal);
       wrench.add(stem);
-      const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.03), metalMat);
+      const jaw = new THREE.Mesh(assets.geos.wrenchJaw, assets.mats.metal);
       jaw.position.y = 0.22;
       wrench.add(jaw);
       wrench.position.set(0, -0.55, 0.10);
       wrench.rotation.x = Math.PI / 4;
       armRGroup.add(wrench);
     } else {
-      const satchel = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.20, 0.08), darkMat);
+      const satchel = new THREE.Mesh(assets.geos.satchel, assets.mats.dark);
       satchel.position.set(0, -0.65, 0.08);
       armRGroup.add(satchel);
     }
@@ -1462,39 +1595,33 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     group.add(torsoGroup);
 
     // 4. Articulated Legs
-    const legGeo = new THREE.BoxGeometry(0.22, 0.65, 0.22);
-    legGeo.translate(0, -0.32, 0);
-    const bootMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
-
     const legLGroup = new THREE.Group();
     legLGroup.position.set(-0.18, 0.65, 0);
-    const legLMesh = new THREE.Mesh(legGeo, darkMat);
-    legLMesh.castShadow = true;
+    const legLMesh = new THREE.Mesh(assets.geos.leg, assets.mats.dark);
     legLGroup.add(legLMesh);
-    const bootL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.32), bootMat);
+    const bootL = new THREE.Mesh(assets.geos.boot, assets.mats.boot);
     bootL.position.set(0, -0.60, 0.04);
     legLGroup.add(bootL);
     group.add(legLGroup);
 
     const legRGroup = new THREE.Group();
     legRGroup.position.set(0.18, 0.65, 0);
-    const legRMesh = new THREE.Mesh(legGeo, darkMat);
-    legRMesh.castShadow = true;
+    const legRMesh = new THREE.Mesh(assets.geos.leg, assets.mats.dark);
     legRGroup.add(legRMesh);
-    const bootR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.32), bootMat);
+    const bootR = new THREE.Mesh(assets.geos.boot, assets.mats.boot);
     bootR.position.set(0, -0.60, 0.04);
     legRGroup.add(bootR);
     group.add(legRGroup);
 
     // 5. High-Resolution Floating 3D Billboard Sprite (Name, Role, Real-Time Activity & Vitals)
+    const roleConfig = state.roles[roleName] || state.roles['Farmer'];
+    const roleColorHex = agentData.color || roleConfig.color;
     const badgeSprite = createAgentBillboardSprite(agentData, roleColorHex);
     badgeSprite.position.set(0, 3.2, 0);
     group.add(badgeSprite);
 
     // 6. Ground Selection Ring
-    const ringGeo = new THREE.RingGeometry(0.85, 1.15, 24);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
-    const selRing = new THREE.Mesh(ringGeo, ringMat);
+    const selRing = new THREE.Mesh(assets.geos.ring, assets.mats.ring);
     selRing.rotation.x = -Math.PI / 2;
     selRing.position.y = 0.05;
     selRing.visible = false;
@@ -1649,8 +1776,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
   function createAgentBillboardSprite(agentData, colorHex) {
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 140;
+    canvas.width = 384;
+    canvas.height = 108;
     const ctx = canvas.getContext('2d');
 
     renderAgentBillboardCanvas(ctx, canvas, agentData, colorHex);
@@ -1659,8 +1786,15 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     texture.minFilter = THREE.LinearFilter;
     const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(5.2, 1.45, 1.0);
-    sprite.userData = { canvas, texture, colorHex, lastAction: agentData.action };
+    sprite.scale.set(4.6, 1.3, 1.0);
+    sprite.userData = {
+      canvas,
+      texture,
+      colorHex,
+      lastActivity: getAgentDisplayActivity(agentData),
+      lastFood: Math.round(agentData.homeostasis?.food ?? 80),
+      lastRest: Math.round(agentData.homeostasis?.rest ?? 80)
+    };
     return sprite;
   }
 
@@ -1668,6 +1802,23 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (!sprite || !sprite.userData || !sprite.userData.canvas) return;
     const canvas = sprite.userData.canvas;
     const ctx = canvas.getContext('2d');
+
+    const activityText = getAgentDisplayActivity(agent);
+    const h = agent.homeostasis || { food: 80, rest: 80 };
+    const foodVal = Math.round(h.food !== undefined ? h.food : 80);
+    const restVal = Math.round(h.rest !== undefined ? h.rest : 80);
+
+    // Dirty check: Only update canvas & re-upload texture to WebGL if text or vitals changed!
+    if (sprite.userData.lastActivity === activityText &&
+        sprite.userData.lastFood === foodVal &&
+        sprite.userData.lastRest === restVal) {
+      return;
+    }
+
+    sprite.userData.lastActivity = activityText;
+    sprite.userData.lastFood = foodVal;
+    sprite.userData.lastRest = restVal;
+
     renderAgentBillboardCanvas(ctx, canvas, agent, agent.color || sprite.userData.colorHex);
     sprite.userData.texture.needsUpdate = true;
   }
@@ -1704,6 +1855,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   // =========================================================================
   function animateThree() {
     requestAnimationFrame(animateThree);
+    if (state.three.isContextLost) return;
 
     const dt = state.three.clock.getDelta();
     const elapsedTime = state.three.clock.getElapsedTime();
