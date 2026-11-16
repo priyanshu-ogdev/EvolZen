@@ -282,10 +282,10 @@ def _build_legal_candidates(world: WorldState, agent: WorldAgentState) -> list[C
         inst = world.institutions[inst_id]
         if inst.location_id == agent.location_id:
             is_member = agent.agent_id in inst.member_ids or inst_id in agent.institution_ids
-            is_juvenile = (world.tick - agent.born_at) < world.adulthood_age
-            parent_is_member = any(p in inst.member_ids for p in agent.parents)
-            if is_member or (is_juvenile and parent_is_member):
-                is_hungry = agent.energy < 0.6 or agent.inventory.get("food", 0) == 0
+            parent_is_member = any(p in inst.member_ids or p == inst.founder_id for p in agent.parents)
+            is_communal = not inst.member_ids or inst.name == "communal-silo"
+            if is_member or parent_is_member or is_communal:
+                is_hungry = agent.energy < 0.65 or agent.inventory.get("food", 0) == 0
                 if is_hungry and inst.treasury.get("food", 0) >= 1:
                     candidates.append(
                         Candidate(

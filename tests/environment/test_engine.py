@@ -7,6 +7,7 @@ from evolzen.environment import (
     SocialSandboxEngine,
     summarize_growth,
 )
+from evolzen.environment.invariants import check_invariants
 from evolzen.schemas.transition import Action, ExogenousInput
 from evolzen.schemas.world import (
     ActionType,
@@ -594,4 +595,102 @@ def test_withdraw_institution_authorization_and_exact_conservation() -> None:
     )
     assert tr_empty.emission.data["accepted"] is False
     assert "insufficient food" in tr_empty.emission.data["reason"]
+
+
+def test_expire_agents_senescent_wealth_recycling_with_institution() -> None:
+    """Verifies that expiring agents at lifespan boundary recycle inventory and currency into local institution."""
+    engine = SocialSandboxEngine(default_seed=42, num_agents=1, num_locations=1, lifespan=1000)
+    s0 = engine.reset(seed=42, run_id="senescent-recycling-inst", initial_agent_age=350)
+
+    # 1. Agent-0 (adult) founds institution
+    tr_found = engine.step(
+        s0,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.FOUND_INSTITUTION,
+            params={"institution_id": "communal-silo", "name": "communal-silo", "seed_currency": 5},
+        ),
+    )
+    assert tr_found.emission.data["accepted"] is True
+    w_found = WorldState.from_state(tr_found.next_state)
+    assert "communal-silo" in w_found.institutions
+
+    # 2. Fast-forward tick to 999 (lifespan is 1000, born_at is 0)
+    w_start = w_found.model_copy(update={"tick": 999})
+    a0 = w_start.agents["agent-0"]
+    a0_inv_food = a0.inventory.get("food", 0)
+    a0_inv_wood = a0.inventory.get("wood", 0)
+    a0_cur = a0.currency
+    assert a0_inv_food > 0
+    assert a0_cur > 0
+    inst_food_before = w_start.institutions["communal-silo"].treasury.get("food", 0)
+    inst_cur_before = w_start.institutions["communal-silo"].currency_reserve
+
+    # 3. Agent-0 steps at tick 999 -> next tick 1000 reaches lifespan
+    tr = engine.step(
+        w_start.to_state(),
+        Action(agent_id="agent-0", action_type=ActionType.WAIT),
+    )
+    w_next = WorldState.from_state(tr.next_state)
+
+    # Agent-0 is now deceased
+    assert w_next.agents["agent-0"].alive is False
+    # Agent-0 inventory and currency are cleared
+    assert w_next.agents["agent-0"].inventory == {}
+    assert w_next.agents["agent-0"].currency == 0
+
+    # Local institution treasury received agent-0's inventory
+    assert w_next.institutions["communal-silo"].treasury["food"] == inst_food_before + a0_inv_food
+    assert w_next.institutions["communal-silo"].treasury["wood"] == a0_inv_wood
+    # Local institution currency reserve received agent-0's currency
+    assert w_next.institutions["communal-silo"].currency_reserve == inst_cur_before + a0_cur
+
+    # Conservation invariants strictly hold
+    report = check_invariants(w_start, w_next)
+    assert report.passed is True
+
+
+def test_expire_agents_senescent_wealth_recycling_without_institution() -> None:
+    """Verifies that expiring agents recycle inventory into location resources when no institution exists."""
+    engine = SocialSandboxEngine(default_seed=42, num_agents=1, num_locations=1, lifespan=1000)
+    s0 = engine.reset(seed=42, run_id="senescent-recycling-loc", initial_agent_age=0)
+    w0 = WorldState.from_state(s0)
+
+    # Ensure no institutions exist
+    assert len(w0.institutions) == 0
+    loc_id = list(w0.locations.keys())[0]
+    loc_food_before = w0.locations[loc_id].resources.get("food", 0)
+
+    # Fast-forward to tick 999
+    w_start = w0.model_copy(update={"tick": 999})
+    a0 = w_start.agents["agent-0"]
+    a0_inv_food = a0.inventory.get("food", 0)
+    a0_cur = a0.currency
+    assert a0_inv_food > 0
+    assert a0_cur > 0
+
+    # Step agent-0 at tick 999 -> next tick 1000
+    tr = engine.step(
+        w_start.to_state(),
+        Action(agent_id="agent-0", action_type=ActionType.WAIT),
+    )
+    w_next = WorldState.from_state(tr.next_state)
+
+    # Agent-0 expired
+    assert w_next.agents["agent-0"].alive is False
+    assert w_next.agents["agent-0"].inventory == {}
+    assert w_next.agents["agent-0"].currency == 0
+
+    # Inventory was transferred to location resources
+    assert w_next.locations[loc_id].resources["food"] == loc_food_before + a0_inv_food
+
+    # Currency was transferred to an established communal reserve
+    assert len(w_next.institutions) == 1
+    silo_id = f"communal-silo-{loc_id}"
+    assert silo_id in w_next.institutions
+    assert w_next.institutions[silo_id].currency_reserve == a0_cur
+
+    # Conservation invariants strictly hold
+    report = check_invariants(w_start, w_next)
+    assert report.passed is True
 

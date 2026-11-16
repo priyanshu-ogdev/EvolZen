@@ -154,5 +154,9 @@ def test_dual_track_full_evaluation_multi_tier() -> None:
     summary = report.summary()
     assert "Model-based planning (horizon=5)" in summary
     assert "tier=multi_tier" in summary
+    assert "composite crafting" in summary
+    assert "planning hypothesis H4" in summary
+    assert report.fresh_result.planning_superiority_summary is not None
+    assert "stone_axe" in report.fresh_result.planning_superiority_summary
 
 

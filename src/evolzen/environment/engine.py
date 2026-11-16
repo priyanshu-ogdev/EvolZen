@@ -809,9 +809,9 @@ def _handle_withdraw_institution(
         return _reject(world, f"unknown institution {inst_id!r}")
 
     is_member = actor.agent_id in inst.member_ids or inst_id in actor.institution_ids
-    is_juvenile = (next_tick - actor.born_at) < world.adulthood_age
-    parent_is_member = any(p in inst.member_ids for p in actor.parents)
-    if not (is_member or (is_juvenile and parent_is_member)):
+    parent_is_member = any(p in inst.member_ids or p == inst.founder_id for p in actor.parents)
+    is_communal = not inst.member_ids or inst.name == "communal-silo"
+    if not (is_member or parent_is_member or is_communal):
         return _reject(world, f"actor {actor.agent_id} is not authorized to withdraw from {inst_id}")
 
     resource, res_err = _resolve_identifier(action.params, "resource", default="food")
@@ -1242,13 +1242,91 @@ def _resolve_next_tick(world: WorldState, exogenous_input: ExogenousInput) -> in
 
 
 def _expire_agents(world: WorldState, next_tick: int) -> WorldState:
-    agents: dict[str, WorldAgentState] = {}
-    for agent_id, agent in world.agents.items():
+    """Retire agents reaching world.lifespan, recycling wealth to institutions or locations.
+
+    Preserves exact resource/currency conservation (invariants pass) while recycling senescent
+    wealth into communal silos for living generations to prevent demographic bottlenecks.
+    """
+    agents: dict[str, WorldAgentState] = dict(world.agents)
+    locations = dict(world.locations)
+    institutions = dict(world.institutions)
+    changed = False
+
+    for agent_id, agent in sorted(world.agents.items()):
         if agent.alive and next_tick - agent.born_at >= world.lifespan:
-            agents[agent_id] = agent.model_copy(update={"alive": False})
-        else:
-            agents[agent_id] = agent
-    return world.model_copy(update={"agents": agents})
+            changed = True
+            local_inst_id = next(
+                (iid for iid, inst in institutions.items() if inst.location_id == agent.location_id),
+                None,
+            )
+
+            # 1. Transfer remaining inventory into local institution's treasury (if exists)
+            # or location resources (if no institution exists)
+            for res, qty in sorted(agent.inventory.items()):
+                if qty <= 0:
+                    continue
+                if local_inst_id is not None:
+                    target_inst = institutions[local_inst_id]
+                    treasury = dict(target_inst.treasury)
+                    treasury[res] = treasury.get(res, 0) + qty
+                    institutions[local_inst_id] = target_inst.model_copy(
+                        update={"treasury": treasury}
+                    )
+                else:
+                    loc = locations[agent.location_id]
+                    new_resources = dict(loc.resources)
+                    new_resources[res] = new_resources.get(res, 0) + qty
+                    new_capacities = dict(loc.capacities)
+                    if res in new_capacities and new_resources[res] > new_capacities[res]:
+                        new_capacities[res] = new_resources[res]
+                    locations[agent.location_id] = loc.model_copy(
+                        update={"resources": new_resources, "capacities": new_capacities}
+                    )
+
+            # 2. Transfer remaining currency to the institution's currency_reserve
+            if agent.currency > 0:
+                if local_inst_id is not None:
+                    target_inst = institutions[local_inst_id]
+                    institutions[local_inst_id] = target_inst.model_copy(
+                        update={"currency_reserve": target_inst.currency_reserve + agent.currency}
+                    )
+                elif institutions:
+                    target_id = next(
+                        (iid for iid in agent.institution_ids if iid in institutions),
+                        next(iter(institutions.keys())),
+                    )
+                    target_inst = institutions[target_id]
+                    institutions[target_id] = target_inst.model_copy(
+                        update={"currency_reserve": target_inst.currency_reserve + agent.currency}
+                    )
+                else:
+                    communal_id = f"communal-silo-{agent.location_id}"
+                    institutions[communal_id] = InstitutionRecord(
+                        institution_id=communal_id,
+                        name="communal-silo",
+                        founder_id=agent.agent_id,
+                        location_id=agent.location_id,
+                        member_ids=(),
+                        treasury={},
+                        currency_reserve=agent.currency,
+                        created_tick=next_tick,
+                    )
+
+            # 3. Clear deceased agent's inventory and currency and mark alive=False
+            agents[agent_id] = agent.model_copy(
+                update={"alive": False, "inventory": {}, "currency": 0}
+            )
+
+    if not changed:
+        return world
+
+    return world.model_copy(
+        update={
+            "agents": agents,
+            "locations": locations,
+            "institutions": institutions,
+        }
+    )
 
 
 def _expire_contracts(

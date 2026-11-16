@@ -281,3 +281,93 @@ def test_scheduler_with_mock_inference_backend() -> None:
     assert report.passed is True
 
 
+def test_demographic_bottleneck_at_tick_1376_resolved() -> None:
+    """Verifies that the demographic bottleneck extinction at tick 1,376 is resolved.
+
+    When senescent founder agents expire at the lifespan boundary (tick 1,376), their accumulated
+    wealth is recycled into the local communal silo treasury and currency reserve.
+    Under compound drought and famine stress, living juvenile and reproductive offspring
+    withdraw from the communal silo, preserving population viability and exact invariants.
+    """
+    engine = SocialSandboxEngine(
+        default_seed=42,
+        num_agents=2,
+        num_locations=1,
+        lifespan=1376,
+        adulthood_age=300,
+        max_ticks=2000,
+    )
+    s0 = engine.reset(seed=42, run_id="demographic-bottleneck-1376", initial_agent_age=350)
+
+    # 1. Founder agent-0 establishes communal silo
+    tr_inst = engine.step(
+        s0,
+        Action(
+            agent_id="agent-0",
+            action_type=ActionType.FOUND_INSTITUTION,
+            params={"institution_id": "communal-silo", "name": "communal-silo", "seed_currency": 5},
+        ),
+    )
+    assert tr_inst.emission.data["accepted"] is True
+    w1 = WorldState.from_state(tr_inst.next_state)
+
+    # 2. Spawn offspring child-0 (descendant generation)
+    w1_agents = dict(w1.agents)
+    w1_agents["child-0"] = w1.agents["agent-0"].model_copy(
+        update={
+            "agent_id": "child-0",
+            "born_at": 1000,
+            "parents": ("agent-0",),
+            "lineage_id": "lineage-0",
+            "generation": 1,
+            "institution_ids": (),
+            "inventory": {"food": 0},
+            "currency": 5,
+            "energy": 0.5,
+            "alive": True,
+        }
+    )
+    # Rebalance initial accounting for offspring currency/food so invariants hold
+    accounting = w1.accounting.model_copy(
+        update={"initial_currency": w1.accounting.initial_currency + 5}
+    )
+    w_with_offspring = w1.model_copy(update={"agents": w1_agents, "accounting": accounting})
+
+    # 3. Fast-forward world tick to 1,375 (right before founder lifespan expiration at 1,376)
+    w_fast = w_with_offspring.model_copy(update={"tick": 1375})
+    s_fast = w_fast.to_state()
+
+    cfg = DevelopmentConfig(adolescence=100, adulthood=300, elderhood=1000, lifespan=1376)
+    scheduler = PopulationScheduler(
+        engine=engine,
+        initial_state=s_fast,
+        config=cfg,
+        run_id="demographic-bottleneck-1376",
+    )
+
+    # 4. Step scheduler across the tick 1,376 boundary under drought stress
+    metrics = scheduler.run_generation(
+        steps=5,
+        seed=42,
+        drought_interval=2,
+        drought_severity=0.8,
+    )
+
+    # 5. Verify demographics: founders expired, but living generation survived
+    w_end = WorldState.from_state(scheduler.state)
+    assert w_end.tick >= 1376
+    # Founder agent-0 reached lifespan and expired
+    assert w_end.agents["agent-0"].alive is False
+    assert w_end.agents["agent-0"].inventory == {}
+    assert w_end.agents["agent-0"].currency == 0
+
+    # Offspring child-0 survived by withdrawing food from communal silo
+    assert w_end.agents["child-0"].alive is True
+    assert metrics.active_population >= 1
+    assert w_end.agents["child-0"].inventory.get("food", 0) >= 1 or w_end.agents["child-0"].energy >= 0.5
+
+    # Invariants strictly hold across the demographic bottleneck boundary
+    report = check_invariants(w_fast, w_end)
+    assert report.passed is True
+
+

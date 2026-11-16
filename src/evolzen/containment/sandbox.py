@@ -155,7 +155,7 @@ class GVisorSandbox:
             "except Exception:\n"
             "    pass\n"
             f"raw_input = {input_json_repr}\n"
-            "input_data = json.loads(raw_input) if raw_input != 'None' else None\n"
+            "input_data = json.loads(raw_input) if raw_input not in (None, 'None') else None\n"
             f"exec(compile({repr(code)}, '<sandboxed_code>', 'exec'), {{'__name__': '__main__', 'input_data': input_data}})\n"
         )
         return [

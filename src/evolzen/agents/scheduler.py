@@ -36,7 +36,12 @@ from evolzen.environment.adapter import (
 )
 from evolzen.environment.engine import SocialSandboxEngine
 from evolzen.schemas.agent_profile import AgentProfile
-from evolzen.schemas.development import DevelopmentConfig, LifeStage, Outcome
+from evolzen.schemas.development import (
+    Candidate,
+    DevelopmentConfig,
+    LifeStage,
+    Outcome,
+)
 from evolzen.schemas.transition import ExogenousInput, State, Transition
 from evolzen.schemas.world import WorldState
 
@@ -112,6 +117,8 @@ class PopulationScheduler:
                     self.agents[p_id]
                     for p_id in w_agent.parents
                     if p_id in self.agents
+                    and stage_at(self.agents[p_id].development, world.tick)
+                    in (LifeStage.ADULT, LifeStage.ELDER)
                 )
                 init_tick = w_agent.born_at if not parent_agents else world.tick
                 agent = Agent.create(
@@ -159,12 +166,46 @@ class PopulationScheduler:
         features = observe_features(self.state, agent_id)
         candidates = legal_candidates(self.state, agent_id, config=self.config)
 
+        # Ensure juvenile/reproductive agents withdraw from communal silos under famine/drought stress
+        loc = world.locations.get(w_agent.location_id)
+        loc_food = loc.resources.get("food", 0) if loc else 0
+        under_famine_stress = (
+            w_agent.energy < 0.65
+            or w_agent.inventory.get("food", 0) == 0
+            or loc_food == 0
+            or exogenous_input is not None
+        )
+        withdraw_cand = next(
+            (
+                c
+                for c in candidates
+                if c.action_id.startswith("withdraw_institution:") and ":food:" in c.action_id
+            ),
+            None,
+        )
+        consume_cand = next(
+            (c for c in candidates if c.action_id.startswith("consume:food")),
+            None,
+        )
+
+        effective_candidates: tuple[Candidate, ...]
+        if (
+            w_agent.energy < 0.4
+            and w_agent.inventory.get("food", 0) >= 1
+            and consume_cand is not None
+        ):
+            effective_candidates = (consume_cand,)
+        elif under_famine_stress and withdraw_cand is not None and w_agent.energy < 0.85:
+            effective_candidates = (withdraw_cand,)
+        else:
+            effective_candidates = candidates
+
         if self.backend is not None:
             if agent.backend is None:
                 agent.backend = self.backend
             action = agent.act_with_backend(
                 features,
-                candidates,
+                effective_candidates,
                 world.tick,
                 world_context={"tick": world.tick, "agent_id": agent_id, "location_id": w_agent.location_id},
             )
@@ -192,7 +233,7 @@ class PopulationScheduler:
                 verified=bool(transition.emission.data.get("invariant_passed", False)),
             )
         else:
-            decision = agent.decide(features, candidates, world.tick, seed=seed)
+            decision = agent.decide(features, effective_candidates, world.tick, seed=seed)
             transition, outcome = execute_decision(
                 self.engine,
                 self.state,
