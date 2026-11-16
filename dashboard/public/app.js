@@ -178,10 +178,16 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       desc: '64 Procedural Humanoid Citizens · Hats, Props & Floating Badges · L∞ Augmented Chebyshev Scalarization',
       layout: 'unified',
       subsystem: 'tab-environment',
-      camera: { pos: new THREE.Vector3(530, 45, 620), target: new THREE.Vector3(500, 5, 520) },
+      camera: { pos: new THREE.Vector3(527, 18.5, 547), target: new THREE.Vector3(500, 6.0, 520) },
       action: () => {
         if (state.agents && state.agents.length > 0) {
-          inspectAgent(state.agents[0], true);
+          const ag = state.agents[0];
+          inspectAgent(ag, true);
+          if (state.three && state.three.camera && state.three.controls) {
+            const camOffset = 38 / Math.SQRT2;
+            state.three.camTargetPos = new THREE.Vector3(ag.position.x - camOffset, 18.5, ag.position.z - camOffset);
+            state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 6.0, ag.position.z);
+          }
         }
       }
     },
@@ -1936,17 +1942,19 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       avatar.group.position.set(avatar.currentPos.x, 0, avatar.currentPos.z);
     });
 
-    // 2. Third-Person Follow Camera Mode
+    // 2. Third-Person Follow Camera Mode (Comfortably frames 6.3m avatar & 11.9m billboard badge)
     if (state.followingAgentId && camera && controls) {
       const followed = state.three.agentMeshes.find(a => a.data.id === state.followingAgentId);
       if (followed) {
         const heading = followed.group.rotation.y;
-        const targetCamX = followed.currentPos.x - Math.sin(heading) * 14;
-        const targetCamZ = followed.currentPos.z - Math.cos(heading) * 14;
-        const targetCamY = 7.5;
+        const camDistance = 38.0;
+        const camHeight = 18.5;
+        const targetCamX = followed.currentPos.x - Math.sin(heading) * camDistance;
+        const targetCamZ = followed.currentPos.z - Math.cos(heading) * camDistance;
+        const targetCamY = camHeight;
 
         camera.position.lerp(new THREE.Vector3(targetCamX, targetCamY, targetCamZ), 0.08);
-        controls.target.lerp(new THREE.Vector3(followed.currentPos.x, 1.4, followed.currentPos.z), 0.08);
+        controls.target.lerp(new THREE.Vector3(followed.currentPos.x, 6.0, followed.currentPos.z), 0.08);
       }
     } else if (camTargetPos && camLookAtPos && camera && controls) {
       camera.position.lerp(camTargetPos, 0.05);
@@ -2610,8 +2618,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
           inspectAgent(ag, true, true);
           state.followingAgentId = ag.id;
           if (state.three.camera && state.three.controls) {
-            state.three.camTargetPos = new THREE.Vector3(ag.position.x - 12, 8, ag.position.z - 12);
-            state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 1.2, ag.position.z);
+            const camOffset = 38 / Math.SQRT2;
+            state.three.camTargetPos = new THREE.Vector3(ag.position.x - camOffset, 18.5, ag.position.z - camOffset);
+            state.three.camLookAtPos = new THREE.Vector3(ag.position.x, 6.0, ag.position.z);
           }
         }
       });
