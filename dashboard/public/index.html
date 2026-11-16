@@ -78,6 +78,37 @@
   </div>
 
   <!-- ========================================================================= -->
+  <!-- Interactive Guided Portfolio Workflow Tour Bar                           -->
+  <!-- ========================================================================= -->
+  <div id="tourBanner" class="border-b border-cyan-900/50 bg-slate-950/95 py-2 px-4 font-mono text-xs flex flex-wrap items-center justify-between gap-3 text-cyan-300 shadow-md">
+    <div class="flex items-center gap-3 shrink-0">
+      <span class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-bold flex items-center gap-1.5 text-[11px]">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        PORTFOLIO WORKFLOW TOUR
+      </span>
+      <div id="tourStepDots" class="flex items-center gap-1.5">
+        <span class="tour-dot active" data-step="1"></span>
+        <span class="tour-dot" data-step="2"></span>
+        <span class="tour-dot" data-step="3"></span>
+        <span class="tour-dot" data-step="4"></span>
+        <span class="tour-dot" data-step="5"></span>
+        <span class="tour-dot" data-step="6"></span>
+      </div>
+      <span id="tourStepBadge" class="text-amber-400 font-bold text-[11px]">STEP 1/6:</span>
+      <span id="tourStepTitle" class="text-white font-semibold text-xs truncate max-w-sm sm:max-w-md">1×1 km Spatial Substrate & Deterministic Moore Machine</span>
+    </div>
+
+    <div class="flex items-center gap-2 text-xs">
+      <span id="tourStepDesc" class="text-slate-400 text-[11px] hidden xl:inline">10,378 Chunks · 340M Voxels · Zero Water Mandate</span>
+      <button id="btnTourPrev" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all font-mono" title="Previous Phase">◀ Prev</button>
+      <button id="btnTourNext" class="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-all font-mono" title="Next Phase">Next ▶</button>
+      <button id="btnTourAuto" class="px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-600/50 flex items-center gap-1 transition-all font-mono" title="Toggle Auto-Play Walkthrough">
+        <span id="tourAutoIcon">⚡</span> <span id="tourAutoText">Auto Tour</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- Main Header & Simulation Cockpit                                         -->
   <!-- ========================================================================= -->
   <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3">
@@ -108,10 +139,10 @@
         </div>
 
         <div class="flex items-center gap-1.5" role="toolbar" aria-label="Simulation Controls">
-          <button id="btnPlayPause" class="btn-ctrl px-3 py-1 text-xs rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-1.5 transition-all" title="Toggle Simulation Play/Pause">
+          <button id="btnPlayPause" class="btn-ctrl px-3 py-1 text-xs rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium flex items-center gap-1.5 transition-all" title="Toggle Simulation Play/Pause (Shortcut: Space)">
             <span id="playIcon">▶</span> <span id="playText">RUN</span>
           </button>
-          <button id="btnStep1" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 1 Tick">+1</button>
+          <button id="btnStep1" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 1 Tick (Shortcut: +)">+1</button>
           <button id="btnStep5" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 5 Ticks">+5</button>
           <button id="btnStep25" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono transition-all" title="Advance 25 Ticks">+25</button>
           <button id="btnReset" class="btn-ctrl px-2.5 py-1 text-xs rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 font-mono transition-all" title="Reset World Simulation">RESET</button>
@@ -136,39 +167,55 @@
 
     </div>
 
-    <!-- Navigation Tabs -->
-    <nav class="max-w-7xl mx-auto mt-3 flex items-center gap-1 overflow-x-auto no-scrollbar border-t border-slate-800/60 pt-2 text-xs font-medium" role="tablist" aria-label="Dashboard Sections">
-      <button class="nav-tab active flex items-center gap-2 px-3 py-1.5 rounded-lg text-cyan-400 bg-cyan-950/40 border border-cyan-800/50" data-tab="tab-map" role="tab" aria-selected="true" aria-controls="tab-map">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>
-        <span>3D World & Substrate</span>
-      </button>
-      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-environment" role="tab" aria-selected="false" aria-controls="tab-environment">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        <span>Environment Logic & Invariants</span>
-      </button>
-      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-economy" role="tab" aria-selected="false" aria-controls="tab-economy">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-        <span>Market Economy & Wealth</span>
-      </button>
-      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-library" role="tab" aria-selected="false" aria-controls="tab-library">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        <span>Verified Rule Library (gVisor)</span>
-      </button>
-      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-orange-400 hover:text-orange-300 hover:bg-orange-950/30 border border-transparent hover:border-orange-500/30" data-tab="tab-pipeline" role="tab" aria-selected="false" aria-controls="tab-pipeline">
-        <svg class="w-3.5 h-3.5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" y1="9" x2="6" y2="21"></line></svg>
-        <span>Architecture & Staged LLM Route</span>
-      </button>
-      <button class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-audit" role="tab" aria-selected="false" aria-controls="tab-audit">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15l-2 5l9-11h-7l2-5l-9 11h7z"></path></svg>
-        <span>Source-Audit Certificate</span>
-      </button>
-    </nav>
+    <!-- Navigation & Workspace Layout Switcher -->
+    <div class="max-w-7xl mx-auto mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/60 pt-2 text-xs">
+      
+      <!-- Workspace Layout Selector (Unified / Split / Quad / Focus) -->
+      <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800 font-mono text-[11px]" role="toolbar" aria-label="Workspace Layout Switcher">
+        <span class="text-[10px] uppercase text-slate-500 font-bold px-1.5">LAYOUT:</span>
+        <button class="layout-btn active px-2.5 py-1 rounded text-cyan-300 bg-cyan-950/60 border border-cyan-700/50 font-bold flex items-center gap-1.5" data-layout="unified" title="Unified Cockpit: 3D Substrate + Docked Subsystem Deck (Shortcut: U)">
+          <span>🎛️</span> <span>Unified Cockpit</span>
+        </button>
+        <button class="layout-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5" data-layout="split" title="Split Workspace: 3D Left + Subsystem Right (Shortcut: S)">
+          <span>⊞</span> <span>Split View</span>
+        </button>
+        <button class="layout-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5" data-layout="quad" title="Quad Matrix: 4-Way Concurrency Grid (Shortcut: Q)">
+          <span>⬚</span> <span>Quad Matrix</span>
+        </button>
+        <button class="layout-btn px-2.5 py-1 rounded text-slate-400 hover:text-slate-200 flex items-center gap-1.5" data-layout="focus" title="Focus Mode: Full-Window Single Subsystem Deep-Dive">
+          <span>🔍</span> <span>Focus Module</span>
+        </button>
+      </div>
+
+      <!-- Quick Subsystem Direct Navigation Tabs -->
+      <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar font-medium font-mono text-xs" role="tablist" aria-label="Dashboard Subsystem Tabs">
+        <button class="nav-tab active flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-cyan-400 bg-cyan-950/40 border border-cyan-800/50" data-tab="tab-map" role="tab" aria-selected="true" aria-controls="tab-map">
+          <span>🌐 3D Substrate</span>
+        </button>
+        <button class="nav-tab flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-environment" role="tab" aria-selected="false" aria-controls="tab-environment">
+          <span>🌾 Environment</span>
+        </button>
+        <button class="nav-tab flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-economy" role="tab" aria-selected="false" aria-controls="tab-economy">
+          <span>⚖️ Economy</span>
+        </button>
+        <button class="nav-tab flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-library" role="tab" aria-selected="false" aria-controls="tab-library">
+          <span>📜 Rule Library</span>
+        </button>
+        <button class="nav-tab flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-orange-400 hover:text-orange-300 hover:bg-orange-950/30 border border-transparent hover:border-orange-500/30" data-tab="tab-pipeline" role="tab" aria-selected="false" aria-controls="tab-pipeline">
+          <span>⚡ Pipeline</span>
+        </button>
+        <button class="nav-tab flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50" data-tab="tab-audit" role="tab" aria-selected="false" aria-controls="tab-audit">
+          <span>🛡️ Audit</span>
+        </button>
+      </nav>
+
+    </div>
   </header>
 
   <!-- ========================================================================= -->
-  <!-- Tab Contents Container                                                    -->
+  <!-- Tab Contents & Unified Workspace Container                                -->
   <!-- ========================================================================= -->
-  <main class="max-w-7xl mx-auto px-4 lg:px-8 py-5">
+  <main id="mainWorkspace" class="workspace-layout-unified max-w-7xl mx-auto px-4 lg:px-8 py-4 space-y-6">
 
     <!-- ======================================================================= -->
     <!-- TAB 1: 3D WORLD SPATIAL SUBSTRATE OVERHAUL                              -->
@@ -347,9 +394,50 @@
     </section>
 
     <!-- ======================================================================= -->
-    <!-- TAB 2: ENVIRONMENT LOGIC & INVARIANTS                                  -->
+    <!-- DOCKED SUBSYSTEM MATRIX CONSOLE                                         -->
     <!-- ======================================================================= -->
-    <section id="tab-environment" class="tab-pane space-y-5" role="tabpanel" aria-labelledby="tab-environment">
+    <section id="subsystemSection" class="workspace-module space-y-4">
+      
+      <!-- Subsystem Console Header -->
+      <div id="dockHeader" class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl shadow-lg">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[10px] uppercase font-mono font-bold text-slate-400 px-2 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+            <span>SUBSYSTEM CONSOLE:</span>
+          </span>
+          <div class="flex items-center gap-1 overflow-x-auto no-scrollbar font-mono text-xs" role="tablist" aria-label="Subsystem Console Dock">
+            <button class="subsystem-pill active flex items-center gap-1.5 px-3 py-1 rounded-lg text-cyan-400 bg-cyan-950/60 border border-cyan-700/50 transition-all font-medium" data-subsystem="tab-environment" role="tab" aria-selected="true">
+              <span>🌾</span> <span>Environment</span>
+            </button>
+            <button class="subsystem-pill flex items-center gap-1.5 px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all font-medium" data-subsystem="tab-economy" role="tab" aria-selected="false">
+              <span>⚖️</span> <span>Economy</span>
+            </button>
+            <button class="subsystem-pill flex items-center gap-1.5 px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all font-medium" data-subsystem="tab-library" role="tab" aria-selected="false">
+              <span>📜</span> <span>Rule Library</span>
+            </button>
+            <button class="subsystem-pill flex items-center gap-1.5 px-3 py-1 rounded-lg text-orange-400 hover:text-orange-300 hover:bg-orange-950/30 transition-all font-medium" data-subsystem="tab-pipeline" role="tab" aria-selected="false">
+              <span>⚡</span> <span>Pipeline</span>
+            </button>
+            <button class="subsystem-pill flex items-center gap-1.5 px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all font-medium" data-subsystem="tab-audit" role="tab" aria-selected="false">
+              <span>🛡️</span> <span>Audit</span>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="dockActiveBadge" class="text-xs font-mono text-cyan-400 font-semibold hidden sm:inline">Phase 1.1 Moore Machine</span>
+          <button id="btnFocusDock" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono flex items-center gap-1.5 border border-slate-700 transition-all" title="Expand to Dedicated Focus Mode">
+            <span>⤢</span> <span>Focus Module</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Container holding all 5 Subsystem Panels -->
+      <div id="subsystemPanesContainer" class="subsystem-container">
+
+        <!-- ======================================================================= -->
+        <!-- TAB 2: ENVIRONMENT LOGIC & INVARIANTS                                  -->
+        <!-- ======================================================================= -->
+        <section id="tab-environment" class="tab-pane active space-y-5" role="tabpanel" aria-labelledby="tab-environment">
       
       <!-- Top Overview Metrics -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -739,6 +827,9 @@
       </div>
 
     </section>
+
+      </div> <!-- /#subsystemPanesContainer -->
+    </section> <!-- /#subsystemSection -->
 
   </main>
 
