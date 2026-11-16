@@ -152,32 +152,229 @@ let autoplayTimer = null;
 let autoplayActive = false;
 let autoplayIntervalMs = 850; // Calibrated for smooth, observable pacing
 
+// ---------------------------------------------------------------------------
+// 2a. Dynamic Multi-Step Markov Routines & Landmark Coordinates
+// ---------------------------------------------------------------------------
+const FARM_PLOTS = Array.from({ length: 10 }, (_, i) => ({
+  index: i + 1,
+  x: 48,
+  z: i * 100 + 50,
+  label: `West Farm Belt (Plot #${i + 1})`
+}));
+
+const MUNICIPAL_SITES = [
+  { x: 450, z: 450, label: 'Municipal Hall Foundation' },
+  { x: 450, z: 455, label: 'Municipal Construction Site' }
+];
+
+const WORKSHOP_SITES = [
+  { x: 450, z: 250, label: 'Timber & Quarry Workshops' },
+  { x: 460, z: 245, label: 'Workshop Timber Staging Depot' }
+];
+
+const AGORA_SITES = [
+  { x: 550, z: 650, label: 'Central Agora Market' },
+  { x: 565, z: 635, label: 'Agora North Stall (Grains & Produce)' },
+  { x: 535, z: 665, label: 'Agora South Stall (Hardware & Tools)' },
+  { x: 570, z: 650, label: 'Agora East Concourse' }
+];
+
+const PARK_SITES = [
+  { x: 500, z: 500, label: 'Central Fountain' },
+  { x: 500, z: 505, label: 'Central Park Conservatory' },
+  { x: 510, z: 495, label: 'Central Park Commons' }
+];
+
+const HOSPITAL_SITES = [
+  { x: 450, z: 555, label: 'Hospital Trauma Center' },
+  { x: 450, z: 545, label: 'Hospital Clinical Records & Pharmacy' }
+];
+
+const ACADEMY_SITES = [
+  { x: 650, z: 550, label: 'Civic Academy' }
+];
+
+const COMMUNAL_SILO_SITE = { x: 520, z: 620, label: 'Communal Granary Silo' };
+
+const MEDIC_HOUSE_CALLS = [
+  { x: 160, z: 114, label: 'Elderly Dwelling #14 (North District)' },
+  { x: 360, z: 160, label: 'Elderly Dwelling #42 (North District)' },
+  { x: 760, z: 414, label: 'Elderly Residence #184 (East District)' },
+  { x: 860, z: 560, label: 'Elderly Residence #216 (East District)' },
+  { x: 314, z: 814, label: 'Elderly Cottage #240 (South District)' },
+  { x: 614, z: 814, label: 'Elderly Cottage #285 (South District)' }
+];
+
+const CIVIC_AVENUES = [
+  { x: 500, z: 250, label: 'North Boulevard Promenade' },
+  { x: 750, z: 500, label: 'East Civic Avenue' },
+  { x: 500, z: 750, label: 'South Promenade Concourse' },
+  { x: 300, z: 500, label: 'West Arterial Concourse' }
+];
+
 function getAgentActivityDescription(agent) {
   if (!agent) return 'Standby in World';
+  const role = agent.role || 'Citizen';
+  const targetLabel = agent.target?.label || 'Civic Center';
   const houseIdx = agent.home_house_index || 1;
-  switch (agent.action) {
-    case 'GATHER_CROP':
-      return `Harvesting wheat at West Farm Belt (Plot #${(houseIdx % 10) + 1})`;
-    case 'REST_HOME':
-      return `Resting & recuperating in Dwelling #${houseIdx}`;
-    case 'WITHDRAW_INSTITUTION':
-      return `Withdrawing drought grain buffer from Communal Silo`;
-    case 'AUCTION_BID':
-      return `Bidding on grain order book at Central Agora Market`;
-    case 'MEDIC_CARE':
-      return `Receiving triage care at Hospital Trauma Center`;
-    case 'CRAFT_TOOL':
-      return `Forging iron tools & axes at Timber Workshop`;
-    case 'HYDRATE':
-      return `Drinking fresh spring water at Central Fountain`;
-    case 'CIVIC_TRANSMISSION':
-      return `Studying normative manuals at Civic Academy`;
-    case 'CONSTRUCT':
-      return `Raising masonry at Municipal Construction Site`;
-    case 'CIVIC_REST':
-      return `Socializing at Central Park Conservatory`;
+  const state = agent.routine_state || '';
+  const dist = (agent.position && agent.target)
+    ? Math.hypot(agent.target.x - agent.position.x, agent.target.z - agent.position.z)
+    : 0;
+  const isEnRoute = dist > (agent.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 6.0);
+
+  // 1. Emergency drought withdrawal
+  if (agent.action === 'WITHDRAW_INSTITUTION') {
+    return isEnRoute
+      ? 'Walking to Communal Granary Silo for emergency drought ration'
+      : 'Withdrawing emergency drought ration from Communal Granary Silo';
+  }
+
+  // 2. Urgent vital actions
+  if (agent.action === 'HYDRATE') {
+    return isEnRoute
+      ? 'Walking to Central Fountain to drink spring water'
+      : 'Drinking fresh spring water at Central Fountain';
+  }
+  if (agent.action === 'REST_HOME') {
+    return isEnRoute
+      ? `Returning to Dwelling #${houseIdx} to rest`
+      : `Resting & recuperating on front porch of Dwelling #${houseIdx}`;
+  }
+
+  // 3. Role-specific multi-step Markov routines
+  switch (role) {
+    case 'Farmer': {
+      const plot = agent.farm_plot_index || ((houseIdx % 10) + 1);
+      if (state === 'DEPOSIT_GRAIN' || targetLabel.includes('Silo')) {
+        return isEnRoute
+          ? 'Walking to Communal Granary Silo to deposit surplus grain'
+          : 'Depositing surplus harvest into Communal Granary Silo';
+      }
+      if (state === 'TRADE_AGORA' || agent.action === 'AUCTION_BID') {
+        return isEnRoute
+          ? 'Walking to Central Agora Market to trade grain yields'
+          : 'Trading surplus grain yields & bidding at Central Agora Market';
+      }
+      if (state === 'SOCIALIZE_PARK' || agent.action === 'CIVIC_REST') {
+        return isEnRoute
+          ? 'Walking to Central Park Commons to socialize'
+          : 'Socializing with agrarian neighbors at Central Park Commons';
+      }
+      return isEnRoute
+        ? `Walking to West Farm Belt (Plot #${plot}) to harvest wheat`
+        : `Harvesting golden wheat at West Farm Belt (Plot #${plot})`;
+    }
+
+    case 'Builder': {
+      if (state === 'SURVEY_FOUNDATION') {
+        return isEnRoute
+          ? 'Walking to Municipal Hall site to survey foundation'
+          : 'Surveying structural foundation at Municipal Hall Site';
+      }
+      if (state === 'HAUL_MATERIALS' || targetLabel.includes('Workshop')) {
+        return isEnRoute
+          ? 'Walking to Timber & Quarry Workshop to haul materials'
+          : 'Hauling dressed stone & timber blocks from Workshop depot';
+      }
+      if (state === 'CONSTRUCT_WALLS' || agent.action === 'CONSTRUCT') {
+        return isEnRoute
+          ? 'Returning to Municipal Hall site to raise masonry walls'
+          : 'Raising masonry walls & framing at Municipal Construction Site';
+      }
+      if (state === 'REST_CONSERVATORY' || targetLabel.includes('Conservatory')) {
+        return isEnRoute
+          ? 'Walking to Central Park Conservatory to recuperate'
+          : 'Recuperating at Central Park Glass Conservatory';
+      }
+      return isEnRoute
+        ? `Walking to ${targetLabel} for construction work`
+        : `Constructing civic infrastructure at ${targetLabel}`;
+    }
+
+    case 'Crafter': {
+      if (state === 'FORGE_TOOLS' || (agent.action === 'CRAFT_TOOL' && targetLabel.includes('Workshop'))) {
+        return isEnRoute
+          ? 'Walking to Timber & Quarry Workshop to forge tools'
+          : 'Forging tempered iron tools & hardware at Timber Workshop';
+      }
+      if (state === 'DELIVER_TOOLS' || targetLabel.includes('Agora') || agent.action === 'AUCTION_BID') {
+        return isEnRoute
+          ? 'Walking to Agora Market stalls to deliver finished tools'
+          : 'Delivering forged iron tools to Agora Market hardware stalls';
+      }
+      if (state === 'HYDRATE_FOUNTAIN' || agent.action === 'HYDRATE') {
+        return isEnRoute
+          ? 'Walking to Central Fountain to hydrate'
+          : 'Drinking fresh spring water at Central Fountain';
+      }
+      return isEnRoute
+        ? `Walking to ${targetLabel}`
+        : `Fabricating artisan goods at ${targetLabel}`;
+    }
+
+    case 'Trader': {
+      if (state === 'INSPECT_SILOS' || targetLabel.includes('Silo')) {
+        return isEnRoute
+          ? 'Walking to Communal Granary Silo to inspect inventory'
+          : 'Auditing grain reserves & commodity inventory at Communal Silo';
+      }
+      if (state === 'WALK_STALLS') {
+        return isEnRoute
+          ? `Walking across merchant concourse towards ${targetLabel}`
+          : `Arbitraging grain & tool prices across ${targetLabel}`;
+      }
+      if (state === 'SOCIALIZE_PARK' || agent.action === 'CIVIC_REST') {
+        return isEnRoute
+          ? 'Walking to Central Park to meet trade partners'
+          : 'Networking & discussing market yields at Central Park';
+      }
+      return isEnRoute
+        ? 'Walking to Central Agora Market order book'
+        : 'Bidding & asking on commodity order book at Central Agora';
+    }
+
+    case 'Medic': {
+      if (state === 'HOUSE_CALL' || targetLabel.includes('Dwelling') || targetLabel.includes('Residence') || targetLabel.includes('Cottage') || targetLabel.includes('Home')) {
+        return isEnRoute
+          ? `En route to ${targetLabel} for medical house call`
+          : `Conducting residential medical house call at ${targetLabel}`;
+      }
+      if (state === 'HOSPITAL_RECORDS') {
+        return isEnRoute
+          ? 'Returning to Hospital Trauma Center to file records'
+          : 'Updating clinical records & medical inventory at Hospital';
+      }
+      return isEnRoute
+        ? 'Walking to Hospital Trauma Center'
+        : 'Delivering emergency trauma triage & care at Hospital Center';
+    }
+
+    case 'Generalist': {
+      if (state === 'STUDY_ACADEMY' || agent.action === 'CIVIC_TRANSMISSION') {
+        return isEnRoute
+          ? 'Walking to Civic Academy to study manuals'
+          : 'Studying civic governance & normative manuals at Civic Academy';
+      }
+      if (state === 'WALK_AVENUE') {
+        return isEnRoute
+          ? `Walking towards ${targetLabel}`
+          : `Patrolling & walking along ${targetLabel}`;
+      }
+      if (state === 'VISIT_CONSERVATORY' || targetLabel.includes('Conservatory')) {
+        return isEnRoute
+          ? 'Walking to Central Park Conservatory'
+          : 'Admiring flora & socializing at Central Park Conservatory';
+      }
+      return isEnRoute
+        ? `Walking along civic route towards ${targetLabel}`
+        : `Assisting civic operations at ${targetLabel}`;
+    }
+
     default:
-      return `${(agent.action || 'STANDBY').replace(/_/g, ' ')}`;
+      return isEnRoute
+        ? `Walking towards ${targetLabel}`
+        : `${(agent.action || 'Active in World').replace(/_/g, ' ')} at ${targetLabel}`;
   }
 }
 
@@ -222,32 +419,358 @@ const AGENT_NAMES = [
 ];
 
 const ROLES = [
-  { name: 'Farmer', color: '#10b981', target: { x: 50, z: 500, label: 'West Farm Belt' }, action: 'GATHER_CROP' },
-  { name: 'Builder', color: '#eab308', target: { x: 450, z: 450, label: 'Municipal Construction' }, action: 'CONSTRUCT' },
+  { name: 'Farmer', color: '#10b981', target: { x: 48, z: 50, label: 'West Farm Belt (Plot #1)' }, action: 'GATHER_CROP' },
+  { name: 'Builder', color: '#eab308', target: { x: 450, z: 450, label: 'Municipal Hall Foundation' }, action: 'CONSTRUCT' },
   { name: 'Crafter', color: '#8b5cf6', target: { x: 450, z: 250, label: 'Timber & Quarry Workshops' }, action: 'CRAFT_TOOL' },
-  { name: 'Trader', color: '#f59e0b', target: { x: 550, z: 650, label: 'Agora Central Market' }, action: 'AUCTION_BID' },
-  { name: 'Medic', color: '#ef4444', target: { x: 450, z: 550, label: 'Hospital ✚ Trauma' }, action: 'MEDIC_CARE' },
-  { name: 'Generalist', color: '#06b6d4', target: { x: 500, z: 500, label: 'Central Park / Commons' }, action: 'CIVIC_REST' }
+  { name: 'Trader', color: '#f59e0b', target: { x: 550, z: 650, label: 'Central Agora Market' }, action: 'AUCTION_BID' },
+  { name: 'Medic', color: '#ef4444', target: { x: 450, z: 550, label: 'Hospital Trauma Center' }, action: 'MEDIC_CARE' },
+  { name: 'Generalist', color: '#06b6d4', target: { x: 650, z: 550, label: 'Civic Academy' }, action: 'CIVIC_TRANSMISSION' }
 ];
 
 /**
- * Generate smooth multi-segment street waypoints connecting start to destination.
- * EvolZen world primary avenues run at X = 500, Z = 500 with street grid connections.
+ * Generate smooth multi-segment street waypoints along the city arterial grid.
+ * EvolZen world arteries run along North-South avenues (X: 100, 300, 450, 500, 550, 650, 750)
+ * and East-West crossways (Z: 250, 500, 750).
  */
 function generateWaypoints(start, destination) {
   const dist = Math.hypot(destination.x - start.x, destination.z - start.z);
-  if (dist < 35) {
+  if (dist < 28) {
     return [{ x: destination.x, z: destination.z, label: destination.label || 'Target' }];
   }
 
-  const waypoints = [];
-  // Midway arterial alignment along grid
-  const midX = (Math.abs(start.x - 500) < Math.abs(destination.x - 500)) ? 500 : destination.x;
-  const midZ = (Math.abs(start.z - 500) < Math.abs(destination.z - 500)) ? 500 : start.z;
+  const GRID_X = [100, 300, 450, 500, 550, 650, 750];
+  const GRID_Z = [250, 500, 750];
 
-  waypoints.push({ x: midX, z: midZ, label: 'Street Corridor' });
-  waypoints.push({ x: destination.x, z: destination.z, label: destination.label || 'Target' });
-  return waypoints;
+  let startStreetX = GRID_X[0];
+  let minStartDiff = Math.abs(start.x - GRID_X[0]);
+  for (const gx of GRID_X) {
+    const diff = Math.abs(start.x - gx);
+    if (diff < minStartDiff) {
+      minStartDiff = diff;
+      startStreetX = gx;
+    }
+  }
+
+  let destStreetX = GRID_X[0];
+  let minDestDiff = Math.abs(destination.x - GRID_X[0]);
+  for (const gx of GRID_X) {
+    const diff = Math.abs(destination.x - gx);
+    if (diff < minDestDiff) {
+      minDestDiff = diff;
+      destStreetX = gx;
+    }
+  }
+
+  let bestCrossZ = GRID_Z[0];
+  let minDetour = Infinity;
+  for (const gz of GRID_Z) {
+    const detour = Math.abs(start.z - gz) + Math.abs(destination.z - gz);
+    if (detour < minDetour) {
+      minDetour = detour;
+      bestCrossZ = gz;
+    }
+  }
+
+  const rawWaypoints = [];
+
+  // Step onto nearest street corridor if offset
+  if (Math.abs(start.x - startStreetX) > 12) {
+    rawWaypoints.push({ x: startStreetX, z: start.z, label: 'Street Access Corridor' });
+  }
+
+  // Follow avenue to cross street intersection
+  if (Math.abs(start.z - bestCrossZ) > 16) {
+    rawWaypoints.push({ x: startStreetX, z: bestCrossZ, label: 'Avenue Intersection' });
+  }
+
+  // Cross along street grid to destination avenue
+  if (Math.abs(startStreetX - destStreetX) > 16) {
+    rawWaypoints.push({ x: destStreetX, z: bestCrossZ, label: 'Civic Crossway' });
+  }
+
+  // Destination point
+  rawWaypoints.push({ x: destination.x, z: destination.z, label: destination.label || 'Target' });
+
+  // Filter duplicate/consecutive points
+  const filtered = [];
+  let prev = start;
+  for (const wp of rawWaypoints) {
+    const d = Math.hypot(wp.x - prev.x, wp.z - prev.z);
+    if (d > 5.0 || wp === rawWaypoints[rawWaypoints.length - 1]) {
+      filtered.push({ x: Math.round(wp.x * 10) / 10, z: Math.round(wp.z * 10) / 10, label: wp.label });
+      prev = wp;
+    }
+  }
+
+  return filtered.length > 0 ? filtered : [{ x: destination.x, z: destination.z, label: destination.label || 'Target' }];
+}
+
+/**
+ * Configure agent state, destination target, and action for a Markov routine phase.
+ */
+function setAgentMarkovState(agent, stateName) {
+  agent.routine_state = stateName;
+  agent.ticks_at_target = 0;
+  const role = agent.role;
+
+  switch (role) {
+    case 'Farmer': {
+      if (stateName === 'HARVEST_WHEAT') {
+        const plotIdx = agent.farm_plot_index || 1;
+        const plot = FARM_PLOTS[(plotIdx - 1) % 10];
+        agent.target = { x: plot.x, z: plot.z, label: plot.label };
+        agent.action = 'GATHER_CROP';
+      } else if (stateName === 'DEPOSIT_GRAIN') {
+        agent.target = { x: COMMUNAL_SILO_SITE.x, z: COMMUNAL_SILO_SITE.z, label: COMMUNAL_SILO_SITE.label };
+        agent.action = 'GATHER_CROP';
+      } else if (stateName === 'TRADE_AGORA') {
+        agent.target = { x: AGORA_SITES[0].x, z: AGORA_SITES[0].z, label: AGORA_SITES[0].label };
+        agent.action = 'AUCTION_BID';
+      } else if (stateName === 'SOCIALIZE_PARK') {
+        agent.target = { x: PARK_SITES[2].x, z: PARK_SITES[2].z, label: PARK_SITES[2].label };
+        agent.action = 'CIVIC_REST';
+      } else {
+        // REST_PORCH
+        agent.target = { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` };
+        agent.action = 'REST_HOME';
+      }
+      break;
+    }
+
+    case 'Builder': {
+      if (stateName === 'SURVEY_FOUNDATION') {
+        agent.target = { x: MUNICIPAL_SITES[0].x, z: MUNICIPAL_SITES[0].z, label: MUNICIPAL_SITES[0].label };
+        agent.action = 'CONSTRUCT';
+      } else if (stateName === 'HAUL_MATERIALS') {
+        agent.target = { x: WORKSHOP_SITES[1].x, z: WORKSHOP_SITES[1].z, label: WORKSHOP_SITES[1].label };
+        agent.action = 'CRAFT_TOOL';
+      } else if (stateName === 'CONSTRUCT_WALLS') {
+        agent.target = { x: MUNICIPAL_SITES[1].x, z: MUNICIPAL_SITES[1].z, label: MUNICIPAL_SITES[1].label };
+        agent.action = 'CONSTRUCT';
+      } else if (stateName === 'REST_CONSERVATORY') {
+        agent.target = { x: PARK_SITES[1].x, z: PARK_SITES[1].z, label: PARK_SITES[1].label };
+        agent.action = 'CIVIC_REST';
+      } else {
+        // REST_PORCH
+        agent.target = { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` };
+        agent.action = 'REST_HOME';
+      }
+      break;
+    }
+
+    case 'Crafter': {
+      if (stateName === 'FORGE_TOOLS') {
+        agent.target = { x: WORKSHOP_SITES[0].x, z: WORKSHOP_SITES[0].z, label: WORKSHOP_SITES[0].label };
+        agent.action = 'CRAFT_TOOL';
+      } else if (stateName === 'DELIVER_TOOLS') {
+        agent.target = { x: AGORA_SITES[2].x, z: AGORA_SITES[2].z, label: AGORA_SITES[2].label };
+        agent.action = 'AUCTION_BID';
+      } else if (stateName === 'HYDRATE_FOUNTAIN') {
+        agent.target = { x: PARK_SITES[0].x, z: PARK_SITES[0].z, label: PARK_SITES[0].label };
+        agent.action = 'HYDRATE';
+      } else {
+        // REST_PORCH
+        agent.target = { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` };
+        agent.action = 'REST_HOME';
+      }
+      break;
+    }
+
+    case 'Trader': {
+      if (stateName === 'TRADE_AGORA') {
+        agent.target = { x: AGORA_SITES[0].x, z: AGORA_SITES[0].z, label: AGORA_SITES[0].label };
+        agent.action = 'AUCTION_BID';
+      } else if (stateName === 'INSPECT_SILOS') {
+        agent.target = { x: COMMUNAL_SILO_SITE.x, z: COMMUNAL_SILO_SITE.z, label: COMMUNAL_SILO_SITE.label };
+        agent.action = 'AUCTION_BID';
+      } else if (stateName === 'WALK_STALLS') {
+        agent.stall_index = ((agent.stall_index || 0) + 1) % AGORA_SITES.length;
+        const stall = AGORA_SITES[agent.stall_index];
+        agent.target = { x: stall.x, z: stall.z, label: stall.label };
+        agent.action = 'AUCTION_BID';
+      } else if (stateName === 'SOCIALIZE_PARK') {
+        agent.target = { x: PARK_SITES[2].x, z: PARK_SITES[2].z, label: PARK_SITES[2].label };
+        agent.action = 'CIVIC_REST';
+      } else {
+        // REST_PORCH
+        agent.target = { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` };
+        agent.action = 'REST_HOME';
+      }
+      break;
+    }
+
+    case 'Medic': {
+      if (stateName === 'HOSPITAL_TRAUMA') {
+        agent.target = { x: HOSPITAL_SITES[0].x, z: HOSPITAL_SITES[0].z, label: HOSPITAL_SITES[0].label };
+        agent.action = 'MEDIC_CARE';
+      } else if (stateName === 'HOUSE_CALL') {
+        agent.house_call_index = ((agent.house_call_index || 0) + 1) % MEDIC_HOUSE_CALLS.length;
+        const hc = MEDIC_HOUSE_CALLS[agent.house_call_index];
+        agent.target = { x: hc.x, z: hc.z, label: hc.label };
+        agent.action = 'MEDIC_CARE';
+      } else if (stateName === 'HOSPITAL_RECORDS') {
+        agent.target = { x: HOSPITAL_SITES[1].x, z: HOSPITAL_SITES[1].z, label: HOSPITAL_SITES[1].label };
+        agent.action = 'MEDIC_CARE';
+      } else if (stateName === 'HYDRATE_PARK') {
+        agent.target = { x: PARK_SITES[0].x, z: PARK_SITES[0].z, label: PARK_SITES[0].label };
+        agent.action = 'HYDRATE';
+      } else {
+        // REST_PORCH
+        agent.target = { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` };
+        agent.action = 'REST_HOME';
+      }
+      break;
+    }
+
+    case 'Generalist': {
+      if (stateName === 'STUDY_ACADEMY') {
+        agent.target = { x: ACADEMY_SITES[0].x, z: ACADEMY_SITES[0].z, label: ACADEMY_SITES[0].label };
+        agent.action = 'CIVIC_TRANSMISSION';
+      } else if (stateName === 'WALK_AVENUE') {
+        agent.avenue_index = ((agent.avenue_index || 0) + 1) % CIVIC_AVENUES.length;
+        const ave = CIVIC_AVENUES[agent.avenue_index];
+        agent.target = { x: ave.x, z: ave.z, label: ave.label };
+        agent.action = 'CIVIC_REST';
+      } else if (stateName === 'VISIT_CONSERVATORY') {
+        agent.target = { x: PARK_SITES[1].x, z: PARK_SITES[1].z, label: PARK_SITES[1].label };
+        agent.action = 'CIVIC_REST';
+      } else {
+        // REST_PORCH
+        agent.target = { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` };
+        agent.action = 'REST_HOME';
+      }
+      break;
+    }
+    default: {
+      agent.target = { x: agent.home.x, z: agent.home.z, label: 'Front Porch / Dwelling' };
+      agent.action = 'REST_HOME';
+      break;
+    }
+  }
+
+  agent.waypoints = generateWaypoints(agent.position, agent.target);
+  agent.activity_text = getAgentActivityDescription(agent);
+}
+
+/**
+ * Transitions agent to the next phase in their multi-step Markov chain.
+ */
+function advanceAgentMarkovRoutine(agent) {
+  const role = agent.role;
+  let nextState = 'REST_PORCH';
+
+  switch (role) {
+    case 'Farmer': {
+      if (agent.routine_state === 'HARVEST_WHEAT') {
+        nextState = 'DEPOSIT_GRAIN';
+      } else if (agent.routine_state === 'DEPOSIT_GRAIN') {
+        nextState = 'TRADE_AGORA';
+      } else if (agent.routine_state === 'TRADE_AGORA') {
+        nextState = Math.random() < 0.5 ? 'REST_PORCH' : 'SOCIALIZE_PARK';
+      } else {
+        // Cycle to next farm plot across Plots #1 through #10
+        agent.farm_plot_index = ((agent.farm_plot_index || 1) % 10) + 1;
+        nextState = 'HARVEST_WHEAT';
+      }
+      break;
+    }
+
+    case 'Builder': {
+      if (agent.routine_state === 'SURVEY_FOUNDATION') {
+        nextState = 'HAUL_MATERIALS';
+      } else if (agent.routine_state === 'HAUL_MATERIALS') {
+        nextState = 'CONSTRUCT_WALLS';
+      } else if (agent.routine_state === 'CONSTRUCT_WALLS') {
+        nextState = Math.random() < 0.6 ? 'REST_CONSERVATORY' : 'REST_PORCH';
+      } else {
+        nextState = 'SURVEY_FOUNDATION';
+      }
+      break;
+    }
+
+    case 'Crafter': {
+      if (agent.routine_state === 'FORGE_TOOLS') {
+        nextState = 'DELIVER_TOOLS';
+      } else if (agent.routine_state === 'DELIVER_TOOLS') {
+        nextState = 'HYDRATE_FOUNTAIN';
+      } else if (agent.routine_state === 'HYDRATE_FOUNTAIN') {
+        nextState = Math.random() < 0.7 ? 'FORGE_TOOLS' : 'REST_PORCH';
+      } else {
+        nextState = 'FORGE_TOOLS';
+      }
+      break;
+    }
+
+    case 'Trader': {
+      if (agent.routine_state === 'TRADE_AGORA') {
+        nextState = 'INSPECT_SILOS';
+      } else if (agent.routine_state === 'INSPECT_SILOS') {
+        nextState = 'WALK_STALLS';
+      } else if (agent.routine_state === 'WALK_STALLS') {
+        nextState = Math.random() < 0.6 ? 'SOCIALIZE_PARK' : 'REST_PORCH';
+      } else {
+        nextState = 'TRADE_AGORA';
+      }
+      break;
+    }
+
+    case 'Medic': {
+      if (agent.routine_state === 'HOSPITAL_TRAUMA') {
+        nextState = 'HOUSE_CALL';
+      } else if (agent.routine_state === 'HOUSE_CALL') {
+        nextState = 'HOSPITAL_RECORDS';
+      } else if (agent.routine_state === 'HOSPITAL_RECORDS') {
+        nextState = Math.random() < 0.5 ? 'HYDRATE_PARK' : 'REST_PORCH';
+      } else {
+        nextState = 'HOSPITAL_TRAUMA';
+      }
+      break;
+    }
+
+    case 'Generalist': {
+      if (agent.routine_state === 'STUDY_ACADEMY') {
+        nextState = 'WALK_AVENUE';
+      } else if (agent.routine_state === 'WALK_AVENUE') {
+        nextState = 'VISIT_CONSERVATORY';
+      } else if (agent.routine_state === 'VISIT_CONSERVATORY') {
+        nextState = 'REST_PORCH';
+      } else {
+        nextState = 'STUDY_ACADEMY';
+      }
+      break;
+    }
+
+    default:
+      nextState = 'REST_PORCH';
+  }
+
+  setAgentMarkovState(agent, nextState);
+}
+
+function getMinTicksAtTarget(agent) {
+  switch (agent.routine_state) {
+    case 'HARVEST_WHEAT': return 3;
+    case 'DEPOSIT_GRAIN': return 2;
+    case 'TRADE_AGORA': return 3;
+    case 'SURVEY_FOUNDATION': return 2;
+    case 'HAUL_MATERIALS': return 2;
+    case 'CONSTRUCT_WALLS': return 3;
+    case 'FORGE_TOOLS': return 3;
+    case 'DELIVER_TOOLS': return 2;
+    case 'HYDRATE_FOUNTAIN': return 2;
+    case 'INSPECT_SILOS': return 2;
+    case 'WALK_STALLS': return 2;
+    case 'HOSPITAL_TRAUMA': return 3;
+    case 'HOUSE_CALL': return 3;
+    case 'HOSPITAL_RECORDS': return 2;
+    case 'STUDY_ACADEMY': return 3;
+    case 'WALK_AVENUE': return 2;
+    case 'VISIT_CONSERVATORY': return 2;
+    case 'REST_PORCH': return 3;
+    case 'SOCIALIZE_PARK': return 2;
+    case 'HYDRATE_PARK': return 2;
+    default: return 2;
+  }
 }
 
 function initializeAgents() {
@@ -258,16 +781,35 @@ function initializeAgents() {
     const roleInfo = ROLES[i % ROLES.length];
     const homeHouse = houses[i % houses.length] || [100, 100, 12, 10, 0];
     const homeX = homeHouse[0] + homeHouse[2] / 2;
-    // Place home resting location in front of house on sidewalk/porch, outdoors in plain sight
     const homeZ = homeHouse[1] + homeHouse[3] + 3.0;
-    
-    // Spread agents actively across work zones and civic avenues so the population is prominently visible
-    const isAtWork = Math.random() > 0.15;
-    const currentX = isAtWork ? (roleInfo.target.x + (Math.random() - 0.5) * 45) : homeX;
-    const currentZ = isAtWork ? (roleInfo.target.z + (Math.random() - 0.5) * 45) : homeZ;
-    const target = isAtWork ? { ...roleInfo.target } : { x: homeX, z: homeZ, label: 'Front Porch / Dwelling' };
-    
-    const initialAction = isAtWork ? roleInfo.action : 'REST_HOME';
+
+    const farmPlotIdx = ((i * 3) % 10) + 1;
+    const houseCallIdx = i % MEDIC_HOUSE_CALLS.length;
+    const stallIdx = i % AGORA_SITES.length;
+    const avenueIdx = i % CIVIC_AVENUES.length;
+
+    // Distribute initial states so population is actively dispersed across city
+    let initialRoutineState = 'REST_PORCH';
+    if (roleInfo.name === 'Farmer') {
+      const states = ['HARVEST_WHEAT', 'DEPOSIT_GRAIN', 'TRADE_AGORA', 'REST_PORCH'];
+      initialRoutineState = i === 0 ? 'HARVEST_WHEAT' : states[i % states.length];
+    } else if (roleInfo.name === 'Builder') {
+      const states = ['SURVEY_FOUNDATION', 'HAUL_MATERIALS', 'CONSTRUCT_WALLS', 'REST_CONSERVATORY'];
+      initialRoutineState = states[i % states.length];
+    } else if (roleInfo.name === 'Crafter') {
+      const states = ['FORGE_TOOLS', 'DELIVER_TOOLS', 'HYDRATE_FOUNTAIN', 'REST_PORCH'];
+      initialRoutineState = states[i % states.length];
+    } else if (roleInfo.name === 'Trader') {
+      const states = ['TRADE_AGORA', 'INSPECT_SILOS', 'WALK_STALLS', 'SOCIALIZE_PARK'];
+      initialRoutineState = states[i % states.length];
+    } else if (roleInfo.name === 'Medic') {
+      const states = ['HOSPITAL_TRAUMA', 'HOUSE_CALL', 'HOSPITAL_RECORDS', 'HYDRATE_PARK'];
+      initialRoutineState = states[i % states.length];
+    } else if (roleInfo.name === 'Generalist') {
+      const states = ['STUDY_ACADEMY', 'WALK_AVENUE', 'VISIT_CONSERVATORY', 'REST_PORCH'];
+      initialRoutineState = states[i % states.length];
+    }
+
     const agentObj = {
       id: `agent_${String(i + 1).padStart(2, '0')}`,
       name: `${AGENT_NAMES[i % AGENT_NAMES.length]}`,
@@ -275,11 +817,17 @@ function initializeAgents() {
       color: roleInfo.color,
       home_house_index: (i % houses.length) + 1,
       home: { x: homeX, z: homeZ },
-      target: target,
-      waypoints: generateWaypoints({ x: currentX, z: currentZ }, target),
-      position: { x: Math.round(currentX * 10) / 10, y: 0.5, z: Math.round(currentZ * 10) / 10 },
+      farm_plot_index: farmPlotIdx,
+      house_call_index: houseCallIdx,
+      stall_index: stallIdx,
+      avenue_index: avenueIdx,
+      routine_state: initialRoutineState,
+      ticks_at_target: Math.floor(Math.random() * 2),
+      target: { x: homeX, z: homeZ, label: 'Front Porch / Dwelling' },
+      position: { x: homeX, y: 0.5, z: homeZ },
       heading: 0,
-      action: initialAction,
+      action: 'REST_HOME',
+      waypoints: [],
       homeostasis: {
         food: Math.round(75 + Math.random() * 20),
         hydration: Math.round(80 + Math.random() * 18),
@@ -291,7 +839,17 @@ function initializeAgents() {
         kinship: Math.round(50 + Math.random() * 40)
       }
     };
+
+    setAgentMarkovState(agentObj, initialRoutineState);
+
+    // Place agent actively near target destination or home porch
+    if (Math.random() > 0.20) {
+      agentObj.position.x = +(agentObj.target.x + (Math.random() - 0.5) * 8).toFixed(2);
+      agentObj.position.z = +(agentObj.target.z + (Math.random() - 0.5) * 8).toFixed(2);
+    }
+    agentObj.waypoints = generateWaypoints(agentObj.position, agentObj.target);
     agentObj.activity_text = getAgentActivityDescription(agentObj);
+
     agents.push(agentObj);
   }
   return agents;
@@ -309,7 +867,6 @@ function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
   const h = agent.homeostasis;
   
   // Weights (priority multipliers) for the 8 drives
-  // When drought is active, nutrition priority surges significantly
   const weights = {
     food: isDrought ? 2.4 : 1.4,
     hydration: 1.3,
@@ -331,7 +888,7 @@ function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
   }
   
   // Find drive with maximum deficit (worst-case vulnerability)
-  let maxDrive = 'rest';
+  let maxDrive = 'food';
   let maxDeficit = -Infinity;
   for (const [drive, deficit] of Object.entries(deficits)) {
     if (deficit > maxDeficit) {
@@ -341,7 +898,7 @@ function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
   }
   
   // 1. Emergency drought withdrawal condition:
-  // When drought is active, agents withdraw food from communal silos
+  // When drought is active, all roles prioritize communal granary withdrawals
   if (isDrought && (h.food < 65 || maxDrive === 'food')) {
     if (communalSiloReserve > 0) {
       return {
@@ -354,27 +911,27 @@ function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
   }
   
   // 2. Health trauma triage
-  if (maxDrive === 'health' || h.health < 35) {
+  if (h.health < 28) {
     return {
       action: 'MEDIC_CARE',
-      target: { x: 450, z: 550, label: 'Hospital ✚ Trauma' },
+      target: { x: 450, z: 550, label: 'Hospital Trauma Center' },
       urgency: 'HIGH',
       drive: 'health'
     };
   }
   
   // 3. Exhaustion & rest recovery at home dwelling
-  if (maxDrive === 'rest' || h.rest < 30) {
+  if (h.rest < 25) {
     return {
       action: 'REST_HOME',
-      target: { x: agent.home.x, z: agent.home.z, label: 'Home Dwelling' },
+      target: { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` },
       urgency: 'HIGH',
       drive: 'rest'
     };
   }
   
-  // 4. Food deficit (normal or drought)
-  if (maxDrive === 'food' || h.food < 35) {
+  // 4. Food deficit (normal conditions or drought)
+  if (h.food < 25) {
     if (isDrought && communalSiloReserve > 0) {
       return {
         action: 'WITHDRAW_INSTITUTION',
@@ -383,66 +940,37 @@ function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
         drive: 'food'
       };
     }
+    const plotIdx = agent.farm_plot_index || 1;
+    const farmTarget = FARM_PLOTS[(plotIdx - 1) % 10];
     return {
       action: 'GATHER_CROP',
-      target: { x: 50, z: 500, label: 'West Farm Belt' },
+      target: { x: farmTarget.x, z: farmTarget.z, label: farmTarget.label },
       urgency: 'HIGH',
       drive: 'food'
     };
   }
   
-  // 5. Hydration recovery
-  if (maxDrive === 'hydration' || h.hydration < 35) {
+  // 5. Hydration recovery at central fountain
+  if (h.hydration < 25) {
     return {
       action: 'HYDRATE',
-      target: { x: 500, z: 500, label: 'Central Park Fountain' },
-      urgency: 'MEDIUM',
+      target: { x: 500, z: 500, label: 'Central Fountain' },
+      urgency: 'HIGH',
       drive: 'hydration'
     };
   }
   
-  // 6. Tool maintenance at workshops
-  if (maxDrive === 'tools' || h.tools < 35) {
-    return {
-      action: 'CRAFT_TOOL',
-      target: { x: 450, z: 250, label: 'Timber & Quarry Workshops' },
-      urgency: 'MEDIUM',
-      drive: 'tools'
-    };
-  }
-  
-  // 7. Kinship / cultural transmission at civic academy
-  if (maxDrive === 'kinship' || h.kinship < 40) {
-    return {
-      action: 'CIVIC_TRANSMISSION',
-      target: { x: 650, z: 550, label: 'Civic Academy' },
-      urgency: 'LOW',
-      drive: 'kinship'
-    };
-  }
-  
-  // 8. Economic liquidity at Agora Market
-  if (maxDrive === 'currency' || h.currency < 15) {
-    return {
-      action: 'AUCTION_BID',
-      target: { x: 550, z: 650, label: 'Agora Central Market' },
-      urgency: 'LOW',
-      drive: 'currency'
-    };
-  }
-  
-  // Default: Vocational workplace activity
-  const roleInfo = ROLES.find(r => r.name === agent.role) || ROLES[0];
+  // Default: Continue role's multi-step Markov routine
   return {
-    action: roleInfo.action,
-    target: { ...roleInfo.target },
+    action: agent.action,
+    target: agent.target,
     urgency: 'ROUTINE',
-    drive: 'vocation'
+    drive: maxDrive
   };
 }
 
 /**
- * Execute homeostatic replenishment upon arriving at destination site.
+ * Execute homeostatic replenishment and vocational output upon arriving at destination site.
  */
 function executeAgentActionReplenishment(a, steps, isDrought) {
   const h = a.homeostasis;
@@ -461,45 +989,54 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
       break;
     }
     case 'REST_HOME': {
-      h.rest = Math.min(100, +(h.rest + 5.0 * steps).toFixed(1));
+      h.rest = Math.min(100, +(h.rest + 6.0 * steps).toFixed(1));
       h.shelter = Math.min(100, +(h.shelter + 2.0 * steps).toFixed(1));
+      h.hydration = Math.min(100, +(h.hydration + 2.0 * steps).toFixed(1));
+      h.food = Math.min(100, +(h.food + 1.5 * steps).toFixed(1));
       break;
     }
     case 'GATHER_CROP': {
-      const harvestYield = isDrought ? 1.5 : 4.0;
-      h.food = Math.min(100, +(h.food + harvestYield * steps).toFixed(1));
-      h.tools = Math.max(10, +(h.tools - 0.25 * steps).toFixed(1));
-      // In non-drought, farmers deposit surplus into communal silo buffer (Bowles & Gintis common-pool institution)
-      if (!isDrought) {
-        const deposit = 0.4 * steps;
-        simState.communal_silo.food_reserve = Math.min(
-          simState.communal_silo.max_capacity,
-          +(simState.communal_silo.food_reserve + deposit).toFixed(2)
-        );
-        simState.communal_silo.total_recycled = +(simState.communal_silo.total_recycled + deposit).toFixed(2);
-        if (simState.communal_silo.food_reserve > 0) {
-          simState.communal_silo.status = 'ACTIVE_BUFFER';
+      if (a.target && a.target.label && a.target.label.includes('Silo')) {
+        // Farmer depositing surplus harvest into Communal Granary Silo
+        if (!isDrought) {
+          const deposit = Math.min(2.5 * steps, simState.communal_silo.max_capacity - simState.communal_silo.food_reserve);
+          if (deposit > 0) {
+            simState.communal_silo.food_reserve = +(simState.communal_silo.food_reserve + deposit).toFixed(2);
+            simState.communal_silo.total_recycled = +(simState.communal_silo.total_recycled + deposit).toFixed(2);
+            if (simState.communal_silo.food_reserve > 0) {
+              simState.communal_silo.status = 'ACTIVE_BUFFER';
+            }
+          }
         }
+      } else {
+        const harvestYield = isDrought ? 1.5 : 5.0;
+        h.food = Math.min(100, +(h.food + harvestYield * steps).toFixed(1));
+        h.tools = Math.max(10, +(h.tools - 0.25 * steps).toFixed(1));
       }
       break;
     }
     case 'HYDRATE': {
-      h.hydration = Math.min(100, +(h.hydration + 6.0 * steps).toFixed(1));
+      h.hydration = Math.min(100, +(h.hydration + 8.0 * steps).toFixed(1));
       break;
     }
     case 'MEDIC_CARE': {
-      h.health = Math.min(100, +(h.health + 5.5 * steps).toFixed(1));
-      h.currency = Math.max(0, +(h.currency - 0.3 * steps).toFixed(2));
+      h.health = Math.min(100, +(h.health + 6.0 * steps).toFixed(1));
+      if (a.role === 'Medic') {
+        h.currency = +(h.currency + 0.35 * steps).toFixed(2);
+        h.kinship = Math.min(100, +(h.kinship + 1.5 * steps).toFixed(1));
+      } else {
+        h.currency = Math.max(0, +(h.currency - 0.20 * steps).toFixed(2));
+      }
       break;
     }
     case 'CRAFT_TOOL': {
-      h.tools = Math.min(100, +(h.tools + 4.5 * steps).toFixed(1));
-      h.currency = +(h.currency + 0.15 * steps).toFixed(2);
+      h.tools = Math.min(100, +(h.tools + 5.0 * steps).toFixed(1));
+      h.currency = +(h.currency + 0.25 * steps).toFixed(2);
       break;
     }
     case 'AUCTION_BID': {
-      h.currency = +(h.currency + 0.35 * steps).toFixed(2);
-      h.kinship = Math.min(100, +(h.kinship + 0.8 * steps).toFixed(1));
+      h.currency = +(h.currency + 0.40 * steps).toFixed(2);
+      h.kinship = Math.min(100, +(h.kinship + 1.2 * steps).toFixed(1));
       break;
     }
     case 'CIVIC_TRANSMISSION': {
@@ -508,12 +1045,13 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
     }
     case 'CONSTRUCT': {
       h.tools = Math.max(10, +(h.tools - 0.3 * steps).toFixed(1));
-      h.currency = +(h.currency + 0.2 * steps).toFixed(2);
+      h.currency = +(h.currency + 0.35 * steps).toFixed(2);
       break;
     }
     case 'CIVIC_REST': {
-      h.rest = Math.min(100, +(h.rest + 2.0 * steps).toFixed(1));
-      h.kinship = Math.min(100, +(h.kinship + 1.5 * steps).toFixed(1));
+      h.rest = Math.min(100, +(h.rest + 3.0 * steps).toFixed(1));
+      h.kinship = Math.min(100, +(h.kinship + 2.0 * steps).toFixed(1));
+      h.hydration = Math.min(100, +(h.hydration + 1.5 * steps).toFixed(1));
       break;
     }
   }
@@ -525,14 +1063,14 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
 function applyMetabolicDrift(a, steps, isDrought) {
   const h = a.homeostasis;
   if (a.action !== 'REST_HOME') {
-    h.rest = Math.max(5, +(h.rest - 0.6 * steps).toFixed(1));
+    h.rest = Math.max(5, +(h.rest - 0.20 * steps).toFixed(1));
   }
-  const foodDecay = isDrought ? 0.75 : 0.45;
+  const foodDecay = isDrought ? 0.65 : 0.18;
   if (a.action !== 'WITHDRAW_INSTITUTION' && a.action !== 'GATHER_CROP') {
     h.food = Math.max(5, +(h.food - foodDecay * steps).toFixed(1));
   }
   if (a.action !== 'HYDRATE') {
-    h.hydration = Math.max(5, +(h.hydration - 0.35 * steps).toFixed(1));
+    h.hydration = Math.max(5, +(h.hydration - 0.15 * steps).toFixed(1));
   }
 
   // Demographic wealth recycling if elder reaches critical exhaustion
@@ -550,18 +1088,16 @@ function applyMetabolicDrift(a, steps, isDrought) {
       h.currency = 5.0;
     }
     // Rejuvenate living successor cohort
-    h.food = 70;
+    h.food = 75;
     h.health = 85;
     h.rest = 80;
     h.hydration = 80;
-    a.action = 'REST_HOME';
-    a.target = { x: a.home.x, z: a.home.z, label: 'Home Dwelling' };
-    a.waypoints = generateWaypoints(a.position, a.target);
+    setAgentMarkovState(a, 'REST_PORCH');
   }
 }
 
 /**
- * Update agent positions with smooth waypoint navigation and Chebyshev 8-drive homeostasis.
+ * Update agent positions with smooth waypoint navigation and dynamic multi-step Markov routines.
  */
 function simAgentsStep(steps) {
   const isDrought = simState.drought.active;
@@ -569,7 +1105,8 @@ function simAgentsStep(steps) {
 
   for (let a of simulatedAgents) {
     const distToTarget = Math.hypot(a.target.x - a.position.x, a.target.z - a.position.z);
-    const atTarget = distToTarget < (a.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 4.0);
+    const targetRadius = a.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 4.5;
+    const atTarget = distToTarget < targetRadius;
     
     // Evaluate Chebyshev Homeostasis
     const decision = evaluateChebyshevHomeostasis(a, isDrought, siloReserve);
@@ -578,38 +1115,53 @@ function simAgentsStep(steps) {
       // Arrived at destination site: execute homeostatic replenishment
       executeAgentActionReplenishment(a, steps, isDrought);
       
-      // Once replenished, transition back to work, dwelling, or urgent drive
       const h = a.homeostasis;
-      const isReplenished = (
-        (a.action === 'REST_HOME' && h.rest >= 85) ||
-        (a.action === 'WITHDRAW_INSTITUTION' && (h.food >= 80 || siloReserve <= 0)) ||
-        (a.action === 'GATHER_CROP' && (h.food >= 85 || isDrought)) ||
-        (a.action === 'HYDRATE' && h.hydration >= 85) ||
-        (a.action === 'MEDIC_CARE' && h.health >= 85) ||
-        (a.action === 'CRAFT_TOOL' && h.tools >= 85) ||
-        (a.action === 'CIVIC_TRANSMISSION' && h.kinship >= 85) ||
-        (['CONSTRUCT', 'AUCTION_BID', 'CIVIC_REST'].includes(a.action) && decision.urgency !== 'ROUTINE')
-      );
 
-      if (isReplenished || decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL') {
+      // Check if recovering from an emergency or vital redirect
+      if (a.action === 'WITHDRAW_INSTITUTION') {
+        if (h.food >= 80 || siloReserve <= 0 || !isDrought) {
+          advanceAgentMarkovRoutine(a);
+        }
+      } else if (a.action === 'HYDRATE' && a.routine_state !== 'HYDRATE_FOUNTAIN' && a.routine_state !== 'HYDRATE_PARK') {
+        if (h.hydration >= 85) {
+          advanceAgentMarkovRoutine(a);
+        }
+      } else if (a.action === 'REST_HOME' && a.routine_state !== 'REST_PORCH') {
+        if (h.rest >= 85) {
+          advanceAgentMarkovRoutine(a);
+        }
+      } else if (a.action === 'MEDIC_CARE' && a.routine_state !== 'HOSPITAL_TRAUMA' && a.routine_state !== 'HOUSE_CALL' && a.routine_state !== 'HOSPITAL_RECORDS') {
+        if (h.health >= 85) {
+          advanceAgentMarkovRoutine(a);
+        }
+      } else if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL') {
         a.target = { ...decision.target };
         a.action = decision.action;
         a.waypoints = generateWaypoints(a.position, a.target);
+        a.ticks_at_target = 0;
+      } else {
+        // Routine Markov progression
+        a.ticks_at_target = (a.ticks_at_target || 0) + steps;
+        const minTicks = getMinTicksAtTarget(a);
+        if (a.ticks_at_target >= minTicks) {
+          advanceAgentMarkovRoutine(a);
+        }
       }
-    } else if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL' && a.action !== 'WITHDRAW_INSTITUTION') {
-      // Emergency redirection to communal granary silo
-      a.target = { ...decision.target };
-      a.action = decision.action;
-      a.waypoints = generateWaypoints(a.position, a.target);
-    } else if (a.action === 'WITHDRAW_INSTITUTION' && (siloReserve <= 0 || !isDrought)) {
-      // Silo exhausted or drought lifted while en route
-      a.target = { ...decision.target };
-      a.action = decision.action;
-      a.waypoints = generateWaypoints(a.position, a.target);
-    } else if (a.action === 'REST_HOME' && a.homeostasis.rest >= 95) {
-      a.target = { ...decision.target };
-      a.action = decision.action;
-      a.waypoints = generateWaypoints(a.position, a.target);
+    } else {
+      // En route to target: check for emergency redirection
+      if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL' && a.action !== 'WITHDRAW_INSTITUTION') {
+        a.target = { ...decision.target };
+        a.action = decision.action;
+        a.waypoints = generateWaypoints(a.position, a.target);
+        a.ticks_at_target = 0;
+      } else if (decision.urgency === 'HIGH' && a.action !== decision.action) {
+        a.target = { ...decision.target };
+        a.action = decision.action;
+        a.waypoints = generateWaypoints(a.position, a.target);
+        a.ticks_at_target = 0;
+      } else if (a.action === 'WITHDRAW_INSTITUTION' && (siloReserve <= 0 || !isDrought)) {
+        advanceAgentMarkovRoutine(a);
+      }
     }
 
     // Smooth waypoint advancement & spatial steering
@@ -622,7 +1174,7 @@ function simAgentsStep(steps) {
     let dz = activeWp.z - a.position.z;
     let dist = Math.hypot(dx, dz);
 
-    if (dist < 3.0 && a.waypoints.length > 1) {
+    if (dist < 3.5 && a.waypoints.length > 1) {
       a.waypoints.shift();
       activeWp = a.waypoints[0];
       dx = activeWp.x - a.position.x;
@@ -631,7 +1183,7 @@ function simAgentsStep(steps) {
     }
 
     if (dist > 2.0) {
-      const speedMult = a.action === 'WITHDRAW_INSTITUTION' ? 4.0 : 2.4;
+      const speedMult = a.action === 'WITHDRAW_INSTITUTION' ? 5.5 : (dist > 60 ? 4.8 : 3.8);
       const speed = Math.min(dist, speedMult * steps);
       const vx = (dx / dist) * speed;
       const vz = (dz / dist) * speed;
@@ -639,8 +1191,8 @@ function simAgentsStep(steps) {
       a.position.z += vz;
       a.heading = +(Math.atan2(vz, vx)).toFixed(3);
     } else {
-      a.position.x += (Math.random() - 0.5) * 0.4;
-      a.position.z += (Math.random() - 0.5) * 0.4;
+      a.position.x += (Math.random() - 0.5) * 0.3;
+      a.position.z += (Math.random() - 0.5) * 0.3;
     }
 
     a.position.x = +(Math.max(10, Math.min(990, a.position.x))).toFixed(2);
@@ -1309,10 +1861,8 @@ app.post(['/api/environment/drought', '/api/sim/drought'], (req, res) => {
     // Reset agents that were withdrawing from silos back to their primary vocational duties
     for (let a of simulatedAgents) {
       if (a.action === 'WITHDRAW_INSTITUTION') {
-        const roleInfo = ROLES.find(r => r.name === a.role) || ROLES[0];
-        a.target = { ...roleInfo.target };
-        a.action = roleInfo.action;
-        a.waypoints = generateWaypoints(a.position, a.target);
+        advanceAgentMarkovRoutine(a);
+        a.activity_text = getAgentActivityDescription(a);
       }
     }
 
