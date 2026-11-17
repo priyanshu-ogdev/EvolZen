@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
           enable-cache: true
@@ -105,7 +105,7 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
@@ -124,7 +124,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
           enable-cache: true
