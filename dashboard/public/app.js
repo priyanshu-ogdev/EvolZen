@@ -1870,11 +1870,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
   function getAgentRoleIcon(role) {
     switch (role) {
       case 'Farmer': return '🌾';
-      case 'Builder': return '🏗️';
-      case 'Crafter': return '🛠️';
       case 'Trader': return '⚖️';
-      case 'Medic': return '🏥';
-      case 'Generalist': return '🌳';
+      case 'Builder': return '🔨';
+      case 'Medic': return '✚';
+      case 'Crafter': return '⚒️';
+      case 'Generalist': return '📜';
       default: return '👤';
     }
   }
@@ -1907,49 +1907,116 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (!agent) return 'Standby in World';
     const house = agent.home_house_index || 1;
     if (agent.inside_house === true || agent.action === 'SLEEP_NIGHT' || isAgentSleeping(agent)) {
-      return `Sleeping peacefully inside House #${house} 💤`;
+      return `💤 Sleeping peacefully inside House #${house}`;
     }
-    if (agent.activity_text) return agent.activity_text;
-    switch (agent.action) {
-      case 'SLEEP_NIGHT': return `Sleeping peacefully inside House #${house} 💤`;
-      case 'HARVEST_WHEAT': return `Harvesting golden wheat at West Farm Belt 🌾`;
-      case 'GATHER_CROP': return `Harvesting wheat at West Farm Belt (Plot #${(house % 10) + 1})`;
-      case 'REST_HOME': return `Resting & recuperating in Dwelling #${house}`;
-      case 'WITHDRAW_INSTITUTION': return `Withdrawing emergency grain from Silo`;
-      case 'AUCTION_BID': return `Bidding on grain order book at Agora`;
-      case 'MEDIC_CARE': return `Receiving triage care at Hospital Trauma Center`;
-      case 'CRAFT_TOOL': return `Forging tools & axes at Timber Workshop`;
-      case 'HYDRATE': return `Drinking fresh spring water at Central Fountain`;
-      case 'CIVIC_TRANSMISSION': return `Studying cultural manuals at Academy`;
-      case 'CONSTRUCT': return `Raising masonry at Municipal Construction Site`;
-      case 'CIVIC_REST': return `Socializing at Central Park Conservatory`;
-      default: return (agent.action || 'STANDBY').replace(/_/g, ' ');
+    if (agent.action === 'HYDRATE') {
+      return '💧 Drinking refreshing spring water at Central Fountain';
     }
+
+    const role = agent.role || 'Citizen';
+    let text = agent.activity_text;
+
+    if (!text || text === 'Standby in World' || text.startsWith('Active')) {
+      switch (role) {
+        case 'Medic': {
+          if (agent.target?.label?.includes('Dwelling') || agent.routine_state === 'HOUSE_CALL') {
+            text = `Conducting medical house call at Dwelling #${house}`;
+          } else {
+            text = 'Delivering trauma triage & care at Hospital Center';
+          }
+          break;
+        }
+        case 'Builder': {
+          if (agent.routine_state === 'HAUL_MATERIALS' || agent.target?.label?.includes('Workshop')) {
+            text = 'Hauling materials from Workshop';
+          } else {
+            text = 'Raising masonry walls at Municipal Site';
+          }
+          break;
+        }
+        case 'Crafter': {
+          text = 'Forging iron tools at Workshop forge';
+          break;
+        }
+        case 'Trader': {
+          text = 'Bidding & asking on commodity order book at Central Agora';
+          break;
+        }
+        case 'Generalist': {
+          text = 'Studying civic governance manuals at Civic Academy';
+          break;
+        }
+        case 'Farmer':
+        default: {
+          const plot = agent.farm_plot_index || ((house % 10) + 1);
+          text = `Harvesting golden wheat at West Farm Belt (Plot #${plot})`;
+          break;
+        }
+      }
+    }
+
+    if (agent.action === 'HYDRATE' || text.toLowerCase().includes('water') || text.toLowerCase().includes('fountain') || text.toLowerCase().includes('hydrate')) {
+      return text.startsWith('💧') ? text : `💧 ${text}`;
+    }
+    if (agent.action === 'WITHDRAW_INSTITUTION' || text.toLowerCase().includes('silo')) {
+      return text.startsWith('🌾') ? text : `🌾 ${text}`;
+    }
+    if (agent.action === 'REST_HOME') {
+      return text.startsWith('🏠') ? text : `🏠 ${text}`;
+    }
+
+    const roleIcons = {
+      Farmer: '🌾',
+      Trader: '⚖️',
+      Builder: '🔨',
+      Medic: '✚',
+      Crafter: '⚒️',
+      Generalist: '📜'
+    };
+    const icon = roleIcons[role] || '👤';
+    if (!text.startsWith(icon) && !text.startsWith('🌾') && !text.startsWith('⚖️') &&
+        !text.startsWith('🔨') && !text.startsWith('✚') && !text.startsWith('⚒️') &&
+        !text.startsWith('📜') && !text.startsWith('💧') && !text.startsWith('💤') &&
+        !text.startsWith('🏠')) {
+      return `${icon} ${text}`;
+    }
+    return text;
   }
 
   function renderAgentBillboardCanvas(ctx, canvas, agent, colorHex) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const isHydrating = agent.action === 'HYDRATE';
     const roleName = agent.role || 'Farmer';
-    const roleIcon = getAgentRoleIcon(roleName);
-    const accentColor = colorHex || agent.color || '#10b981';
+    const roleIcon = isHydrating ? '💧' : getAgentRoleIcon(roleName);
+    const accentColor = isHydrating ? '#06b6d4' : (colorHex || agent.color || '#10b981');
 
-    // 1. Outer Neumorphic Pill Card
-    ctx.fillStyle = 'rgba(6, 10, 20, 0.94)';
-    ctx.strokeStyle = accentColor;
-    ctx.lineWidth = 4;
+    // 1. Outer Neumorphic Pill Card with cyan glow if hydrating
+    if (isHydrating) {
+      ctx.shadowColor = 'rgba(6, 182, 212, 0.6)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = 'rgba(6, 22, 38, 0.96)';
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 4.5;
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(6, 10, 20, 0.94)';
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 4;
+    }
     drawRoundedRect(ctx, 4, 4, 504, 132, 22, true, true);
+    ctx.shadowBlur = 0; // reset shadow
 
     // Inner subtle glow border
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = isHydrating ? 'rgba(6, 182, 212, 0.45)' : 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = isHydrating ? 2 : 1.5;
     drawRoundedRect(ctx, 7, 7, 498, 126, 19, false, true);
 
     // 2. Header Line (y: 34)
     // Left Role Icon Circle
     ctx.beginPath();
     ctx.arc(36, 34, 18, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = isHydrating ? 'rgba(6, 182, 212, 0.25)' : 'rgba(255, 255, 255, 0.1)';
     ctx.fill();
     ctx.strokeStyle = accentColor;
     ctx.lineWidth = 1.5;
@@ -1968,14 +2035,21 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const agentName = agent.name || `Agent ${agent.id || ''}`;
     ctx.fillText(`${agentName} • ${roleName}`, 64, 34);
 
-    // ID Pill on right
-    ctx.font = 'bold 15px "Fira Code", monospace';
-    ctx.fillStyle = accentColor;
-    ctx.textAlign = 'right';
-    ctx.fillText(agent.id ? agent.id.toUpperCase() : 'EZ-01', 492, 34);
+    // Right Badge on Header:
+    if (isHydrating) {
+      ctx.font = 'bold 16px "Fira Code", monospace';
+      ctx.fillStyle = '#22d3ee';
+      ctx.textAlign = 'right';
+      ctx.fillText('💧 DRINK_WATER', 492, 34);
+    } else {
+      ctx.font = 'bold 15px "Fira Code", monospace';
+      ctx.fillStyle = accentColor;
+      ctx.textAlign = 'right';
+      ctx.fillText(agent.id ? agent.id.toUpperCase() : 'EZ-01', 492, 34);
+    }
 
     // Divider
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.strokeStyle = isHydrating ? 'rgba(6, 182, 212, 0.35)' : 'rgba(255, 255, 255, 0.12)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(20, 56);
@@ -1985,7 +2059,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     // 3. Plain-English Real-Time Activity Text (y: 82)
     const activityText = getAgentDisplayActivity(agent);
     ctx.font = 'bold 20px "Inter", sans-serif';
-    ctx.fillStyle = '#38bdf8';
+    ctx.fillStyle = isHydrating ? '#22d3ee' : '#38bdf8';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
@@ -1999,28 +2073,33 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     ctx.fillText(displayAct, 22, 82);
 
     // 4. Vital Progress Bar (y: 112)
-    const h = agent.homeostasis || { food: 80, rest: 80 };
+    const h = agent.homeostasis || { food: 80, rest: 80, hydration: 80 };
     const foodVal = h.food !== undefined ? Math.min(100, Math.max(0, h.food)) : 80;
     const restVal = h.rest !== undefined ? Math.min(100, Math.max(0, h.rest)) : 80;
-    const avgVital = (foodVal + restVal) / 2;
+    const hydVal = h.hydration !== undefined ? Math.min(100, Math.max(0, h.hydration)) : 80;
 
     // Background track
     ctx.fillStyle = '#0f172a';
-    drawRoundedRect(ctx, 22, 106, 300, 14, 7, true, false);
+    drawRoundedRect(ctx, 22, 106, 260, 14, 7, true, false);
 
     // Fill track
-    const barWidth = Math.max(8, (avgVital / 100) * 300);
-    const grad = ctx.createLinearGradient(22, 0, 322, 0);
-    grad.addColorStop(0, '#10b981');
-    grad.addColorStop(1, '#06b6d4');
+    const barWidth = Math.max(8, (hydVal / 100) * 260);
+    const grad = ctx.createLinearGradient(22, 0, 282, 0);
+    if (isHydrating) {
+      grad.addColorStop(0, '#06b6d4');
+      grad.addColorStop(1, '#38bdf8');
+    } else {
+      grad.addColorStop(0, '#10b981');
+      grad.addColorStop(1, '#06b6d4');
+    }
     ctx.fillStyle = grad;
     drawRoundedRect(ctx, 22, 106, barWidth, 14, 7, true, false);
 
     // Text metrics
     ctx.font = 'bold 12px "Fira Code", monospace';
-    ctx.fillStyle = '#cbd5e1';
+    ctx.fillStyle = isHydrating ? '#67e8f9' : '#cbd5e1';
     ctx.textAlign = 'right';
-    ctx.fillText(`Food: ${Math.round(foodVal)}%  Rest: ${Math.round(restVal)}%`, 492, 113);
+    ctx.fillText(`Water: ${Math.round(hydVal)}%  Food: ${Math.round(foodVal)}%`, 492, 113);
   }
 
   function createAgentBillboardSprite(agentData, colorHex) {
@@ -2041,8 +2120,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       texture,
       colorHex,
       lastActivity: getAgentDisplayActivity(agentData),
+      lastAction: agentData.action || 'STANDBY',
       lastFood: Math.round(agentData.homeostasis?.food ?? 80),
-      lastRest: Math.round(agentData.homeostasis?.rest ?? 80)
+      lastRest: Math.round(agentData.homeostasis?.rest ?? 80),
+      lastHydration: Math.round(agentData.homeostasis?.hydration ?? 80)
     };
     return sprite;
   }
@@ -2053,20 +2134,26 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const ctx = canvas.getContext('2d');
 
     const activityText = getAgentDisplayActivity(agent);
-    const h = agent.homeostasis || { food: 80, rest: 80 };
+    const action = agent.action || 'STANDBY';
+    const h = agent.homeostasis || { food: 80, rest: 80, hydration: 80 };
     const foodVal = Math.round(h.food !== undefined ? h.food : 80);
     const restVal = Math.round(h.rest !== undefined ? h.rest : 80);
+    const hydVal = Math.round(h.hydration !== undefined ? h.hydration : 80);
 
-    // Dirty check: Only update canvas & re-upload texture to WebGL if text or vitals changed!
+    // Dirty check: Only update canvas & re-upload texture to WebGL if text, action or vitals changed!
     if (sprite.userData.lastActivity === activityText &&
+        sprite.userData.lastAction === action &&
         sprite.userData.lastFood === foodVal &&
-        sprite.userData.lastRest === restVal) {
+        sprite.userData.lastRest === restVal &&
+        sprite.userData.lastHydration === hydVal) {
       return;
     }
 
     sprite.userData.lastActivity = activityText;
+    sprite.userData.lastAction = action;
     sprite.userData.lastFood = foodVal;
     sprite.userData.lastRest = restVal;
+    sprite.userData.lastHydration = hydVal;
 
     renderAgentBillboardCanvas(ctx, canvas, agent, agent.color || sprite.userData.colorHex);
     sprite.userData.texture.needsUpdate = true;
@@ -2915,7 +3002,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const isSleepingInside = isAgentSleeping(agent);
     const houseNumber = agent.home_house_index || 1;
 
-    if (elIcon) elIcon.textContent = isSleepingInside ? '💤' : '👤';
+    const isHydrating = agent.action === 'HYDRATE';
+    const roleIcon = getAgentRoleIcon(agent.role);
+    const roleColor = agent.color || state.roles[agent.role]?.color || '#10b981';
+
+    if (elIcon) elIcon.textContent = isSleepingInside ? '💤' : (isHydrating ? '💧' : roleIcon);
     if (elTitle) {
       if (isSleepingInside) {
         elTitle.textContent = `${agent.name || agent.id} · House #${houseNumber} Resident`;
@@ -2930,12 +3021,18 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         elBadge.style.backgroundColor = '';
         elBadge.style.color = '';
         elBadge.style.borderColor = '';
+      } else if (isHydrating) {
+        elBadge.textContent = '💧 DRINK_WATER';
+        elBadge.className = 'text-[10px] px-2.5 py-0.5 rounded font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-[0_0_10px_rgba(6,182,212,0.4)]';
+        elBadge.style.backgroundColor = 'rgba(6, 182, 212, 0.2)';
+        elBadge.style.color = '#38bdf8';
+        elBadge.style.borderColor = 'rgba(56, 189, 248, 0.6)';
       } else {
         elBadge.textContent = (agent.role || 'AGENT').toUpperCase();
         elBadge.className = 'text-[10px] px-2 py-0.5 rounded font-mono font-bold';
-        elBadge.style.backgroundColor = `${agent.color || '#10b981'}33`;
-        elBadge.style.color = agent.color || '#10b981';
-        elBadge.style.borderColor = `${agent.color || '#10b981'}66`;
+        elBadge.style.backgroundColor = `${roleColor}33`;
+        elBadge.style.color = roleColor;
+        elBadge.style.borderColor = `${roleColor}66`;
       }
     }
 
@@ -2951,7 +3048,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (elConn) {
       elConn.textContent = isSleepingInside
         ? `Status: 🏠 Inside House #${houseNumber} 💤 ASLEEP`
-        : `Action: ${agent.action || 'ACTIVE'}`;
+        : `Action: ${getAgentDisplayActivity(agent)}`;
     }
 
     if (subTitle) subTitle.textContent = '8-Drive Chebyshev Homeostatic Gauges (Phase 1.2)';
@@ -3031,11 +3128,22 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     }
 
     // Populate Sliding Inspector Drawer Elements
+    const drawerIcon = document.getElementById('agentDrawerIcon');
     const drawerName = document.getElementById('agentDrawerName');
     const drawerRole = document.getElementById('agentDrawerRole');
     const drawerBadge = document.getElementById('agentDrawerStateBadge');
+    const drawerAct = document.getElementById('agentDrawerActivityText');
     const chebyshevVal = document.getElementById('chebyshevMetricValue');
 
+    if (drawerIcon) {
+      if (isSleepingInside) {
+        drawerIcon.textContent = '💤';
+      } else if (isHydrating) {
+        drawerIcon.textContent = '💧';
+      } else {
+        drawerIcon.textContent = roleIcon;
+      }
+    }
     if (drawerName) drawerName.textContent = `${agent.name || agent.id}`;
     if (drawerRole) {
       drawerRole.textContent = isSleepingInside
@@ -3049,13 +3157,22 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         drawerBadge.style.color = '';
         drawerBadge.style.borderColor = '';
         drawerBadge.style.backgroundColor = '';
+      } else if (isHydrating) {
+        drawerBadge.textContent = '💧 DRINK_WATER';
+        drawerBadge.className = 'text-[10px] px-2.5 py-0.5 rounded font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 shadow-[0_0_10px_rgba(6,182,212,0.4)]';
+        drawerBadge.style.color = '#38bdf8';
+        drawerBadge.style.borderColor = 'rgba(56, 189, 248, 0.6)';
+        drawerBadge.style.backgroundColor = 'rgba(6, 182, 212, 0.2)';
       } else {
         drawerBadge.textContent = agent.action || 'ACTIVE';
         drawerBadge.className = 'text-[10px] px-2 py-0.5 rounded font-bold';
-        drawerBadge.style.color = agent.color || '#10b981';
-        drawerBadge.style.borderColor = `${agent.color || '#10b981'}80`;
-        drawerBadge.style.backgroundColor = '';
+        drawerBadge.style.color = roleColor;
+        drawerBadge.style.borderColor = `${roleColor}80`;
+        drawerBadge.style.backgroundColor = `${roleColor}26`;
       }
+    }
+    if (drawerAct) {
+      drawerAct.textContent = getAgentDisplayActivity(agent);
     }
     if (chebyshevVal) {
       chebyshevVal.textContent = `${chebyshevScore} (${maxDeficiency < 0.25 ? 'Equilibrium' : 'Bottleneck: ' + bottleneckDrive})`;
@@ -4389,30 +4506,56 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     if (el) el.textContent = `${sec}s`;
   }
 
+  const TOUR_ROLES = ['Farmer', 'Trader', 'Builder', 'Medic', 'Crafter', 'Generalist'];
+  const ROLE_SHOTS = {
+    Farmer: 'CHASE',
+    Trader: 'LOW_ANGLE',
+    Builder: 'DRONE_ORBIT',
+    Medic: 'FRONTAL',
+    Crafter: 'CHASE',
+    Generalist: 'LOW_ANGLE'
+  };
+  const ROLE_GEAR = {
+    Farmer: { hat: 'Straw Hat', tool: 'Pitchfork', landmark: 'West Farm Belt & Silos' },
+    Trader: { hat: 'Merchant Beret', tool: 'Coin Pouch', landmark: 'Central Agora Market' },
+    Builder: { hat: 'Safety Hardhat', tool: 'Builder Hammer', landmark: 'Municipal Construction Site' },
+    Medic: { hat: 'Red Cross Cap', tool: 'Emergency Medkit', landmark: 'Hospital Trauma Center' },
+    Crafter: { hat: 'Welding Goggles', tool: 'Tempered Wrench', landmark: 'Timber Workshop Forge' },
+    Generalist: { hat: 'Scholar Cap', tool: 'Leather Satchel', landmark: 'Civic Academy & Commons' }
+  };
+
   function transitionCinematicTourTarget(isInitial = false) {
     if (!state.agents || state.agents.length === 0) return;
 
     if (!isInitial) {
-      // Automatic 6-second cycle across roles: Farmer -> Trader -> Builder -> Medic -> Crafter -> Generalist -> next
-      state.cinematicTour.roleIndex = (state.cinematicTour.roleIndex + 1) % state.cinematicTour.roles.length;
-      // Cycle through 4 dynamic camera shot angles
-      const SHOT_TYPES = ['CHASE', 'LOW_ANGLE', 'DRONE_ORBIT', 'FRONTAL'];
-      state.cinematicTour.shotAngleIndex = (state.cinematicTour.shotAngleIndex + 1) % SHOT_TYPES.length;
-      state.cinematicTour.currentShotType = SHOT_TYPES[state.cinematicTour.shotAngleIndex];
+      // Guarantee strict round-robin role transitions: Farmer -> Trader -> Builder -> Medic -> Crafter -> Generalist -> Farmer
+      state.cinematicTour.roleIndex = (state.cinematicTour.roleIndex + 1) % TOUR_ROLES.length;
     } else {
-      state.cinematicTour.roleIndex = 0;
-      state.cinematicTour.shotAngleIndex = 0;
-      state.cinematicTour.currentShotType = 'CHASE';
+      // If user already had an agent selected, start with that agent's role or start at Farmer (0)
+      if (state.selectedAgentId) {
+        const curAgent = state.agents.find(a => a.id === state.selectedAgentId);
+        const curIdx = curAgent ? TOUR_ROLES.indexOf(curAgent.role) : -1;
+        state.cinematicTour.roleIndex = curIdx >= 0 ? curIdx : 0;
+      } else {
+        state.cinematicTour.roleIndex = 0;
+      }
     }
 
-    const currentRole = state.cinematicTour.roles[state.cinematicTour.roleIndex];
+    const currentRole = TOUR_ROLES[state.cinematicTour.roleIndex];
+    // Showcase distinct camera shot angle tailored for this role
+    state.cinematicTour.currentShotType = ROLE_SHOTS[currentRole] || 'CHASE';
+
     let matchingAgents = state.agents.filter(a => a.role === currentRole);
     if (!matchingAgents || matchingAgents.length === 0) {
       matchingAgents = state.agents;
     }
 
+    // Prioritize active (awake) agents of this role if available
+    const awakeAgents = matchingAgents.filter(a => !isAgentSleeping(a));
+    const candidateList = awakeAgents.length > 0 ? awakeAgents : matchingAgents;
+
     const roleAgentIdx = (state.cinematicTour.agentIndexByRole[currentRole] || 0);
-    const selectedAgent = matchingAgents[roleAgentIdx % matchingAgents.length];
+    const selectedAgent = candidateList[roleAgentIdx % candidateList.length];
     state.cinematicTour.agentIndexByRole[currentRole] = roleAgentIdx + 1;
 
     state.cinematicTour.currentAgent = selectedAgent;
@@ -4448,9 +4591,13 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const elPos = document.getElementById('spectatePositionBadge');
     const elVital = document.getElementById('spectateVitalBadge');
 
+    const role = agent.role || 'Citizen';
+    const gear = ROLE_GEAR[role] || { hat: 'Cap', tool: 'Tool', landmark: 'Civic Commons' };
+    const roleIcon = getAgentRoleIcon(role);
+
     if (elName) elName.textContent = agent.name || agent.id;
     if (elRole) {
-      elRole.textContent = `(${agent.role || 'Citizen'})`;
+      elRole.textContent = `(${roleIcon} ${role})`;
       const roleColors = {
         Farmer: 'text-emerald-400',
         Trader: 'text-amber-400',
@@ -4459,7 +4606,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         Crafter: 'text-purple-400',
         Generalist: 'text-cyan-400'
       };
-      elRole.className = `${roleColors[agent.role] || 'text-cyan-400'} font-bold`;
+      elRole.className = `${roleColors[role] || 'text-cyan-400'} font-bold`;
     }
 
     const isSleeping = isAgentSleeping(agent);
@@ -4488,14 +4635,17 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       if (isSleeping) {
         elPos.textContent = `HOUSE #${houseNumber} · 🏠 INSIDE · 💤 ASLEEP`;
       } else if (agent.position) {
-        elPos.textContent = `POS: X ${Math.round(agent.position.x)}m · Z ${Math.round(agent.position.z)}m`;
+        elPos.textContent = `📍 ${gear.landmark.toUpperCase()} · X ${Math.round(agent.position.x)}m · Z ${Math.round(agent.position.z)}m`;
       }
     }
 
     if (elVital) {
       let energy = 95;
       let hydration = 92;
-      if (agent.vitals) {
+      if (agent.homeostasis) {
+        energy = Math.round(agent.homeostasis.rest !== undefined ? agent.homeostasis.rest : 80);
+        hydration = Math.round(agent.homeostasis.hydration !== undefined ? agent.homeostasis.hydration : 85);
+      } else if (agent.vitals) {
         energy = Math.round((agent.vitals.energy || 0.95) * 100);
         hydration = Math.round((agent.vitals.hydration || 0.9) * 100);
       } else if (agent.drives) {
@@ -4504,8 +4654,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       }
       if (isSleeping) {
         elVital.textContent = `SLEEPING · RESTORING ENERGY (${energy}%)`;
+      } else if (agent.action === 'HYDRATE') {
+        elVital.textContent = `💧 HYDRATING · WATER ${hydration}% · ENERGY ${energy}%`;
       } else {
-        elVital.textContent = `ENERGY: ${energy}% · HYDRATION: ${hydration}%`;
+        elVital.textContent = `ENERGY: ${energy}% · HYDRATION: ${hydration}% · GEAR: ${gear.hat} & ${gear.tool}`;
       }
     }
   }

@@ -300,6 +300,11 @@ const PARK_SITES = [
   { x: 510, z: 495, label: 'Central Park Commons' }
 ];
 
+const WATER_SOURCES = [
+  { x: 500, z: 500, label: 'Central Fountain' },
+  { x: 600, z: 450, label: 'East Park Springs' }
+];
+
 const HOSPITAL_SITES = [
   { x: 450, z: 555, label: 'Hospital Trauma Center' },
   { x: 450, z: 545, label: 'Hospital Clinical Records & Pharmacy' }
@@ -353,11 +358,20 @@ function getAgentActivityDescription(agent) {
       : 'Withdrawing emergency drought ration from Communal Granary Silo';
   }
 
-  // 2. Urgent vital actions
-  if (agent.action === 'HYDRATE') {
+  // 1b. Buying food at market stalls (non-farmers)
+  if (agent.action === 'BUY_FOOD') {
     return isEnRoute
-      ? 'Walking to Central Fountain to drink spring water'
-      : 'Drinking fresh spring water at Central Fountain';
+      ? `Walking to ${targetLabel} to purchase food`
+      : `Purchasing fresh food & provisions at ${targetLabel}`;
+  }
+
+  // 2. Urgent vital actions & spring water hydration
+  if (agent.action === 'HYDRATE') {
+    const isEast = targetLabel.includes('East Park') || targetLabel.includes('Springs');
+    const locName = isEast ? 'East Park Springs' : 'Central Fountain';
+    return isEnRoute
+      ? `Walking to ${locName} to drink spring water`
+      : `Drinking refreshing spring water at ${locName}`;
   }
   if (agent.action === 'REST_HOME') {
     return isEnRoute
@@ -429,7 +443,7 @@ function getAgentActivityDescription(agent) {
       if (state === 'HYDRATE_FOUNTAIN' || agent.action === 'HYDRATE') {
         return isEnRoute
           ? 'Walking to Central Fountain to hydrate'
-          : 'Drinking fresh spring water at Central Fountain';
+          : 'Drinking refreshing spring water at Central Fountain';
       }
       return isEnRoute
         ? `Walking to ${targetLabel}`
@@ -735,7 +749,7 @@ function setAgentMarkovState(agent, stateName) {
         agent.target = { x: HOSPITAL_SITES[1].x, z: HOSPITAL_SITES[1].z, label: HOSPITAL_SITES[1].label };
         agent.action = 'MEDIC_CARE';
       } else if (stateName === 'HYDRATE_PARK') {
-        agent.target = { x: PARK_SITES[0].x, z: PARK_SITES[0].z, label: PARK_SITES[0].label };
+        agent.target = { x: 600, z: 450, label: 'East Park Springs' };
         agent.action = 'HYDRATE';
       } else {
         // REST_PORCH
@@ -1057,30 +1071,60 @@ function evaluateChebyshevHomeostasis(agent, isDrought, communalSiloReserve) {
   }
   
   // 4. Food deficit (normal conditions or drought)
+  // Strict Vocational Isolation: ONLY Farmers can EVER harvest crops or target farm plots!
   if (h.food < 25) {
-    if (isDrought && communalSiloReserve > 0) {
+    if (agent.role === 'Farmer') {
+      if (isDrought && communalSiloReserve > 0) {
+        return {
+          action: 'WITHDRAW_INSTITUTION',
+          target: { x: 520, z: 620, label: 'Communal Granary Silo' },
+          urgency: 'HIGH',
+          drive: 'food'
+        };
+      }
+      const plotIdx = agent.farm_plot_index || 1;
+      const farmTarget = FARM_PLOTS[(plotIdx - 1) % 10];
       return {
-        action: 'WITHDRAW_INSTITUTION',
-        target: { x: 520, z: 620, label: 'Communal Granary Silo' },
+        action: 'GATHER_CROP',
+        target: { x: farmTarget.x, z: farmTarget.z, label: farmTarget.label },
+        urgency: 'HIGH',
+        drive: 'food'
+      };
+    } else {
+      // Non-farmers (Medics, Builders, Crafters, Traders, Generalists) NEVER harvest crops or visit farm plots
+      if (isDrought && communalSiloReserve > 0) {
+        return {
+          action: 'WITHDRAW_INSTITUTION',
+          target: { x: 520, z: 620, label: 'Communal Granary Silo' },
+          urgency: 'HIGH',
+          drive: 'food'
+        };
+      }
+      if (h.currency >= 0.5) {
+        return {
+          action: 'BUY_FOOD',
+          target: { x: 565, z: 635, label: 'Central Agora Market food stalls' },
+          urgency: 'HIGH',
+          drive: 'food'
+        };
+      }
+      return {
+        action: 'REST_HOME',
+        target: { x: agent.home.x, z: agent.home.z, label: `Front Porch / Dwelling #${agent.home_house_index}` },
         urgency: 'HIGH',
         drive: 'food'
       };
     }
-    const plotIdx = agent.farm_plot_index || 1;
-    const farmTarget = FARM_PLOTS[(plotIdx - 1) % 10];
-    return {
-      action: 'GATHER_CROP',
-      target: { x: farmTarget.x, z: farmTarget.z, label: farmTarget.label },
-      urgency: 'HIGH',
-      drive: 'food'
-    };
   }
   
-  // 5. Hydration recovery at central fountain
-  if (h.hydration < 25) {
+  // 5. Realistic Thirst & Hydration recovery (< 45% threshold)
+  if (h.hydration < 45) {
+    const distFountain = agent.position ? Math.hypot(500 - agent.position.x, 500 - agent.position.z) : 50;
+    const distSprings = agent.position ? Math.hypot(600 - agent.position.x, 450 - agent.position.z) : 100;
+    const targetSource = distSprings < distFountain ? WATER_SOURCES[1] : WATER_SOURCES[0];
     return {
       action: 'HYDRATE',
-      target: { x: 500, z: 500, label: 'Central Fountain' },
+      target: { x: targetSource.x, z: targetSource.z, label: targetSource.label },
       urgency: 'HIGH',
       drive: 'hydration'
     };
@@ -1117,8 +1161,15 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
     case 'REST_HOME': {
       h.rest = Math.min(100, +(h.rest + 6.0 * steps).toFixed(1));
       h.shelter = Math.min(100, +(h.shelter + 2.0 * steps).toFixed(1));
-      h.hydration = Math.min(100, +(h.hydration + 2.0 * steps).toFixed(1));
-      h.food = Math.min(100, +(h.food + 1.5 * steps).toFixed(1));
+      // Hydration recovery removed from REST_HOME: dwellings provide rest and shelter, not free spring water
+      h.food = Math.min(100, +(h.food + 2.0 * steps).toFixed(1));
+      break;
+    }
+    case 'BUY_FOOD': {
+      // Non-farmer citizen purchasing food from Agora market food stalls
+      const foodCost = Math.min(h.currency, +(0.35 * steps).toFixed(2));
+      h.currency = Math.max(0, +(h.currency - foodCost).toFixed(2));
+      h.food = Math.min(100, +(h.food + 12.0 * steps).toFixed(1));
       break;
     }
     case 'SLEEP_NIGHT': {
@@ -1160,7 +1211,7 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
       break;
     }
     case 'HYDRATE': {
-      h.hydration = Math.min(100, +(h.hydration + 8.0 * steps).toFixed(1));
+      h.hydration = Math.min(100, +(h.hydration + 25.0 * steps).toFixed(1));
       break;
     }
     case 'MEDIC_CARE': {
@@ -1195,7 +1246,7 @@ function executeAgentActionReplenishment(a, steps, isDrought) {
     case 'CIVIC_REST': {
       h.rest = Math.min(100, +(h.rest + 3.0 * steps).toFixed(1));
       h.kinship = Math.min(100, +(h.kinship + 2.0 * steps).toFixed(1));
-      h.hydration = Math.min(100, +(h.hydration + 1.5 * steps).toFixed(1));
+      // Hydration recovery removed from CIVIC_REST: citizens must drink at fountains/springs
       break;
     }
   }
@@ -1211,7 +1262,7 @@ function applyMetabolicDrift(a, steps, isDrought) {
     // Night sleep vitals recovery: food/hydration decay drops to 0.1x sleep basal rate
     const sleepFoodDecay = (isDrought ? 0.65 : 0.18) * 0.1;
     h.food = Math.max(5, +(h.food - sleepFoodDecay * steps).toFixed(1));
-    const sleepHydrationDecay = 0.15 * 0.1;
+    const sleepHydrationDecay = 0.30 * 0.1;
     h.hydration = Math.max(5, +(h.hydration - sleepHydrationDecay * steps).toFixed(1));
     return;
   }
@@ -1220,11 +1271,11 @@ function applyMetabolicDrift(a, steps, isDrought) {
     h.rest = Math.max(5, +(h.rest - 0.20 * steps).toFixed(1));
   }
   const foodDecay = isDrought ? 0.65 : 0.18;
-  if (a.action !== 'WITHDRAW_INSTITUTION' && a.action !== 'GATHER_CROP') {
+  if (a.action !== 'WITHDRAW_INSTITUTION' && a.action !== 'GATHER_CROP' && a.action !== 'BUY_FOOD') {
     h.food = Math.max(5, +(h.food - foodDecay * steps).toFixed(1));
   }
   if (a.action !== 'HYDRATE') {
-    h.hydration = Math.max(5, +(h.hydration - 0.15 * steps).toFixed(1));
+    h.hydration = Math.max(5, +(h.hydration - 0.30 * steps).toFixed(1));
   }
 
   // Demographic wealth recycling if elder reaches critical exhaustion
@@ -1345,7 +1396,7 @@ function simAgentsStep(steps) {
     }
 
     const distToTarget = Math.hypot(a.target.x - a.position.x, a.target.z - a.position.z);
-    const targetRadius = a.action === 'WITHDRAW_INSTITUTION' ? 24.0 : 4.5;
+    const targetRadius = a.action === 'WITHDRAW_INSTITUTION' ? 24.0 : ((a.action === 'HYDRATE' || a.action === 'BUY_FOOD') ? 8.0 : 4.5);
     const atTarget = distToTarget < targetRadius;
     
     // Evaluate Chebyshev Homeostasis
@@ -1362,19 +1413,27 @@ function simAgentsStep(steps) {
         if (h.food >= 80 || siloReserve <= 0 || !isDrought) {
           advanceAgentMarkovRoutine(a);
         }
+      } else if (a.action === 'BUY_FOOD') {
+        if (h.food >= 80) {
+          advanceAgentMarkovRoutine(a);
+        }
+      } else if (a.action === 'GATHER_CROP' && a.role === 'Farmer' && a.routine_state !== 'HARVEST_WHEAT' && a.routine_state !== 'DEPOSIT_GRAIN') {
+        if (h.food >= 80) {
+          advanceAgentMarkovRoutine(a);
+        }
       } else if (a.action === 'HYDRATE' && a.routine_state !== 'HYDRATE_FOUNTAIN' && a.routine_state !== 'HYDRATE_PARK') {
         if (h.hydration >= 85) {
           advanceAgentMarkovRoutine(a);
         }
       } else if (a.action === 'REST_HOME' && a.routine_state !== 'REST_PORCH') {
-        if (h.rest >= 85) {
+        if (h.rest >= 85 && h.food >= 60) {
           advanceAgentMarkovRoutine(a);
         }
       } else if (a.action === 'MEDIC_CARE' && a.routine_state !== 'HOSPITAL_TRAUMA' && a.routine_state !== 'HOUSE_CALL' && a.routine_state !== 'HOSPITAL_RECORDS') {
         if (h.health >= 85) {
           advanceAgentMarkovRoutine(a);
         }
-      } else if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL') {
+      } else if (decision.urgency === 'EMERGENCY_DROUGHT_WITHDRAWAL' || (decision.urgency === 'HIGH' && a.action !== decision.action)) {
         a.target = { ...decision.target };
         a.action = decision.action;
         a.waypoints = generateWaypoints(a.position, a.target);

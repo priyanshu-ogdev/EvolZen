@@ -292,6 +292,36 @@ async function runTests() {
     assert.ok(dawnState.data.farm_plots.every(p => p.growth_stage >= 0 && p.growth_stage <= 3), 'All plots must have valid growth stages 0-3');
     console.log(`✓ Dynamic crop lifecycle verified across 10 farm plots`);
 
+    // 11. Testing Strict Vocational Isolation & Thirst / Drinking Fountains
+    console.log('\n--- 11. Testing Strict Vocational Isolation & Thirst Drinking Fountains ---');
+    // Step forward 10 steps in daylight
+    for (let i = 0; i < 10; i++) {
+      await request('POST', '/api/environment/step', { steps: 2 });
+    }
+    const dayState = await request('GET', '/api/environment/state');
+    const dayAgents = dayState.data.agents;
+
+    // A. Verify Strict Vocational Isolation: Non-farmers NEVER have GATHER_CROP or target FARM_PLOTS
+    const nonFarmers = dayAgents.filter(a => a.role !== 'Farmer');
+    const invalidCropGatherers = nonFarmers.filter(a => a.action === 'GATHER_CROP' || (a.target && a.target.label && a.target.label.includes('Plot #')));
+    assert.strictEqual(invalidCropGatherers.length, 0, 'No non-farmers may ever harvest crops or target farm plots');
+    console.log(`✓ Strict Vocational Isolation verified: 0 of ${nonFarmers.length} non-farmers assigned to crop harvesting`);
+
+    // B. Verify Thirst & Hydration Actions
+    const hydratingAgents = dayAgents.filter(a => a.action === 'HYDRATE');
+    console.log(`Agents actively hydrating at fountains/springs: ${hydratingAgents.length}`);
+    for (const ha of hydratingAgents) {
+      assert.ok(
+        ha.target.label === 'Central Fountain' || ha.target.label === 'East Park Springs',
+        `Hydrating agent must target Central Fountain or East Park Springs, got: ${ha.target.label}`
+      );
+      assert.ok(
+        ha.action_description.includes('spring water') || ha.action_description.includes('Central Fountain') || ha.action_description.includes('East Park Springs'),
+        `Hydration activity description must describe spring water / fountains, got: ${ha.action_description}`
+      );
+    }
+    console.log('✓ Realistic thirst & drinking spring water at fountains verified');
+
     console.log('\n🎉 ALL BACKEND VERIFICATION CHECKS PASSED SUCCESSFULLY!\n');
   } finally {
     server.close();
