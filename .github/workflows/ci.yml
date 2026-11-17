@@ -111,7 +111,7 @@ jobs:
           enable-cache: true
       - run: uv sync --extra cpu
       - run: uv run --extra cpu pytest --cov=src --cov-report=xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.python-version }}
           path: coverage.xml
