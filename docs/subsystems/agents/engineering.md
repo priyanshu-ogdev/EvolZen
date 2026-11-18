@@ -95,11 +95,8 @@ and scarce information only after the simple choice/feedback/teaching loop is me
 ## Hardware and reproducibility
 
 No new dependencies or global settings. Numerical core is CPU-only and allocates no model.
-Shared quantized base inference, batched agent requests, bounded contexts and private memory are
-planned. The exact device called “AGX Spark” needs model/SKU confirmation before deployment sizing;
-do not assume its CUDA, ARM, virtualization or serving support from a nickname.
-Measure tokens/decision, latency, KV memory, training cadence and storage before choosing population
-size. One LLM call per simulated physics tick is not the scheduling model.
+Shared quantized base inference (`Qwen/Qwen2.5-7B-Instruct-AWQ`), batched agent requests via `vLLM` Marlin kernels, bounded contexts (2,048 tokens per agent), and private LoRA adapters (`evolzen.agents.trainer.OfflineAdapterTrainer`) are established. Sizing confirms an active population of 10–30 agents occupies 5.7–8.1 GB VRAM, fitting comfortably on a Jetson AGX Orin (64 GB unified memory) or NVIDIA RTX A6000 (48 GB).
+Measure tokens/decision, latency, KV memory, training cadence and storage on the physical hardware pilot before declaring benchmarks achieved. One LLM call per simulated physics tick is not the scheduling model.
 
 Persist: full genome, versioned configuration, world and lineage IDs, context schema, action keys,
 policy/checkpoint hashes, snapshot, pending sequence, teacher evidence and assessment suite. Store

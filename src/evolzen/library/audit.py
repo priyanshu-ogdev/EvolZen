@@ -87,6 +87,11 @@ class AuditLog:
         self._log_path = log_path
         self._log_path.parent.mkdir(parents=True, exist_ok=True)
 
+    @property
+    def log_path(self) -> Path:
+        """Filesystem path to the audit JSONL file."""
+        return self._log_path
+
     def record(self, event: AuditEvent) -> None:
         """Append *event* as a single JSON line.
 

@@ -3,7 +3,13 @@
 Changing anything in this subpackage is a change every one of the nine subsystems must be
 checked against. See the parent package README's "shared foundation" section before editing.
 """
-from evolzen.schemas.agent_profile import AgentProfile
+from evolzen.schemas.agent_profile import (
+    AgentProfile,
+    CommunicationGraphSnapshot,
+    LineageNode,
+    LineageSnapshot,
+    PopulationSnapshot,
+)
 from evolzen.schemas.development import (
     AgentDevelopmentState,
     BirthGenome,
@@ -53,6 +59,10 @@ __all__ = [
     "Transition",
     # identity & development schemas (Phase 1.2)
     "AgentProfile",
+    "LineageNode",
+    "LineageSnapshot",
+    "CommunicationGraphSnapshot",
+    "PopulationSnapshot",
     "AgentDevelopmentState",
     "BirthGenome",
     "BirthRecord",

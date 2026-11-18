@@ -412,7 +412,7 @@ def verify_cluster_connectivity(
 
 def benchmark_neural_inference(
     backend_type: str = "transformers",
-    model_id: str = "Qwen/Qwen2.5-0.5B-Instruct",
+    model_id: str = "Qwen/Qwen2.5-7B-Instruct-AWQ",
     batch_size: int = 4,
 ) -> dict[str, Any]:
     """Benchmark agent inference throughput, action latency (ms), and schema validity rate.

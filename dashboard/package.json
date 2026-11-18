@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test_endpoints.js"
+    "test": "node test_endpoints.js",
+    "test:frontend": "node test_frontend.js",
+    "test:dev": "node test_dev.js",
+    "test:all": "node test_endpoints.js && node test_frontend.js && node test_dev.js"
   },
   "keywords": [],
   "author": "",

@@ -78,6 +78,16 @@ def test_cli_train() -> None:
     assert "JEPA dimension health:" in result.stdout
 
 
+def test_cli_train_target_agents() -> None:
+    result = runner.invoke(app, ["train", "--target", "agents", "--steps", "2", "--batch-size", "2", "--seed", "42"])
+    assert result.exit_code == 0
+    assert "Phase 1.2 Agent Lineage Adapter Training" in result.stdout
+    assert "Environmental Vectors" in result.stdout
+    assert "Env Vector Drift" in result.stdout
+    assert "BC Loss Convergence:" in result.stdout
+    assert "Promotion Status:     PROMOTED" in result.stdout
+
+
 def test_cli_train_with_db_path(tmp_path: Path) -> None:
     db_path = tmp_path / "train_transitions.duckdb"
     with TransitionLogStore(db_path) as store:
@@ -384,7 +394,7 @@ def test_cli_run_neural_backend(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "Simulation completed successfully" in result.stdout
     assert "Inference backend: transformers" in result.stdout
-    assert "Neural model ID: Qwen/Qwen2.5-0.5B-Instruct" in result.stdout
+    assert "Neural model ID: Qwen/Qwen2.5-7B-Instruct-AWQ" in result.stdout
     assert db_path.exists()
 
 

@@ -519,7 +519,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       const width = container.clientWidth || container.offsetWidth || window.innerWidth || 1200;
       const height = container.clientHeight || container.offsetHeight || Math.round(window.innerHeight * 0.76) || 600;
 
-      // 1. Renderer: Optimized for Apple Silicon & WebKit GPUProcess Stability
+      // 1. Renderer: Optimized for High-Performance WebGL, Apple Silicon & WebKit Stability
       const renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: false,
@@ -532,7 +532,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.sortObjects = true;
-      state.three.maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+      state.three.maxAnisotropy = (renderer.capabilities && typeof renderer.capabilities.getMaxAnisotropy === 'function')
+        ? renderer.capabilities.getMaxAnisotropy()
+        : 1;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -600,6 +602,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       // Initialize 3D Floating Particle Systems (Zzz Sleep Particles & Crop Harvest Badges)
       initZzzParticleSystem(scene);
       initHarvestParticleSystem(scene);
+
+      // Immediate initial frame render to eliminate initial black-screen delay
+      renderer.render(scene, camera);
 
       // 7. Event Listeners
       renderer.domElement.addEventListener('mousemove', onThreeMouseMove);
@@ -932,7 +937,6 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       for (let r = 0; r < 6; r++) {
         const crop = new THREE.Mesh(cropGeo, cropStageMats[3]);
         crop.position.set(48, 0.85, z - 28 + r * 11);
-        crop.castShadow = true;
         crop.receiveShadow = true;
         farmsGroup.add(crop);
         plotRows.push(crop);
@@ -1023,7 +1027,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
       const crown = new THREE.Mesh(crownGeo, leafMat);
       crown.position.set(tx, 5.8, tz);
-      crown.castShadow = true;
+      crown.receiveShadow = true;
       parkGroup.add(crown);
     }
 
@@ -1170,7 +1174,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         for (let cr = 0; cr < 8; cr++) {
           const crate = new THREE.Mesh(crateGeo, cr % 2 === 0 ? crateMat : stoneCrateMat);
           crate.position.set(c.x + size / 2 + 5, 1.5, c.z - 15 + cr * 4.5);
-          crate.castShadow = true;
+          crate.receiveShadow = true;
           civicGroup.add(crate);
         }
 
@@ -1257,7 +1261,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
         for (let q = 0; q < 6; q++) {
           const block = new THREE.Mesh(blockGeo, q % 2 === 0 ? stoneMat : woodMat);
           block.position.set(c.x + size / 2 + 5, 1.8, c.z - 10 + q * 4.5);
-          block.castShadow = true;
+          block.receiveShadow = true;
           civicGroup.add(block);
         }
       }
@@ -1399,74 +1403,90 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       const bodyMat = assets.mats[`body_${archId}`] || assets.mats.body_0;
       const houseMesh = new THREE.Mesh(bodyGeo, bodyMat);
       houseMesh.position.set(x + w / 2, hHeight / 2, z + d / 2);
-      houseMesh.castShadow = true;
+      // Static houses receive dynamic shadows from agents/civic anchors; no costly shadow casting
+      houseMesh.castShadow = false;
       houseMesh.receiveShadow = true;
 
       const roofGeo = assets.roofGeos[archId] || assets.roofGeos[0];
       const roofMat = assets.mats[`roof_${archId}`] || assets.mats.roof_0;
       const roof = new THREE.Mesh(roofGeo, roofMat);
 
-      // 1. Architectural Roof Design
+      // Distance culling / LOD for fine micro-decorations (chimneys, multi-pane window frames, doors)
+      // Focus high-detail micro-meshes on central settlement cluster within 280m of town center (500, 500)
+      const distFromCenter = Math.hypot(x + w / 2 - 500, z + d / 2 - 500);
+      const isDetailed = distFromCenter < 280;
+
+      // 1. Architectural Roof Design & Micro-features
       if (archId === 4) {
         roof.position.set(0, hHeight / 2 + 0.22, 0);
         houseMesh.add(roof);
 
-        const ribbonWin = new THREE.Mesh(assets.ribbonWinGeo, assets.mats.window);
-        ribbonWin.position.set(0, 0.8, d / 2 + 0.1);
-        houseMesh.add(ribbonWin);
+        if (isDetailed) {
+          const ribbonWin = new THREE.Mesh(assets.ribbonWinGeo, assets.mats.window);
+          ribbonWin.position.set(0, 0.8, d / 2 + 0.1);
+          houseMesh.add(ribbonWin);
+        }
       } else if (archId === 1) {
         roof.rotation.y = Math.PI / 4;
         roof.position.set(0, hHeight / 2 + 1.6, 0);
         houseMesh.add(roof);
 
-        [-w / 3, w / 3].forEach(cx => {
-          const chim = new THREE.Mesh(assets.chimGeo1, assets.mats.chimney);
-          chim.position.set(cx, hHeight / 2 + 2.2, 0);
-          houseMesh.add(chim);
-        });
-
-        [-w / 4, w / 4].forEach(wx => {
-          [0.8, -1.2].forEach(wy => {
-            const win = new THREE.Mesh(assets.winGeo1, assets.mats.window);
-            win.position.set(wx, wy, d / 2 + 0.08);
-            houseMesh.add(win);
+        if (isDetailed) {
+          [-w / 3, w / 3].forEach(cx => {
+            const chim = new THREE.Mesh(assets.chimGeo1, assets.mats.chimney);
+            chim.position.set(cx, hHeight / 2 + 2.2, 0);
+            houseMesh.add(chim);
           });
-        });
+
+          [-w / 4, w / 4].forEach(wx => {
+            [0.8, -1.2].forEach(wy => {
+              const win = new THREE.Mesh(assets.winGeo1, assets.mats.window);
+              win.position.set(wx, wy, d / 2 + 0.08);
+              houseMesh.add(win);
+            });
+          });
+        }
       } else if (archId === 2) {
         roof.rotation.y = Math.PI / 4;
         roof.position.set(0, hHeight / 2 + 1.8, 0);
         houseMesh.add(roof);
 
-        const chim = new THREE.Mesh(assets.chimGeo2, assets.mats.chimney);
-        chim.position.set(-w / 2 + 1.2, hHeight / 2 + 2.2, 0);
-        houseMesh.add(chim);
+        if (isDetailed) {
+          const chim = new THREE.Mesh(assets.chimGeo2, assets.mats.chimney);
+          chim.position.set(-w / 2 + 1.2, hHeight / 2 + 2.2, 0);
+          houseMesh.add(chim);
 
-        [-w / 3, 0, w / 3].forEach(wx => {
-          [1.0, -1.4].forEach(wy => {
-            const win = new THREE.Mesh(assets.winGeo2, assets.mats.window);
-            win.position.set(wx, wy, d / 2 + 0.08);
-            houseMesh.add(win);
+          [-w / 3, 0, w / 3].forEach(wx => {
+            [1.0, -1.4].forEach(wy => {
+              const win = new THREE.Mesh(assets.winGeo2, assets.mats.window);
+              win.position.set(wx, wy, d / 2 + 0.08);
+              houseMesh.add(win);
+            });
           });
-        });
+        }
       } else {
         roof.rotation.y = Math.PI / 4;
         roof.position.set(0, hHeight / 2 + 1.2, 0);
         houseMesh.add(roof);
 
-        const chim = new THREE.Mesh(assets.chimGeoDef, assets.mats.chimney);
-        chim.position.set(w / 3, hHeight / 2 + 1.4, 0);
-        houseMesh.add(chim);
+        if (isDetailed) {
+          const chim = new THREE.Mesh(assets.chimGeoDef, assets.mats.chimney);
+          chim.position.set(w / 3, hHeight / 2 + 1.4, 0);
+          houseMesh.add(chim);
 
-        [-w / 3, w / 3].forEach(wx => {
-          const win = new THREE.Mesh(assets.winGeoDef, assets.mats.window);
-          win.position.set(wx, 0.2, d / 2 + 0.08);
-          houseMesh.add(win);
-        });
+          [-w / 3, w / 3].forEach(wx => {
+            const win = new THREE.Mesh(assets.winGeoDef, assets.mats.window);
+            win.position.set(wx, 0.2, d / 2 + 0.08);
+            houseMesh.add(win);
+          });
+        }
       }
 
-      const door = new THREE.Mesh(assets.doorGeo, assets.mats.door);
-      door.position.set(0, -hHeight / 2 + 1.2, d / 2 + 0.08);
-      houseMesh.add(door);
+      if (isDetailed) {
+        const door = new THREE.Mesh(assets.doorGeo, assets.mats.door);
+        door.position.set(0, -hHeight / 2 + 1.2, d / 2 + 0.08);
+        houseMesh.add(door);
+      }
 
       houseMesh.userData = {
         isHouse: true,

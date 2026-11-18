@@ -52,6 +52,30 @@ class AgentsSettings(BaseModel):
 
     device: Device = Device.CPU
     population_size: int = Field(default=20, ge=10, le=30, description="Phase 1.2 success metric range.")
+    base_model_id: str = Field(
+        default="Qwen/Qwen3.5-9B-VL-AWQ",
+        description="Base reasoning model ID (quantized 8-bit AWQ Vision-Language Model).",
+    )
+    quantization: str = Field(
+        default="awq",
+        description="Weight quantization algorithm ('awq', 'gptq', or 'none').",
+    )
+    quantization_bits: int = Field(
+        default=8,
+        description="Quantization precision bitwidth (8 for 8-bit AWQ W8A16, 4 for 4-bit AWQ, 16 for bfloat16).",
+    )
+    adapter_type: str = Field(
+        default="dora",
+        description="Fine-tuning adapter architecture ('dora' for Weight-Decomposed LoRA, 'lora' for standard LoRA).",
+    )
+    adapter_rank: int = Field(
+        default=16,
+        description="Low-rank dimension r for LoRA/DoRA directional matrices.",
+    )
+    adapter_alpha: int = Field(
+        default=32,
+        description="Scaling factor alpha for adapter updates.",
+    )
 
 
 class EconomySettings(BaseModel):

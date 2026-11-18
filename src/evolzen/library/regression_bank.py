@@ -23,7 +23,7 @@ from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from uuid import UUID, uuid4
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 import duckdb
 
@@ -216,6 +216,37 @@ class RegressionBank:
             transitions=transitions,
             expected_emission_fn=expected_emission_fn,
         )
+
+    def fixture_count(self) -> int:
+        """Total count of regression fixtures currently stored in the bank."""
+        with duckdb.connect(str(self._db_path)) as con:
+            res = con.execute("SELECT COUNT(*) FROM regression_fixtures").fetchone()
+            return int(res[0]) if res is not None else 0
+
+    def ingest_transition(
+        self,
+        transition: Transition,
+        rule_id: UUID | None = None,
+        expected_emission_fn: Callable[[Transition], dict[str, Any]] | None = None,
+    ) -> UUID:
+        """Ingest a single live environment transition as an immutable held-out regression fixture.
+
+        Args:
+            transition: Live transition emitted by the environment sandbox.
+            rule_id: Optional rule family UUID to associate fixture with. If omitted,
+                deterministic namespace UUID is used.
+            expected_emission_fn: Optional extractor for expected emission payload.
+
+        Returns:
+            The transition UUID registered.
+        """
+        rid = rule_id or uuid5(NAMESPACE_URL, "evolzen:global_regression_fixtures")
+        self.register_from_transitions(
+            rule_id=rid,
+            transitions=[transition],
+            expected_emission_fn=expected_emission_fn,
+        )
+        return transition.transition_id
 
     # ------------------------------------------------------------------
     # Retrieval

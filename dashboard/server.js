@@ -25,6 +25,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // ---------------------------------------------------------------------------
 // 1. World Substrate Metadata & Material Palette (from temp/EvolZen_World)

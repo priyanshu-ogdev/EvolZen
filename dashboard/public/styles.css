@@ -689,6 +689,8 @@ button, .btn-ctrl, .nav-tab, .cam-bookmark, .view-mode-btn, .layer-toggle, .rule
 /* Base Tab Switching System */
 .tab-pane {
   display: none;
+  content-visibility: auto;
+  contain-intrinsic-size: 1000px;
 }
 .tab-pane.active {
   display: block;

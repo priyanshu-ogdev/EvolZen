@@ -26,6 +26,13 @@ from evolzen.agents.self_modification import (
     apply_profile_update,
     evaluate_proposal,
 )
+from evolzen.agents.trainer import (
+    AdapterTrainingConfig,
+    CuratedTrajectory,
+    OfflineAdapterTrainer,
+    TrajectoryCurator,
+    ValidationResult,
+)
 
 __all__ = [
     # Unified Agent Runtime
@@ -56,4 +63,10 @@ __all__ = [
     "SelfModificationProposal",
     "evaluate_proposal",
     "apply_profile_update",
+    # Offline LoRA Adapter Curation & Validation
+    "CuratedTrajectory",
+    "TrajectoryCurator",
+    "AdapterTrainingConfig",
+    "OfflineAdapterTrainer",
+    "ValidationResult",
 ]

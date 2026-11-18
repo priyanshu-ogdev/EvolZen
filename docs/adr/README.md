@@ -24,3 +24,4 @@ possible).
 - [0006 — Developmental eight-drive agents](0006-developmental-eight-drive-agents.md)
 - [0007 — DuckDB append-only rule store and JSONL audit log for library](0007-library-persistence.md)
 - [0008 — Convergent learning, non-convex MORL, and hierarchical planning upgrade](0008-convergent-learning-and-hierarchical-planning-upgrade.md)
+- [0009 — Unified vision-language base model with multi-tier LoRA/DoRA adapters](0009-unified-vlm-base-with-multi-tier-adapters.md)

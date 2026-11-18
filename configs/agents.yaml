@@ -1,3 +1,9 @@
 # Maps onto evolzen.config.AgentsSettings
 device: cpu
 population_size: 20
+base_model_id: "Qwen/Qwen3.5-9B-VL-AWQ"
+quantization: "awq"
+quantization_bits: 8
+adapter_type: "dora"
+adapter_rank: 16
+adapter_alpha: 32

@@ -13,11 +13,13 @@ Citations:
 """
 from __future__ import annotations
 
+import io
 import json
 import os
 import shutil
 import subprocess
 import time
+from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
@@ -256,3 +258,192 @@ class GVisorSandbox:
                 resource_ceiling_hit=False,
                 structured_output=None,
             )
+
+
+class MockSandbox:
+    """Deterministic mock sandbox satisfying the :class:`Sandbox` protocol.
+
+    Provides hermetic execution for development environments, tests, and non-Linux hosts
+    without requiring root privileges, gVisor / runsc, or Firecracker. Accurately records
+    call history and allows simulation of timeouts, memory ceilings, and custom results.
+    """
+
+    def __init__(
+        self,
+        *,
+        simulate_timeout: bool = False,
+        simulate_oom: bool = False,
+        custom_result: ExecutionResult | None = None,
+        default_structured_output: dict[str, Any] | None = None,
+    ) -> None:
+        self.simulate_timeout = simulate_timeout
+        self.simulate_oom = simulate_oom
+        self.custom_result = custom_result
+        self.default_structured_output = default_structured_output
+        self.call_history: list[dict[str, Any]] = []
+
+    def clear(self) -> None:
+        """Clear recorded invocation history."""
+        self.call_history.clear()
+
+    def run(
+        self,
+        code: str,
+        *,
+        timeout_seconds: float = 2.0,
+        resource_ceiling_mb: int = 128,
+        input_data: dict[str, Any] | None = None,
+    ) -> ExecutionResult:
+        """Execute or simulate sandboxed code execution, recording invocation history."""
+        call_record: dict[str, Any] = {
+            "code": code,
+            "timeout_seconds": timeout_seconds,
+            "resource_ceiling_mb": resource_ceiling_mb,
+            "input_data": input_data,
+        }
+        self.call_history.append(call_record)
+
+        if self.custom_result is not None:
+            return self.custom_result
+
+        if self.simulate_timeout:
+            return ExecutionResult(
+                stdout="",
+                stderr=f"Mock execution timed out after {timeout_seconds} seconds",
+                exit_code=124,
+                wall_time_seconds=timeout_seconds,
+                resource_ceiling_hit=False,
+                structured_output=None,
+            )
+
+        if self.simulate_oom:
+            return ExecutionResult(
+                stdout="",
+                stderr=f"Mock resource ceiling: memory ceiling ({resource_ceiling_mb} MB) exceeded",
+                exit_code=137,
+                wall_time_seconds=0.01,
+                resource_ceiling_hit=True,
+                structured_output=None,
+            )
+
+        # Hermetic execution in isolated globals namespace
+        stdout_buf = io.StringIO()
+        stderr_buf = io.StringIO()
+        start = time.perf_counter()
+        exit_code = 0
+
+        # Safe isolated execution context
+        safe_globals: dict[str, Any] = {
+            "__name__": "__main__",
+            "input_data": input_data,
+            "json": json,
+        }
+
+        try:
+            with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
+                exec(compile(code, "<mock_sandbox>", "exec"), safe_globals)
+        except SystemExit as exc:
+            exit_code = int(exc.code) if isinstance(exc.code, int) else 0
+        except Exception as exc:
+            exit_code = 1
+            stderr_buf.write(f"Mock execution error: {exc}\n")
+
+        wall_time = time.perf_counter() - start
+        stdout_str = stdout_buf.getvalue()
+        stderr_str = stderr_buf.getvalue()
+
+        # Parse structured output from stdout, scope, or input_data
+        structured: dict[str, Any] | None = self.default_structured_output
+        if structured is None and stdout_str:
+            try:
+                parsed = json.loads(stdout_str.strip())
+                if isinstance(parsed, dict):
+                    structured = parsed
+            except Exception:
+                pass
+
+        if structured is None:
+            if "emission" in safe_globals and "state" in safe_globals:
+                structured = {
+                    "emission": getattr(safe_globals["emission"], "model_dump", lambda: safe_globals["emission"])(),
+                    "state": getattr(safe_globals["state"], "model_dump", lambda: safe_globals["state"])(),
+                }
+            elif "output" in safe_globals and isinstance(safe_globals["output"], dict):
+                structured = safe_globals["output"]
+            elif "result" in safe_globals and isinstance(safe_globals["result"], dict):
+                structured = safe_globals["result"]
+            elif input_data and "emission" in input_data and "state" in input_data:
+                structured = {
+                    "emission": input_data["emission"],
+                    "state": input_data["state"],
+                }
+
+        return ExecutionResult(
+            stdout=stdout_str,
+            stderr=stderr_str,
+            exit_code=exit_code,
+            wall_time_seconds=wall_time,
+            resource_ceiling_hit=False,
+            structured_output=structured,
+        )
+
+
+def create_sandbox(
+    backend: str = "auto",
+    *,
+    runsc_path: str = "runsc",
+    default_timeout_seconds: float = 2.0,
+    default_resource_ceiling_mb: int = 128,
+    enforce_strict_containment: bool = False,
+) -> Sandbox:
+    """Factory creating an appropriate :class:`Sandbox` executor for versatile deployment.
+
+    Args:
+        backend: Containment backend ('auto', 'gvisor', or 'mock').
+        runsc_path: Path or command name for the gVisor runsc executable.
+        default_timeout_seconds: Default execution timeout in seconds.
+        default_resource_ceiling_mb: Default memory ceiling in megabytes.
+        enforce_strict_containment: When True, raises RuntimeError if hardware containment
+            (gVisor) is unavailable rather than falling back to MockSandbox in dev/test.
+
+    Returns:
+        A concrete executor implementing the :class:`Sandbox` protocol.
+    """
+    selected = backend.lower().strip()
+    if selected == "mock":
+        return MockSandbox()
+
+    gvisor_ok = is_gvisor_available(runsc_path)
+    if selected == "gvisor":
+        if enforce_strict_containment and not gvisor_ok:
+            raise RuntimeError(
+                f"Hardware-isolated containment backend {backend!r} requested or required, "
+                f"but gVisor (runsc) is not installed or available on this host. "
+                f"Per AGENTS.md safety constraint #1, untrusted code cannot execute outside a Sandbox. "
+                f"Provision runsc on Linux target or set backend='mock' for local offline testing."
+            )
+        return GVisorSandbox(
+            runsc_path=runsc_path,
+            default_timeout_seconds=default_timeout_seconds,
+            default_resource_ceiling_mb=default_resource_ceiling_mb,
+        )
+
+    if selected == "auto" and gvisor_ok:
+        return GVisorSandbox(
+            runsc_path=runsc_path,
+            default_timeout_seconds=default_timeout_seconds,
+            default_resource_ceiling_mb=default_resource_ceiling_mb,
+        )
+
+    if enforce_strict_containment:
+        raise RuntimeError(
+            f"Hardware-isolated containment backend {backend!r} requested or required, "
+            f"but gVisor (runsc) is not installed or available on this host. "
+            f"Per AGENTS.md safety constraint #1, untrusted code cannot execute outside a Sandbox. "
+            f"Provision runsc on Linux target or set backend='mock' for local offline testing."
+        )
+
+    # In local development on Windows/macOS where runsc is unavailable and strict enforcement
+    # is not requested, return a MockSandbox for versatile testing.
+    return MockSandbox()
+

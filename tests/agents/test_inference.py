@@ -308,3 +308,18 @@ def test_vllm_backend_lazy_init_engine(mock_vllm_module: types.ModuleType) -> No
     first_instance = backend._llm
     backend._init_engine()
     assert backend._llm is first_instance
+
+
+def test_vllm_backend_awq_quantization_autodetect(mock_vllm_module: types.ModuleType) -> None:
+    backend = VLLMBackend("Qwen/Qwen2.5-7B-Instruct-AWQ")
+    assert backend._model_id == "Qwen/Qwen2.5-7B-Instruct-AWQ"
+    assert backend._quantization == "awq"
+    backend._init_engine()
+    assert backend._llm is not None
+    assert backend._llm.kwargs["quantization"] == "awq"
+
+
+def test_transformers_backend_default_model() -> None:
+    """Default model must be the canonical Qwen 3.5 9B VL AWQ base."""
+    backend = TransformersBackend()
+    assert backend._model_id == "Qwen/Qwen3.5-9B-VL-AWQ"

@@ -52,6 +52,11 @@ class LibraryStore:
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
 
+    @property
+    def db_path(self) -> Path:
+        """Filesystem path to the DuckDB store file."""
+        return self._db_path
+
     # ------------------------------------------------------------------
     # Schema bootstrap
     # ------------------------------------------------------------------

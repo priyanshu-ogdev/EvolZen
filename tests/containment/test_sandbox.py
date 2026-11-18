@@ -330,6 +330,8 @@ os.execv(cmd[0], cmd)
 
 def test_gvisor_sandbox_live(tmp_path: Path) -> None:
     """Execute live sandbox test or verified protocol shim on non-Linux hosts."""
+    if sys.platform == "win32":
+        pytest.skip("gVisor (runsc) protocol shim requires POSIX host; gVisor is Linux-only")
     if is_gvisor_available():
         sandbox = GVisorSandbox()
     else:

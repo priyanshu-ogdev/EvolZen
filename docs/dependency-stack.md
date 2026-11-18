@@ -51,7 +51,7 @@ working dev environment.
 
 | Package | Used by | Why |
 |---|---|---|
-| `vllm` | `agents` | High-throughput batched inference for a live 10-30 agent population on the AGX Spark. |
+| `vllm` | `agents` | High-throughput batched inference for a live 10-30 agent population on target hardware (serving `Qwen2.5-7B-Instruct-AWQ` via Marlin INT4 kernels). |
 | `bitsandbytes` | `agents` | Quantized loading of the small local agent LLMs. |
 | `deepspeed` | `predictor`, `recognition` | Multi-GPU training efficiency for the A6000. |
 | `flash-attn` | `recognition` | Attention-kernel speedup for the JEPA encoder and wake-sleep components — the project's most compute-heavy training loop. |

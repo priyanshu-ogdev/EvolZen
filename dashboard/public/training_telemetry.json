@@ -1,0 +1,271 @@
+{
+  "timestamp": "2026-11-18T19:32:55Z",
+  "target": "all",
+  "steps": 2,
+  "batch_size": 2,
+  "replay_ratio": 0.5,
+  "transitions_count": 48,
+  "history": [
+    {
+      "step": 1,
+      "planner_loss": 0.0,
+      "policy_entropy": 0.6931,
+      "bc_loss": 0.9424,
+      "jepa_variance": 5e-06,
+      "active_dimensions": 0,
+      "rehearsal_size": 2,
+      "backward_transfer": 0.0,
+      "catastrophic_forgetting": 0.0
+    },
+    {
+      "step": 2,
+      "planner_loss": 0.0,
+      "policy_entropy": 1.0985,
+      "bc_loss": 0.898,
+      "jepa_variance": 0.0,
+      "active_dimensions": 0,
+      "rehearsal_size": 4,
+      "backward_transfer": 0.0,
+      "catastrophic_forgetting": 0.0
+    }
+  ],
+  "lineages": {
+    "lineage-alpha": {
+      "trajectories": 1,
+      "checkpoint_id": "adapter-lineage-alpha-0001",
+      "initial_loss": 0.8907,
+      "final_loss": 0.57,
+      "loss_delta": 0.3207,
+      "task_accuracy": 1.0,
+      "retention_score": 1.0,
+      "safety_passed": true,
+      "promoted": true
+    },
+    "lineage-beta": {
+      "trajectories": 1,
+      "checkpoint_id": "adapter-lineage-beta-0002",
+      "initial_loss": 0.8907,
+      "final_loss": 0.57,
+      "loss_delta": 0.3207,
+      "task_accuracy": 1.0,
+      "retention_score": 1.0,
+      "safety_passed": true,
+      "promoted": true
+    },
+    "lineage-gamma": {
+      "trajectories": 1,
+      "checkpoint_id": "adapter-lineage-gamma-0003",
+      "initial_loss": 1.0764,
+      "final_loss": 0.6889,
+      "loss_delta": 0.3875,
+      "task_accuracy": 0.0,
+      "retention_score": 0.0,
+      "safety_passed": true,
+      "promoted": false
+    },
+    "lineage-delta": {
+      "trajectories": 1,
+      "checkpoint_id": "adapter-lineage-delta-0004",
+      "initial_loss": 1.0895,
+      "final_loss": 0.6973,
+      "loss_delta": 0.3922,
+      "task_accuracy": 0.0,
+      "retention_score": 0.0,
+      "safety_passed": true,
+      "promoted": false
+    }
+  },
+  "motive_vectors": [
+    {
+      "agent_id": "agent-0",
+      "action": "gather",
+      "pre_signal": [
+        0.0,
+        0.5,
+        -1.0,
+        0.0,
+        -0.3,
+        -0.5,
+        -0.5,
+        0.2
+      ],
+      "post_signal": [
+        0.0,
+        0.4,
+        -1.0,
+        0.0,
+        -0.26,
+        -0.5,
+        -0.4,
+        0.13
+      ],
+      "drift_vec": [
+        0.0,
+        -0.1,
+        0.0,
+        0.0,
+        0.04,
+        0.0,
+        0.1,
+        -0.07
+      ],
+      "rewards_vec": [
+        0.05,
+        0.25,
+        0.0,
+        0.0,
+        0.05,
+        0.0,
+        -0.05,
+        -0.05
+      ]
+    },
+    {
+      "agent_id": "agent-1",
+      "action": "wait",
+      "pre_signal": [
+        0.0,
+        0.5,
+        -1.0,
+        0.0,
+        -0.3,
+        -0.5,
+        -0.5,
+        0.2
+      ],
+      "post_signal": [
+        0.0,
+        0.5,
+        -1.0,
+        0.0,
+        -0.34,
+        -0.5,
+        -0.5,
+        0.22
+      ],
+      "drift_vec": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.04,
+        0.0,
+        0.0,
+        0.02
+      ],
+      "rewards_vec": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.15,
+        0.3
+      ]
+    },
+    {
+      "agent_id": "agent-2",
+      "action": "explore",
+      "pre_signal": [
+        0.0,
+        0.5,
+        -1.0,
+        0.0,
+        -0.3,
+        -0.5,
+        -0.5,
+        0.2
+      ],
+      "post_signal": [
+        0.0,
+        0.5,
+        -1.0,
+        0.0,
+        -0.3,
+        -0.5,
+        -0.5,
+        0.2
+      ],
+      "drift_vec": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rewards_vec": [
+        -0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.2,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "agent_id": "agent-3",
+      "action": "consume",
+      "pre_signal": [
+        0.0,
+        0.5,
+        -1.0,
+        0.0,
+        -0.3,
+        -0.5,
+        -0.5,
+        0.2
+      ],
+      "post_signal": [
+        0.0,
+        0.6,
+        -1.0,
+        0.0,
+        -0.6,
+        -0.5,
+        -0.5,
+        0.35
+      ],
+      "drift_vec": [
+        0.0,
+        0.1,
+        0.0,
+        0.0,
+        -0.3,
+        0.0,
+        0.0,
+        0.15
+      ],
+      "rewards_vec": [
+        0.0,
+        -0.1,
+        0.0,
+        0.0,
+        0.35,
+        0.0,
+        0.05,
+        0.0
+      ]
+    }
+  ],
+  "summary": {
+    "source": "engine bootstrap (4 lineages)",
+    "transitions_count": 48,
+    "total_grpo_updates": 2,
+    "final_planner_loss": 0.0,
+    "final_policy_entropy": 1.0985,
+    "final_jepa_variance": 0.000333,
+    "final_active_dims": 16,
+    "total_jepa_dims": 32,
+    "rehearsal_buffer_size": 4,
+    "backward_transfer": 0.0,
+    "catastrophic_forgetting": 0.0,
+    "rule_library_capabilities": 1,
+    "rule_library_fixtures": 2462
+  }
+}

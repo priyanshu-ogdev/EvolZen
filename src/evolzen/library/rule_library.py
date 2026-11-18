@@ -22,11 +22,13 @@ from __future__ import annotations
 import difflib
 from collections.abc import Callable
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from evolzen.exploration.synthesizer import CandidateRule
 from evolzen.library.audit import AuditLog, make_event
 from evolzen.library.persistence import LibraryStore
+from evolzen.library.regression_bank import RegressionBank
 from evolzen.library.validity import is_applicable, validate_supersession_reason
 from evolzen.schemas.library import (
     AuditEvent,
@@ -130,17 +132,55 @@ class RuleLibrary:
 
     def __init__(
         self,
-        store: LibraryStore,
-        audit_log: AuditLog,
+        store: LibraryStore | None = None,
+        audit_log: AuditLog | None = None,
         routing_threshold: float = 0.85,
         routing_confidence_fn: RoutingConfidenceFn | None = None,
+        *,
+        base_dir: Path | None = None,
     ) -> None:
+        if base_dir is not None:
+            base_dir.mkdir(parents=True, exist_ok=True)
+            store = LibraryStore(base_dir / "library.duckdb")
+            audit_log = AuditLog(base_dir / "library_audit.jsonl")
+        elif store is not None and audit_log is None:
+            audit_path = store.db_path.parent / f"{store.db_path.stem}_audit.jsonl"
+            audit_log = AuditLog(audit_path)
+        elif store is None and audit_log is None:
+            default_dir = Path("data/library")
+            default_dir.mkdir(parents=True, exist_ok=True)
+            store = LibraryStore(default_dir / "library.duckdb")
+            audit_log = AuditLog(default_dir / "library_audit.jsonl")
+        elif store is None and audit_log is not None:
+            store = LibraryStore(audit_log.log_path.parent / "library.duckdb")
+
+        if store is None or audit_log is None:
+            raise ValueError("RuleLibrary requires both a store and an audit_log")
+
         self._store = store
         self._audit = audit_log
         self._threshold = routing_threshold
         self._confidence_fn: RoutingConfidenceFn = (
             routing_confidence_fn or _default_confidence
         )
+        self._regression_bank: RegressionBank | None = None
+
+    @property
+    def store(self) -> LibraryStore:
+        """The underlying append-only LibraryStore."""
+        return self._store
+
+    @property
+    def audit_log(self) -> AuditLog:
+        """The append-only audit trail."""
+        return self._audit
+
+    @property
+    def regression_bank(self) -> RegressionBank:
+        """Held-out regression bank tied to this library store."""
+        if self._regression_bank is None:
+            self._regression_bank = RegressionBank(self._store.db_path)
+        return self._regression_bank
 
     # ------------------------------------------------------------------
     # Spawn / routing

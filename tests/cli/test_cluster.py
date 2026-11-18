@@ -308,7 +308,7 @@ def test_benchmark_neural_inference_transformers() -> None:
     """Verifies that benchmark_neural_inference measures throughput, latency, and valid schema."""
     result = benchmark_neural_inference(backend_type="transformers", batch_size=4)
     assert result["backend_type"] == "transformers"
-    assert result["model_id"] == "Qwen/Qwen2.5-0.5B-Instruct"
+    assert result["model_id"] == "Qwen/Qwen2.5-7B-Instruct-AWQ"
     assert result["batch_size"] == 4
     assert result["total_time_seconds"] > 0
     assert result["throughput_actions_per_sec"] > 0

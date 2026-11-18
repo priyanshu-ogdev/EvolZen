@@ -18,10 +18,11 @@ untested until Phase 2.1 benchmarks are executed on target hardware (AGENTS.md R
 """
 from __future__ import annotations
 
+import contextlib
 import threading
 from pathlib import Path
 from types import TracebackType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -32,6 +33,11 @@ from evolzen.predictor.rehearsal_buffer import RehearsalBuffer
 from evolzen.recognition.jepa import GroundedJEPAEncoder
 from evolzen.schemas.transition import Transition
 from evolzen.storage.transition_log import TransitionLogStore
+
+if TYPE_CHECKING:
+    from evolzen.economy.manuals import ManualStore
+    from evolzen.library.rule_library import RuleLibrary
+    from evolzen.predictor.data_coordinator import ContinualRLDataCoordinator
 
 
 class OnlineTrainingDaemon:
@@ -52,6 +58,9 @@ class OnlineTrainingDaemon:
         buffer_capacity: int = 1000,
         max_steps: int | None = None,
         last_seq_no: int = 0,
+        rule_library: RuleLibrary | None = None,
+        manual_store: ManualStore | None = None,
+        coordinator: ContinualRLDataCoordinator | None = None,
     ) -> None:
         self.db_path = Path(db_path)
         self.batch_size = max(1, batch_size)
@@ -64,6 +73,10 @@ class OnlineTrainingDaemon:
         self._rehearsal_buffer = RehearsalBuffer(capacity=buffer_capacity)
         self._planner = Planner(rehearsal_buffer=self._rehearsal_buffer, dynamics=self._predictor)
         self._jepa = GroundedJEPAEncoder(seed=seed)
+
+        self._rule_library = rule_library
+        self._manual_store = manual_store
+        self._coordinator = coordinator
 
         self._last_seq_no: int = max(0, last_seq_no)
         self._update_count: int = 0
@@ -96,6 +109,27 @@ class OnlineTrainingDaemon:
     def jepa(self) -> GroundedJEPAEncoder:
         """The internal GroundedJEPAEncoder instance."""
         return self._jepa
+
+    @property
+    def rule_library(self) -> RuleLibrary | None:
+        """The internal RuleLibrary instance, if attached."""
+        return self._rule_library
+
+    @property
+    def coordinator(self) -> ContinualRLDataCoordinator | None:
+        """The internal ContinualRLDataCoordinator instance, if attached or initialized."""
+        if self._coordinator is None and self._rule_library is not None:
+            store = self._get_or_create_store()
+            if store is not None:
+                from evolzen.predictor.data_coordinator import ContinualRLDataCoordinator
+
+                self._coordinator = ContinualRLDataCoordinator(
+                    store=store,
+                    rehearsal_buffer=self._rehearsal_buffer,
+                    rule_library=self._rule_library,
+                    manual_store=self._manual_store,
+                )
+        return self._coordinator
 
     @property
     def last_seq_no(self) -> int:
@@ -198,6 +232,11 @@ class OnlineTrainingDaemon:
                 self._jepa_variance = 0.0
                 self._active_dimensions = 0
 
+            if self._rule_library is not None:
+                for t in batch:
+                    with contextlib.suppress(Exception):
+                        self._rule_library.regression_bank.ingest_transition(t)
+
             summary: dict[str, Any] = {
                 "update_count": self._update_count,
                 "last_seq_no": self._last_seq_no,
@@ -212,6 +251,18 @@ class OnlineTrainingDaemon:
                 "total_dimensions": self._jepa.embedding_dim,
                 "rehearsal_buffer_size": len(self._rehearsal_buffer),
             }
+
+            coord = self.coordinator
+            if coord is not None:
+                score = max(0.0, min(1.0, 1.0 - summary["loss"]))
+                coord.metrics_tracker.record_eval(self._update_count, self._update_count, score)
+                summary["bwt"] = coord.metrics_tracker.backward_transfer()
+                summary["fwt"] = coord.metrics_tracker.forward_transfer()
+                summary["forgetting"] = coord.metrics_tracker.average_forgetting()
+                summary["active_capabilities"] = (
+                    self._rule_library.active_capability_count() if self._rule_library else 0
+                )
+
             self._latest_summary = summary
             return summary
 
