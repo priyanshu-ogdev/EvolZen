@@ -7,9 +7,11 @@ from evolzen.cli.viz_graphs import (
     generate_all_training_graphs,
     generate_continual_retention_svg,
     generate_environmental_motives_svg,
+    generate_grpo_gradient_dynamics_svg,
     generate_jepa_variance_svg,
     generate_loss_convergence_svg,
     generate_policy_entropy_svg,
+    generate_rule_impact_svg,
 )
 
 
@@ -127,11 +129,33 @@ def test_generate_continual_retention_svg(tmp_path: Path) -> None:
     assert "lineage-alpha" in content
 
 
+def test_generate_grpo_gradient_dynamics_svg(tmp_path: Path) -> None:
+    telemetry = _sample_telemetry()
+    out = tmp_path / "grpo_grad.svg"
+    res = generate_grpo_gradient_dynamics_svg(telemetry, out)
+    assert res.exists()
+    content = res.read_text(encoding="utf-8")
+    assert "<svg" in content
+    assert "GRPO GRADIENT UPDATES" in content
+    assert "Gradient Step Norm" in content
+
+
+def test_generate_rule_impact_svg(tmp_path: Path) -> None:
+    telemetry = _sample_telemetry()
+    out = tmp_path / "rule_impact.svg"
+    res = generate_rule_impact_svg(telemetry, out)
+    assert res.exists()
+    content = res.read_text(encoding="utf-8")
+    assert "<svg" in content
+    assert "RULE & ENVIRONMENT DATA INGESTION IMPACT" in content
+    assert "RECOGNITION ADAPTATION LATENCY" in content
+
+
 def test_generate_all_training_graphs(tmp_path: Path) -> None:
     telemetry = _sample_telemetry()
     out_dir = tmp_path / "charts"
     paths = generate_all_training_graphs(telemetry, out_dir)
-    assert len(paths) == 5
+    assert len(paths) == 7
     for _name, p in paths.items():
         assert p.exists()
         assert p.stat().st_size > 0
