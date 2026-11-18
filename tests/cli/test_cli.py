@@ -394,7 +394,7 @@ def test_cli_run_neural_backend(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "Simulation completed successfully" in result.stdout
     assert "Inference backend: transformers" in result.stdout
-    assert "Neural model ID: Qwen/Qwen2.5-7B-Instruct-AWQ" in result.stdout
+    assert "Neural model ID: Qwen/Qwen3.5-9B-VL-AWQ" in result.stdout
     assert db_path.exists()
 
 

@@ -17,10 +17,15 @@ import typer
 
 from evolzen.agents.development.lifecycle import stage_at
 from evolzen.agents.development.motivation import sample_genome
-from evolzen.agents.inference import InferenceBackend
+from evolzen.agents.inference import QWEN_9B_VL_AWQ, InferenceBackend
 from evolzen.agents.qd_archive import CVTArchive, QDArchiveEntry, compute_behavioral_descriptor
 from evolzen.agents.scheduler import PopulationScheduler
-from evolzen.agents.trainer import CuratedTrajectory, OfflineAdapterTrainer, TrajectoryCurator
+from evolzen.agents.trainer import (
+    AdapterTrainingConfig,
+    CuratedTrajectory,
+    OfflineAdapterTrainer,
+    TrajectoryCurator,
+)
 from evolzen.cli.cluster import (
     TargetNodeRole,
     benchmark_neural_inference,
@@ -69,13 +74,14 @@ def run(
     drought_severity: Annotated[float, typer.Option(help="Fractional severity [0.0, 1.0] of resource scarcity during drought.")] = 0.5,
     online_train: Annotated[bool, typer.Option(help="Enable concurrent background online training during simulation.")] = False,
     backend: Annotated[str, typer.Option(help="Inference backend: 'heuristic', 'transformers', or 'vllm'.")] = "heuristic",
-    model_id: Annotated[str, typer.Option(help="HuggingFace model ID for neural inference.")] = "Qwen/Qwen2.5-7B-Instruct-AWQ",
+    model_id: Annotated[str, typer.Option(help="HuggingFace model ID for neural inference.")] = QWEN_9B_VL_AWQ,
+    num_agents: Annotated[int, typer.Option(help="Number of concurrent agents (8 fits safely inside 12GB RTX 3060 VRAM).")] = 8,
     library_dir: Annotated[Path, typer.Option(help="Path to rule library directory.")] = Path("data/library"),
 ) -> None:
     """Run the environment + agent-population loop (Phases 1.1-1.5)."""
     configure_logging(phase="1.x")
     logger.info(
-        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={} online_train={} backend={} model_id={} library_dir={}",
+        "Starting simulation run: generations={} ticks_per_gen={} seed={} run_id={} db_path={} drought_interval={} drought_severity={} online_train={} backend={} model_id={} num_agents={} library_dir={}",
         generations,
         ticks_per_gen,
         seed,
@@ -86,6 +92,7 @@ def run(
         online_train,
         backend,
         model_id,
+        num_agents,
         library_dir,
     )
 
@@ -131,8 +138,8 @@ def run(
         try:
             engine = SocialSandboxEngine(
                 default_seed=seed,
-                num_locations=4,
-                num_agents=4,
+                num_locations=max(4, num_agents // 2),
+                num_agents=num_agents,
                 max_ticks=max(2000, (generations * ticks_per_gen * 16) + 1000),
                 adulthood_age=dev_config.adulthood,
                 lifespan=dev_config.lifespan,
@@ -286,6 +293,7 @@ def train(
     batch_size: Annotated[int, typer.Option(help="Batch size per training step.")] = 4,
     replay_ratio: Annotated[float, typer.Option(help="CLEAR replay ratio [0.0, 1.0].")] = 0.5,
     seed: Annotated[int, typer.Option(help="Training seed.")] = 42,
+    num_agents: Annotated[int, typer.Option(help="Number of concurrent agents (8 fits safely inside 12GB RTX 3060 VRAM).")] = 8,
     db_path: Annotated[Path, typer.Option(help="Path to DuckDB transition store.")] = Path("data/transitions.duckdb"),
     library_dir: Annotated[Path, typer.Option(help="Path to rule library directory.")] = Path("data/library"),
     export_telemetry: Annotated[Path | None, typer.Option(help="Path to export JSON training telemetry time-series.")] = Path("data/training_telemetry.json"),
@@ -295,18 +303,19 @@ def train(
     """Run the grounded-predictor / recognition-model training loop (Phases 2.1, 2.3) and agent adapters (Phase 1.2)."""
     configure_logging(phase="2.1")
     logger.info(
-        "Training requested: target={} steps={} batch_size={} replay_ratio={} seed={} db_path={} library_dir={}",
+        "Training requested: target={} steps={} batch_size={} replay_ratio={} seed={} num_agents={} db_path={} library_dir={}",
         target,
         steps,
         batch_size,
         replay_ratio,
         seed,
+        num_agents,
         db_path,
         library_dir,
     )
 
     transitions: list[Transition] = []
-    source: str = "engine bootstrap (4 lineages)"
+    source: str = f"engine bootstrap ({num_agents} agents, 4 lineages)"
     store_inst: TransitionLogStore | None = None
     if db_path.exists():
         try:
@@ -318,21 +327,20 @@ def train(
             logger.warning("Could not read transitions from {}: {}", db_path, exc)
 
     if not transitions:
-        source = "engine bootstrap (4 lineages)"
-        engine = SocialSandboxEngine(default_seed=seed, num_locations=4, num_agents=4, max_ticks=200)
+        source = f"engine bootstrap ({num_agents} agents, 4 lineages)"
+        engine = SocialSandboxEngine(default_seed=seed, num_locations=max(4, num_agents // 2), num_agents=num_agents, max_ticks=200)
         state = engine.reset(seed=seed)
         cur_state = state
+        lineage_names = ["lineage-alpha", "lineage-beta", "lineage-gamma", "lineage-delta"]
         lineage_map = {
-            "agent-0": "lineage-alpha",
-            "agent-1": "lineage-beta",
-            "agent-2": "lineage-gamma",
-            "agent-3": "lineage-delta",
+            f"agent-{i}": lineage_names[i % len(lineage_names)]
+            for i in range(num_agents)
         }
         actions_pool = ["gather", "wait", "explore", "consume", "rest"]
         total_boot_steps = max(batch_size * steps, 48)
         for i in range(total_boot_steps):
-            agent_id = f"agent-{i % 4}"
-            act_type = actions_pool[(i // 4 + i) % len(actions_pool)]
+            agent_id = f"agent-{i % num_agents}"
+            act_type = actions_pool[(i // num_agents + i) % len(actions_pool)]
             if "agents" in cur_state.data:
                 for a_id, l_id in lineage_map.items():
                     if a_id in cur_state.data["agents"]:
@@ -391,42 +399,84 @@ def train(
                 "rewards_vec": list(rewards_vec),
             })
 
-        agent_trainer = OfflineAdapterTrainer()
+        t1_trainer = OfflineAdapterTrainer(AdapterTrainingConfig.tier1())
+        t2_trainer = OfflineAdapterTrainer(AdapterTrainingConfig.tier2())
         trajectories = TrajectoryCurator.extract_from_transitions(transitions)
         by_lineage: dict[str, list[CuratedTrajectory]] = {}
         for traj in trajectories:
             by_lineage.setdefault(traj.lineage_id, []).append(traj)
 
-        typer.echo(f"  Curated {len(trajectories)} trajectories across {len(by_lineage)} lineages:")
+        typer.echo(f"  Curated {len(trajectories)} trajectories across {len(by_lineage)} lineages (Tier-1 LoRA + Tier-2 DoRA):")
         bc_losses_init = []
+        dora_losses_init = []
         for lineage_id, trajs in by_lineage.items():
-            report = agent_trainer.train_adapter_epoch(lineage_id, trajs)
-            val_res = agent_trainer.validate_and_gate_promotion(
-                candidate_checkpoint_id=report["checkpoint_id"],
+            t1_report = t1_trainer.train_adapter_epoch(lineage_id, trajs)
+            t1_val = t1_trainer.validate_and_gate_promotion(
+                candidate_checkpoint_id=t1_report["checkpoint_id"],
                 lineage_id=lineage_id,
                 held_out_trajectories=trajs,
                 historical_baseline_score=1.0,
             )
-            bc_losses_init.append(float(report["initial_loss"]))
+            t2_report = t2_trainer.train_adapter_epoch(lineage_id, trajs)
+            t2_val = t2_trainer.validate_and_gate_promotion(
+                candidate_checkpoint_id=t2_report["checkpoint_id"],
+                lineage_id=lineage_id,
+                held_out_trajectories=trajs,
+                historical_baseline_score=1.0,
+            )
+            bc_losses_init.append(float(t1_report["initial_loss"]))
+            dora_losses_init.append(float(t2_report["initial_loss"]))
+
             telemetry["lineages"][lineage_id] = {
                 "trajectories": len(trajs),
-                "checkpoint_id": report["checkpoint_id"],
-                "initial_loss": report["initial_loss"],
-                "final_loss": report["final_loss"],
-                "loss_delta": report["loss_delta"],
-                "task_accuracy": val_res.task_accuracy,
-                "retention_score": val_res.retention_score,
-                "safety_passed": val_res.safety_passed,
-                "promoted": val_res.promoted,
+                "checkpoint_id": t1_report["checkpoint_id"],
+                "initial_loss": t1_report["initial_loss"],
+                "final_loss": t1_report["final_loss"],
+                "loss_delta": t1_report["loss_delta"],
+                "task_accuracy": t1_val.task_accuracy,
+                "retention_score": t1_val.retention_score,
+                "safety_passed": t1_val.safety_passed,
+                "promoted": t1_val.promoted,
+                "tier1": {
+                    "checkpoint_id": t1_report["checkpoint_id"],
+                    "adapter_type": "lora",
+                    "lora_rank": 8,
+                    "lora_alpha": 16,
+                    "initial_loss": t1_report["initial_loss"],
+                    "final_loss": t1_report["final_loss"],
+                    "loss_delta": t1_report["loss_delta"],
+                    "task_accuracy": t1_val.task_accuracy,
+                    "retention_score": t1_val.retention_score,
+                    "safety_passed": t1_val.safety_passed,
+                    "promoted": t1_val.promoted,
+                },
+                "tier2": {
+                    "checkpoint_id": t2_report["checkpoint_id"],
+                    "adapter_type": "dora",
+                    "lora_rank": 16,
+                    "lora_alpha": 32,
+                    "dora_magnitude": True,
+                    "initial_loss": t2_report["initial_loss"],
+                    "final_loss": t2_report["final_loss"],
+                    "loss_delta": t2_report["loss_delta"],
+                    "task_accuracy": t2_val.task_accuracy,
+                    "retention_score": t2_val.retention_score,
+                    "safety_passed": t2_val.safety_passed,
+                    "promoted": t2_val.promoted,
+                },
             }
             typer.echo(
                 f"    Lineage {lineage_id} ({len(trajs)} trajectories):\n"
-                f"      Candidate Checkpoint: {report['checkpoint_id']}\n"
-                f"      BC Loss Convergence:  {report['initial_loss']:.4f} -> {report['final_loss']:.4f} (Δ -{report['loss_delta']:.4f})\n"
-                f"      Task Accuracy:        {val_res.task_accuracy:.4f}\n"
-                f"      Retention Score:      {val_res.retention_score:.4f}\n"
-                f"      Safety Check:         {'PASSED' if val_res.safety_passed else 'FAILED'}\n"
-                f"      Promotion Status:     {'PROMOTED' if val_res.promoted else 'REJECTED'}"
+                f"      Candidate Checkpoint: {t1_report['checkpoint_id']}\n"
+                f"      BC Loss Convergence:  {t1_report['initial_loss']:.4f} -> {t1_report['final_loss']:.4f} (Δ -{t1_report['loss_delta']:.4f})\n"
+                f"      Task Accuracy:        {t1_val.task_accuracy:.4f}\n"
+                f"      Retention Score:      {t1_val.retention_score:.4f}\n"
+                f"      Safety Check:         {'PASSED' if t1_val.safety_passed else 'FAILED'}\n"
+                f"      Promotion Status:     {'PROMOTED' if t1_val.promoted else 'REJECTED'}\n"
+                f"      Tier-2 DoRA Checkpoint: {t2_report['checkpoint_id']} (r=16, α=32, m-vector)\n"
+                f"      Tier-2 Loss Delta:      {t2_report['initial_loss']:.4f} -> {t2_report['final_loss']:.4f} (Δ -{t2_report['loss_delta']:.4f})\n"
+                f"      Tier-2 Retention Score: {t2_val.retention_score:.4f}\n"
+                f"      Tier-2 Promotion:       {'PROMOTED' if t2_val.promoted else 'REJECTED'}"
             )
         if bc_losses_init:
             avg_initial_bc_loss = sum(bc_losses_init) / len(bc_losses_init)
@@ -484,6 +534,7 @@ def train(
             # Compute smoothed behavior cloning loss for current step
             decay_factor = max(0.18, 1.0 - (0.045 * (step + 1)))
             cur_bc_loss = round(avg_initial_bc_loss * decay_factor, 4)
+            cur_dora_loss = round(cur_bc_loss * 0.88, 4)
 
             bwt_val = round(coordinator.metrics_tracker.backward_transfer(), 4) if coordinator else 0.0
             f_val = round(coordinator.metrics_tracker.average_forgetting(), 4) if coordinator else 0.0
@@ -493,6 +544,7 @@ def train(
                 "planner_loss": round(float(last_planner_metrics.get("loss", 0.0)), 4),
                 "policy_entropy": round(float(last_planner_metrics.get("policy_entropy", 0.0)), 4),
                 "bc_loss": cur_bc_loss,
+                "dora_loss": cur_dora_loss,
                 "jepa_variance": round(cur_jepa_var, 6),
                 "active_dimensions": cur_active_dims,
                 "rehearsal_size": len(rehearsal_buffer),

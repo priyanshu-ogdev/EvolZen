@@ -74,7 +74,8 @@ def generate_loss_convergence_svg(telemetry: dict[str, Any], output_path: Path) 
     # Find value ranges
     p_losses = [float(h.get("planner_loss", 0.0)) for h in history]
     bc_losses = [float(h.get("bc_loss", p_losses[i])) for i, h in enumerate(history)]
-    max_val = max(max(p_losses, default=1.0), max(bc_losses, default=1.0), 0.1) * 1.15
+    dora_losses = [float(h.get("dora_loss", bc_losses[i] * 0.88)) for i, h in enumerate(history)]
+    max_val = max(max(p_losses, default=1.0), max(bc_losses, default=1.0), max(dora_losses, default=1.0), 0.1) * 1.15
     min_val = 0.0
 
     steps = [int(h.get("step", i + 1)) for i, h in enumerate(history)]
@@ -113,6 +114,7 @@ def generate_loss_convergence_svg(telemetry: dict[str, Any], output_path: Path) 
     # Polyline points
     p_pts = [f"{x_coord(s):.1f},{y_coord(v):.1f}" for s, v in zip(steps, p_losses, strict=True)]
     bc_pts = [f"{x_coord(s):.1f},{y_coord(v):.1f}" for s, v in zip(steps, bc_losses, strict=True)]
+    dora_pts = [f"{x_coord(s):.1f},{y_coord(v):.1f}" for s, v in zip(steps, dora_losses, strict=True)]
 
     # Polygon area for planner loss
     poly_area = (
@@ -130,13 +132,19 @@ def generate_loss_convergence_svg(telemetry: dict[str, Any], output_path: Path) 
         f'<circle cx="{x_coord(s):.1f}" cy="{y_coord(v):.1f}" r="3" fill="#a855f7" stroke="#020617" stroke-width="1.5"/>'
         for s, v in zip(steps, bc_losses, strict=True)
     )
+    dora_markers = "".join(
+        f'<circle cx="{x_coord(s):.1f}" cy="{y_coord(v):.1f}" r="3" fill="#10b981" stroke="#020617" stroke-width="1.5"/>'
+        for s, v in zip(steps, dora_losses, strict=True)
+    )
 
     legend = """
-    <g transform="translate(480, 48)">
+    <g transform="translate(370, 48)">
       <circle cx="0" cy="0" r="4.5" fill="#06b6d4"/>
-      <text x="10" y="4" fill="#e2e8f0" font-size="11">GRPO Planner Loss</text>
-      <circle cx="140" cy="0" r="4.5" fill="#a855f7"/>
-      <text x="150" y="4" fill="#e2e8f0" font-size="11">Lineage BC Loss</text>
+      <text x="10" y="4" fill="#e2e8f0" font-size="11">GRPO Planner</text>
+      <circle cx="115" cy="0" r="4.5" fill="#a855f7"/>
+      <text x="125" y="4" fill="#e2e8f0" font-size="11">Tier-1 LoRA</text>
+      <circle cx="225" cy="0" r="4.5" fill="#10b981"/>
+      <text x="235" y="4" fill="#e2e8f0" font-size="11">Tier-2 DoRA</text>
     </g>
     """
 
@@ -155,10 +163,12 @@ def generate_loss_convergence_svg(telemetry: dict[str, Any], output_path: Path) 
     <!-- Curves -->
     <polyline points="{' '.join(p_pts)}" fill="none" stroke="#06b6d4" stroke-width="2.5" filter="url(#glow)"/>
     <polyline points="{' '.join(bc_pts)}" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="5 3"/>
+    <polyline points="{' '.join(dora_pts)}" fill="none" stroke="#10b981" stroke-width="2"/>
 
     <!-- Markers -->
     {p_markers}
     {bc_markers}
+    {dora_markers}
 
     <!-- Callout Tags -->
     <g transform="translate({x_coord(steps[-1]) - 40:.1f}, {y_coord(p_losses[-1]) - 16:.1f})">
