@@ -1,0 +1,3210 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox">
+      
+      
+      
+      
+        <link rel="prev" href="../objectives-and-evaluation/">
+      
+      
+        <link rel="next" href="../section-5-empirical-results/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Next Frontier Strategy - EvolZen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#strategic-blueprint-next-research-engineering-frontiers-for-evolzen" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="EvolZen" class="md-header__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EvolZen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Next Frontier Strategy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="EvolZen" class="md-nav__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    EvolZen
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Outline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-0-foreground/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase 0 (Foreground)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hardware-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD & Parallel Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Phases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.1-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.2-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.3-economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.3 Economy & Knowledge Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.4-exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.4 Directed Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/1.5-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5 Growing Rule Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.1-predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1 Grounded Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.2-containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.2 Verification Gate & Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.3-recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.3 Recognition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phases/2.4-2.5-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.4-2.5 Evaluation & Publication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../landscape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparative Landscape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docs-and-codebase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docs & Codebase Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives-and-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives & Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next Frontier Strategy
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next Frontier Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary-verified-baseline-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary &amp; Verified Baseline State
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-deep-dive-the-four-next-major-frontiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Deep Dive: The Four Next Major Frontiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Deep Dive: The Four Next Major Frontiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontier-1-longitudinal-cultural-evolution-multi-lineage-market-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 1: Longitudinal Cultural Evolution &amp; Multi-Lineage Market Dynamics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 1: Longitudinal Cultural Evolution &amp; Multi-Lineage Market Dynamics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-research-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Research Questions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-hypotheses-target-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Hypotheses &amp; Target Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontier-2-model-based-policy-rollouts-offline-planning-evolzen-train" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 2: Model-Based Policy Rollouts &amp; Offline Planning (evolzen train)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 2: Model-Based Policy Rollouts &amp; Offline Planning (evolzen train)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-research-questions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Research Questions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-hypotheses-target-metrics_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Hypotheses &amp; Target Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontier-3-live-real-time-dashboard-server-evolzen-serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 3: Live Real-Time Dashboard Server (evolzen serve)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 3: Live Real-Time Dashboard Server (evolzen serve)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-operational-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Operational Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontier-4-physical-target-rig-deployment-distributed-ray-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 4: Physical Target Rig Deployment (Distributed Ray Topology)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 4: Physical Target Rig Deployment (Distributed Ray Topology)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-rig-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Rig Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-structured-actionable-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Structured Actionable Roadmap
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Structured Actionable Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tier-1-local-cpu-immediate-048-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 1: Local CPU Immediate (0–48 Hours)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-2-empirical-campaigns-scaling-days-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 2: Empirical Campaigns &amp; Scaling (Days 2–7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-3-physical-gpu-deployment-distributed-cluster-days-714" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 3: Physical GPU Deployment &amp; Distributed Cluster (Days 7–14)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-safety-constraints-scientific-integrity-risk-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Safety Constraints, Scientific Integrity &amp; Risk Mitigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-summary-next-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Summary &amp; Next Actions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../section-5-empirical-results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Empirical Results (Section 5)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subsystem Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Subsystem Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_11_3" id="__nav_11_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developmental Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_11_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developmental Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic Behaviour Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/motivation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motivation Equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle & Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning & Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions (ADRs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0001-single-package-not-workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 One package, not a workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0002-dependency-stack-and-optional-extras/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Dependency stack & optional extras
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0003-nine-subsystems-not-two-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Nine subsystems, not two packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0004-persistent-growing-world/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 Persistent growing world
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0005-transition-semantics-and-dual-track-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 Transition semantics & dual-track evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0006-developmental-eight-drive-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0006 Developmental eight-drive agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0007-library-persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0007 Library persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0008 Convergent learning & planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/foundation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary-verified-baseline-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary &amp; Verified Baseline State
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-deep-dive-the-four-next-major-frontiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Deep Dive: The Four Next Major Frontiers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Deep Dive: The Four Next Major Frontiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#frontier-1-longitudinal-cultural-evolution-multi-lineage-market-dynamics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 1: Longitudinal Cultural Evolution &amp; Multi-Lineage Market Dynamics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 1: Longitudinal Cultural Evolution &amp; Multi-Lineage Market Dynamics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-research-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Research Questions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-hypotheses-target-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Hypotheses &amp; Target Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontier-2-model-based-policy-rollouts-offline-planning-evolzen-train" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 2: Model-Based Policy Rollouts &amp; Offline Planning (evolzen train)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 2: Model-Based Policy Rollouts &amp; Offline Planning (evolzen train)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-research-questions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Research Questions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-hypotheses-target-metrics_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Hypotheses &amp; Target Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontier-3-live-real-time-dashboard-server-evolzen-serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 3: Live Real-Time Dashboard Server (evolzen serve)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 3: Live Real-Time Dashboard Server (evolzen serve)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-operational-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Operational Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontier-4-physical-target-rig-deployment-distributed-ray-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frontier 4: Physical Target Rig Deployment (Distributed Ray Topology)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontier 4: Physical Target Rig Deployment (Distributed Ray Topology)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motivation-rig-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motivation &amp; Rig Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-structured-actionable-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Structured Actionable Roadmap
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Structured Actionable Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tier-1-local-cpu-immediate-048-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 1: Local CPU Immediate (0–48 Hours)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-2-empirical-campaigns-scaling-days-27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 2: Empirical Campaigns &amp; Scaling (Days 2–7)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tier-3-physical-gpu-deployment-distributed-cluster-days-714" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tier 3: Physical GPU Deployment &amp; Distributed Cluster (Days 7–14)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-safety-constraints-scientific-integrity-risk-mitigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Safety Constraints, Scientific Integrity &amp; Risk Mitigation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-summary-next-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Summary &amp; Next Actions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="strategic-blueprint-next-research-engineering-frontiers-for-evolzen">Strategic Blueprint: Next Research &amp; Engineering Frontiers for EvolZen</h1>
+<p><strong>Document Status</strong>: Phase 0 Complete / Post-Horizon 4 Strategic Blueprint<br />
+<strong>Target Systems</strong>: CPU Local Simulation, Ray Distributed Cluster, NVIDIA DGX Spark, Jetson AGX Spark, RTX A6000<br />
+<strong>Authors</strong>: EvolZen Swarm Intelligence Team (<code>strategic-planner</code>)<br />
+<strong>Date</strong>: November 2026  </p>
+<hr />
+<h2 id="1-executive-summary-verified-baseline-state">1. Executive Summary &amp; Verified Baseline State</h2>
+<p>With the sequential execution and rigorous verification of <strong>Options 1–4</strong> and <strong>Horizons 1–4</strong>, the EvolZen research testbed has achieved a battle-hardened foundation:</p>
+<ol>
+<li><strong>Subsystem Verification</strong>: 392 passing tests (1 skipped on Darwin host due to Linux-specific <code>runsc</code> gVisor sandboxing requirement), 0 mypy strict type errors across 144 source and test modules, clean <code>ruff</code> linting, and strict MkDocs documentation build.</li>
+<li><strong>Empirical Telemetry</strong>: 1,576 transition steps logged with cryptographic SHA-256 hash-chain integrity in <code>data/transitions.duckdb</code>, proving generational progression to generation 16 (empirically exceeding the Phase 1.2 $\ge 5$ generation milestone), 63 births, 65 deaths, 1,952 teaching events, and multi-niche CVTArchive coverage.</li>
+<li><strong>Operational Tooling</strong>: 7 operational CLI entrypoints (<code>run</code>, <code>train</code>, <code>evaluate</code>, <code>replay</code>, <code>inspect</code>, <code>ablate</code>, <code>cluster</code>), complete with an interactive HTML5/Canvas visualization dashboard (<code>dashboard.html</code>) and an automated multi-node pre-flight hardware diagnostic harness.</li>
+</ol>
+<p>This blueprint articulates the next major research and engineering frontiers, categorizing immediate implementation steps, empirical campaigns, and physical GPU rig deployments into actionable tiers.</p>
+<hr />
+<h2 id="2-deep-dive-the-four-next-major-frontiers">2. Deep Dive: The Four Next Major Frontiers</h2>
+<h3 id="frontier-1-longitudinal-cultural-evolution-multi-lineage-market-dynamics">Frontier 1: Longitudinal Cultural Evolution &amp; Multi-Lineage Market Dynamics</h3>
+<h4 id="motivation-research-questions">Motivation &amp; Research Questions</h4>
+<p>Current simulations validate multi-agent generational lifecycle transitions over short runs (5 generations, 1,576 ticks). However, biological and cultural evolutionary dynamics exhibit critical phase transitions, demographic bottlenecks, and institutional drift only over long-horizon evolutionary time:
+1. <strong>Demographic Replacement &amp; Senescent Stability</strong>: Under a developmental lifecycle ($A_{\text{adol}}=15, A_{\text{adult}}=25, A_{\text{elder}}=200, A_{\text{life}}=350$), does the population achieve steady-state birth-death equilibrium over 50–100 generations (10,000–50,000 world ticks), or does it succumb to extinction bottlenecks caused by senescence waves?
+2. <strong>Norm Diffusion &amp; Provenance Integrity</strong>: With <code>real_data_floor=0.2</code> in <code>ManualStore</code>, do human-authored foundational recipes (<code>ProvenanceCategory.HUMAN_AUTHORED</code>) persist against synthetic degradation and mutation over 50+ generations, or does cultural transmission suffer catastrophic noise accumulation (Henrich &amp; Boyd 2002; Henrich &amp; McElreath 2003)?
+3. <strong>Wealth Inequality &amp; Gini Resilience Under Exogenous Resource Shocks</strong>: When the environment experiences exogenous resource scarcity shocks (periodic regenerative droughts), does the decentralized double-auction economy buffer agents against starvation, or does it trigger wealth hyper-concentration ($\text{Gini} &gt; 0.65$)?</p>
+<h4 id="research-hypotheses-target-metrics">Research Hypotheses &amp; Target Metrics</h4>
+<ul>
+<li><strong>Hypothesis 1.1 (Macro-Demographic Equilibrium)</strong>: A 10–30 agent population seeded with diverse initial genomes (<code>sample_genome</code>) maintains non-zero living population and active lineages across 100 generations without external intervention.</li>
+<li><strong>Hypothesis 1.2 (Cultural Preservation Threshold)</strong>: With vertical and oblique teaching active, human-authored crafting recipes maintain $\ge 80\%$ adoption fidelity across 50 generations when <code>real_data_floor \ge 0.2</code>.</li>
+<li><strong>Hypothesis 1.3 (Market Inequality Damping)</strong>: Double-auction exchange with perishable goods dampens wealth Gini volatility by $\ge 25\%$ during drought shocks compared to an autarkic barter baseline.</li>
+</ul>
+<hr />
+<h3 id="frontier-2-model-based-policy-rollouts-offline-planning-evolzen-train">Frontier 2: Model-Based Policy Rollouts &amp; Offline Planning (<code>evolzen train</code>)</h3>
+<h4 id="motivation-research-questions_1">Motivation &amp; Research Questions</h4>
+<p>Currently, agents in <code>SocialSandboxEngine</code> select actions primarily through reflexive 8-drive satisfaction heuristics. <code>evolzen train</code> now jointly trains the <code>WorldDynamicsPredictor</code>, the <code>GroundedJEPAEncoder</code>, and the <code>Planner</code> using GRPO (Generalized Reinforcement Policy Optimization; Shao et al., 2024) and CLEAR rehearsal buffering (Rolnick et al., 2019). The next milestone is closing the loop:
+1. <strong>Model-Based vs. Reflexive Heuristics</strong>: Do inference-time tree rollouts over the learned world model (<code>WorldDynamicsPredictor</code>) outperform reflexive heuristics on held-out procedural tasks in <code>DualTrackRunner</code> (Track 2 EAE_B action efficiency and solve rate)?
+2. <strong>Compounding Prediction Errors vs. Planning Horizon</strong>: At what planning depth $H \in {1, 3, 5, 10}$ do errors in state prediction negate the benefits of search?
+3. <strong>Continual Learning &amp; Catastrophic Forgetting</strong>: Does CLEAR replay at ratio $r=0.5$ successfully preserve historical task competence as world distributions shift across generations, maintaining JEPA representation variance ($\sigma^2 &gt; 10^{-4}$) across all 64 latent embedding dimensions?</p>
+<h4 id="research-hypotheses-target-metrics_1">Research Hypotheses &amp; Target Metrics</h4>
+<ul>
+<li><strong>Hypothesis 2.1 (Planning Advantage)</strong>: Model-based rollouts at horizon $H=3$ achieve $\ge 15\%$ higher fresh task solve rate and lower step count than reflexive drive selection.</li>
+<li><strong>Hypothesis 2.2 (Rehearsal Stability)</strong>: CLEAR replay ratio $r=0.5$ prevents policy collapse, maintaining policy entropy $H(\pi) \in [0.8, 2.5]$ and JEPA active dimension health $\ge 60/64$ after 100 GRPO updates.</li>
+</ul>
+<hr />
+<h3 id="frontier-3-live-real-time-dashboard-server-evolzen-serve">Frontier 3: Live Real-Time Dashboard Server (<code>evolzen serve</code>)</h3>
+<h4 id="motivation-operational-architecture">Motivation &amp; Operational Architecture</h4>
+<p>While <code>evolzen inspect --export-html dashboard.html</code> provides rich post-hoc inspection of CVTArchive niche centroids and agent demographics, long-running simulations (hours or days) require real-time observability:
+1. <strong>Low-Overhead Streaming Architecture</strong>: A dedicated <code>evolzen serve</code> command serving an asynchronous, event-driven web UI over localhost.
+2. <strong>Server-Sent Events (SSE) / WebSocket Pipeline</strong>: Zero-copy tailing of <code>data/transitions.duckdb</code> in WAL mode, streaming live world tick metrics, population demography, Gini inequality curves, and archive centroid discoveries directly to the browser.
+3. <strong>Interactive Visual Diagnostics</strong>:
+   - Live 2D/3D projection of CVTArchive centroid occupancy (UMAP / PCA / parallel coordinates).
+   - Real-time genealogical tree rendering showing active lineages and extinct branches.
+   - Resource distribution heatmaps across grid locations.
+   - Alert notifications for invariant violations, extinction warnings, or sandbox containment boundaries.</p>
+<hr />
+<h3 id="frontier-4-physical-target-rig-deployment-distributed-ray-topology">Frontier 4: Physical Target Rig Deployment (Distributed Ray Topology)</h3>
+<h4 id="motivation-rig-architecture">Motivation &amp; Rig Architecture</h4>
+<p>EvolZen is engineered to scale across heterogeneous hardware (<code>docs/hardware-deployment.md</code>). Physical deployment brings the full compute stack online:</p>
+<pre><code class="language-mermaid">flowchart TD
+    subgraph DGX[&quot;DGX Spark (Head Node / Linux x86_64)&quot;]
+        ENG[&quot;SocialSandboxEngine&lt;br/&gt;(Deterministic Moore Machine)&quot;]
+        LOG[&quot;TransitionLogStore&lt;br/&gt;(DuckDB + SHA-256 Hash Chain)&quot;]
+        BOX[&quot;GVisorSandbox (runsc)&lt;br/&gt;(Default-Deny Hardware Isolation)&quot;]
+        VER[&quot;Capability Verifier&lt;br/&gt;(Exact-Match Verification)&quot;]
+    end
+
+    subgraph JET[&quot;Jetson AGX Spark (Worker Node / aarch64)&quot;]
+        POP[&quot;PopulationScheduler&lt;br/&gt;(10-30 Developmental Agents)&quot;]
+        VLLM[&quot;vLLM / AWQ Engine&lt;br/&gt;(Language Inference Backend)&quot;]
+        MOT[&quot;8-Drive Motivation&lt;br/&gt;(Homeostatic Life Cycle)&quot;]
+    end
+
+    subgraph RTX[&quot;RTX A6000 (Worker Node / 48GB VRAM)&quot;]
+        PRED[&quot;WorldDynamicsPredictor&lt;br/&gt;(Transformer / MLP World Model)&quot;]
+        JEPA[&quot;GroundedJEPAEncoder&lt;br/&gt;(VICReg Representation Learning)&quot;]
+        PLAN[&quot;Planner (GRPO + CLEAR)&lt;br/&gt;(Rehearsal Buffer Optimization)&quot;]
+        EVAL[&quot;DualTrackRunner&lt;br/&gt;(Generalization Benchmark)&quot;]
+    end
+
+    JET -- &quot;Actions &amp; Observations&quot; --&gt; ENG
+    ENG -- &quot;State Transitions&quot; --&gt; LOG
+    LOG -- &quot;Replay Batches&quot; --&gt; RTX
+    RTX -- &quot;Model Checkpoints&quot; --&gt; JET
+    BOX -- &quot;Verified Capabilities&quot; --&gt; POP
+</code></pre>
+<ol>
+<li><strong>DGX Spark (Head Node)</strong>: Manages central simulation orchestration, DuckDB transition logging, and gVisor microVM isolation coordinator for synthesizers.</li>
+<li><strong>Jetson AGX Spark (Edge Agent Node)</strong>: Executes 10–30 agent developmental loops and fast quantized LLM policy inference (<code>vllm</code> / <code>bitsandbytes</code>).</li>
+<li><strong>RTX A6000 (Predictor &amp; Evaluation Engine)</strong>: Dedicated 48GB GDDR6 VRAM running continuous offline GRPO rollouts, Grounded JEPA representation updates, and dual-track held-out validation rounds.</li>
+</ol>
+<hr />
+<h2 id="3-structured-actionable-roadmap">3. Structured Actionable Roadmap</h2>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph T1[&quot;Tier 1: Local CPU Immediate (0-48h)&quot;]
+        direction TB
+        A1[&quot;evolzen serve CLI&lt;br/&gt;(Live SSE Dashboard)&quot;]
+        A2[&quot;Model-Based Planning Hook&lt;br/&gt;(Planner in DualTrackRunner)&quot;]
+        A3[&quot;Exogenous Resource Shocks&lt;br/&gt;(Engine Drought Injections)&quot;]
+    end
+
+    subgraph T2[&quot;Tier 2: Empirical Campaigns (Days 2-7)&quot;]
+        direction TB
+        B1[&quot;50-100 Gen Cultural Run&lt;br/&gt;(10k-50k Ticks, 10-30 Agents)&quot;]
+        B2[&quot;Predictor &amp; JEPA Scaling&lt;br/&gt;(10k+ Transitions Benchmark)&quot;]
+        B3[&quot;Macro-Economic Stress Test&lt;br/&gt;(Gini Resilience under Drought)&quot;]
+    end
+
+    subgraph T3[&quot;Tier 3: Physical GPU Deployment (Days 7-14)&quot;]
+        direction TB
+        C1[&quot;Hardware Cluster Pre-Flight&lt;br/&gt;(DGX, Jetson, A6000 Probes)&quot;]
+        C2[&quot;gVisor Hardware Isolation&lt;br/&gt;(Linux runsc MicroVM Setup)&quot;]
+        C3[&quot;Ray Heterogeneous Cluster&lt;br/&gt;(Distributed Simulation Launch)&quot;]
+    end
+
+    T1 --&gt; T2 --&gt; T3
+</code></pre>
+<h3 id="tier-1-local-cpu-immediate-048-hours">Tier 1: Local CPU Immediate (0–48 Hours)</h3>
+<p><em>Zero additional hardware prerequisites; executes within the existing Mac/Linux CPU testbed.</em></p>
+<table>
+<thead>
+<tr>
+<th>Milestone</th>
+<th>Subsystem</th>
+<th>Action Items</th>
+<th>Success Criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1.1 Live Dashboard Server</strong></td>
+<td><code>evolzen.cli</code></td>
+<td>Implement <code>@app.command() def serve(port: int = 8000, db_path: Path = ...)</code> using Python's asynchronous HTTP/SSE server; stream live world ticks, Gini metrics, and population demography to the browser.</td>
+<td>Browser connects to <code>http://localhost:8000</code>, receives live event stream, and renders real-time Canvas updates without UI freezing.</td>
+</tr>
+<tr>
+<td><strong>1.2 Inference Planning Hook</strong></td>
+<td><code>evolzen.evaluation</code>, <code>evolzen.predictor</code></td>
+<td>Wire <code>Planner.plan(state)</code> into <code>DualTrackRunner</code> (Track 2) as an evaluatable policy alongside reflexive heuristics.</td>
+<td><code>uv run evolzen evaluate --rounds 4</code> reports comparative EAE_B metrics between reflexive and model-based planners.</td>
+</tr>
+<tr>
+<td><strong>1.3 Exogenous Drought Injections</strong></td>
+<td><code>evolzen.environment</code></td>
+<td>Add configurable resource replenishment shock parameters (<code>drought_interval: int</code>, <code>drought_severity: float</code>) to <code>SocialSandboxEngine</code>.</td>
+<td>Simulation runs demonstrate dynamic resource drops and subsequent demographic recovery or starvation.</td>
+</tr>
+<tr>
+<td><strong>1.4 Test Suite Extension</strong></td>
+<td><code>tests/</code></td>
+<td>Add unit and integration tests for <code>serve</code>, planning hooks, and shock mechanics; ensure 100% test passing and strict type compliance.</td>
+<td><code>uv run pytest</code> passes (100% coverage on new code), <code>uv run mypy src tests</code> 0 errors.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="tier-2-empirical-campaigns-scaling-days-27">Tier 2: Empirical Campaigns &amp; Scaling (Days 2–7)</h3>
+<p><em>Local multi-core and continuous batch runs to generate empirical research datasets.</em></p>
+<table>
+<thead>
+<tr>
+<th>Milestone</th>
+<th>Target Scope</th>
+<th>Execution Command</th>
+<th>Key Measurements &amp; Metrics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2.1 Longitudinal Cultural Run</strong></td>
+<td>50–100 Generations, 10–30 Agents, 20k Ticks</td>
+<td><code>uv run evolzen run --generations 50 --ticks-per-gen 100 --db-path data/longitudinal.duckdb</code></td>
+<td>Population survival rate, max generation achieved, human vs synthetic recipe adoption ratio, CVTArchive niche coverage.</td>
+</tr>
+<tr>
+<td><strong>2.2 Offline Model Training Campaign</strong></td>
+<td>Ingest 20,000 Transitions from DuckDB</td>
+<td><code>uv run evolzen train --steps 100 --batch-size 32 --replay-ratio 0.5 --db-path data/longitudinal.duckdb</code></td>
+<td>GRPO step loss, policy entropy stability, JEPA representation variance ($\sigma^2 &gt; 10^{-4}$), rehearsal buffer utilization.</td>
+</tr>
+<tr>
+<td><strong>2.3 Generalization &amp; Ablation Evaluation</strong></td>
+<td>Dual-Track Held-Out Testing &amp; 4-Cell Matrix</td>
+<td><code>uv run evolzen evaluate --rounds 10 &amp;&amp; uv run evolzen ablate --steps 200 --output docs/research/ablation_results.md</code></td>
+<td>EAE_B action efficiency, generalization gap ($EAE_{\text{reused}} - EAE_{\text{fresh}}$), grounding vs ungrounded representation delta.</td>
+</tr>
+<tr>
+<td><strong>2.4 Macro-Economic Shock Study</strong></td>
+<td>5 Shock Cycles across 50 Generations</td>
+<td>Automated sweep script with varying drought severity ($0.2, 0.5, 0.8$)</td>
+<td>Wealth Gini time series, starvation incidence, market trading volume before/during/after shocks.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="tier-3-physical-gpu-deployment-distributed-cluster-days-714">Tier 3: Physical GPU Deployment &amp; Distributed Cluster (Days 7–14)</h3>
+<p><em>Multi-node heterogeneous physical rig orchestration across DGX, Jetson, and A6000.</em></p>
+<table>
+<thead>
+<tr>
+<th>Milestone</th>
+<th>Node Target</th>
+<th>Operations &amp; Procedures</th>
+<th>Verification Benchmark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3.1 Rig Provisioning &amp; Pre-Flight</strong></td>
+<td>DGX Spark, Jetson AGX Spark, RTX A6000</td>
+<td>Clone repository, execute <code>uv sync --extra gpu</code>, install NVIDIA drivers (CUDA 12.4+), run <code>evolzen cluster --role &lt;role&gt;</code>.</td>
+<td>All three nodes report <code>READY</code> status with zero subsystem degradation.</td>
+</tr>
+<tr>
+<td><strong>3.2 gVisor Hardware Sandboxing</strong></td>
+<td>DGX Spark &amp; Jetson AGX Spark</td>
+<td>Install official Google gVisor <code>runsc</code> binary; run <code>python -c "from evolzen.containment import is_gvisor_available; assert is_gvisor_available()"</code>.</td>
+<td>Containment test suite <code>pytest tests/containment/test_sandbox.py</code> passes with hardware microVM execution.</td>
+</tr>
+<tr>
+<td><strong>3.3 Ray Heterogeneous Cluster Launch</strong></td>
+<td>Distributed Topology</td>
+<td>Start Ray head node on DGX Spark (<code>ray start --head --port=6379</code>); join Jetson AGX (<code>--resources='{"agent_node": 1}'</code>) and RTX A6000 (<code>--resources='{"gpu_node": 1}'</code>).</td>
+<td><code>ray status</code> reflects 3 connected nodes, unified object store, and correct GPU/memory reservations.</td>
+</tr>
+<tr>
+<td><strong>3.4 Live Multi-Agent vLLM Simulation</strong></td>
+<td>End-to-End Pipeline</td>
+<td>Launch distributed simulation running agent policies via vLLM on Jetson AGX, world Moore machine on DGX Spark, and real-time predictor GRPO training on RTX A6000.</td>
+<td>Real-time continuous execution without memory leaks or network bottlenecks; streaming telemetry to <code>evolzen serve</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-safety-constraints-scientific-integrity-risk-mitigation">4. Safety Constraints, Scientific Integrity &amp; Risk Mitigation</h2>
+<p>In strict adherence to <code>AGENTS.md</code> and repository safety standards:</p>
+<ol>
+<li><strong>MicroVM Sandboxing Boundary (<code>AGENTS.md</code> Rule #1)</strong>:</li>
+<li>Any agent self-modification, dynamic DSL synthesis, or capability generation tested during exploration <strong>must never execute outside <code>evolzen.containment.GVisorSandbox</code></strong>.</li>
+<li>On hosts where <code>runsc</code> is unavailable (e.g. Darwin macOS development laptops), exploration tests must be strictly guarded with <code>pytest.importorskip</code> or degraded mock verification; live code execution without gVisor is strictly prohibited.</li>
+<li><strong>Empirical Disclosure &amp; Anti-Overclaiming (<code>AGENTS.md</code> Rules #4 &amp; #5)</strong>:</li>
+<li>All claims regarding generalization, emergent norm stability, or intelligence must cite specific empirical metrics measured on physical runs or clearly carry the <code>[UNTESTED]</code> designation.</li>
+<li>Long-horizon claims (50–100 generations) remain hypothetical until measured via Tier 2 and Tier 3 campaigns.</li>
+<li><strong>Data Provenance &amp; Real Data Floor</strong>:</li>
+<li>Cultural manual storage must strictly enforce <code>real_data_floor \ge 0.2</code> to prevent self-referential model collapse. Synthetic capabilities generated by agents must be tagged with <code>ProvenanceCategory.SYNTHETIC_DERIVED</code> and verified against exact-match ground truth.</li>
+<li><strong>Dependency &amp; Lockfile Integrity (<code>AGENTS.md</code> Rule #2)</strong>:</li>
+<li>All deployments utilize the single unified lockfile (<code>uv.lock</code>). GPU packages (<code>vllm</code>, <code>deepspeed</code>, <code>bitsandbytes</code>, <code>flash-attn</code>, <code>faiss-gpu</code>) are gated exclusively under <code>--extra gpu</code> to maintain a pristine, lightweight local CPU profile.</li>
+</ol>
+<hr />
+<h2 id="5-summary-next-actions">5. Summary &amp; Next Actions</h2>
+<p>This strategic blueprint establishes an unambiguous, phased trajectory from our verified Phase 0 baseline to scaled empirical discovery and distributed physical hardware deployment. </p>
+<p>The swarm is ready to immediately initiate <strong>Tier 1 (Local CPU Immediate)</strong> engineering while scheduling <strong>Tier 2 (Empirical Campaigns)</strong> and provisioning target rigs for <strong>Tier 3 (Physical Cluster Deployment)</strong>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

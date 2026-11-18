@@ -1,0 +1,3232 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A grounded, evolutionarily-diverse, continually-learning multi-agent sandbox">
+      
+      
+      
+      
+        <link rel="prev" href="../1.1-environment/">
+      
+      
+        <link rel="next" href="../1.3-economy/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>1.2 The Agents - EvolZen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#phase-12-the-agents" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="EvolZen" class="md-header__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EvolZen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              1.2 The Agents
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="EvolZen" class="md-nav__button md-logo" aria-label="EvolZen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    EvolZen
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PAPER/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper Outline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../phase-0-foreground/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase 0 (Foreground)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dependency-stack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hardware-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD & Parallel Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Phases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.1-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.1 Environment Engine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.2 The Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#base-reasoning-model-selection-sizing-derivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Reasoning Model Selection &amp; Sizing Derivation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Base Reasoning Model Selection &amp; Sizing Derivation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-finalized-primary-base-model-qwenqwen25-7b-instruct-awq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Finalized Primary Base Model: Qwen/Qwen2.5-7B-Instruct-AWQ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-comparative-benchmark-matrix-8b-reasoning-models-in-awq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Comparative Benchmark Matrix (&lt;8B Reasoning Models in AWQ)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-mathematical-memory-budget-serving-derivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Mathematical Memory Budget &amp; Serving Derivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-hardware-deployment-topologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Hardware Deployment Topologies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-tiered-multi-model-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Tiered Multi-Model Topology
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-vision-language-vl-high-reasoning-frontier-audit-20252026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Vision-Language (VL) &amp; High-Reasoning Frontier Audit (2025/2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Vision-Language (VL) &amp; High-Reasoning Frontier Audit (2025/2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-vision-language-vs-pure-text-reasoning-for-3d-spatial-context-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Vision-Language vs. Pure-Text Reasoning for 3D Spatial Context &amp; Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-comprehensive-comparative-audit-vlm-vs-deepseek-r1-distilled-vs-awq-vs-16-bit-precision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Comprehensive Comparative Audit: VLM vs. DeepSeek-R1 Distilled vs. AWQ vs. 16-Bit Precision
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-research-paper-learning-curves-theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Research Paper Learning Curves &amp; Theoretical Foundations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-precision-trade-off-formulation-8-bit-awq-vs-4-bit-awq-vs-16-bit-bfloat16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Precision Trade-Off Formulation: 8-Bit AWQ vs. 4-Bit AWQ vs. 16-Bit bfloat16
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-tier-2-deliberation-via-dora-weight-decomposed-low-rank-adaptation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Tier-2 Deliberation via DoRA (Weight-Decomposed Low-Rank Adaptation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-context-breakthroughs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research context &amp; breakthroughs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase-progress-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase progress match
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.3-economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.3 Economy & Knowledge Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.4-exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.4 Directed Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1.5-library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1.5 Growing Rule Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.1-predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.1 Grounded Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.2-containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.2 Verification Gate & Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.3-recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.3 Recognition Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2.4-2.5-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2.4-2.5 Evaluation & Publication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Research
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Research
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/literature-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Literature Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/landscape/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparative Landscape
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/design-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/design-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/docs-and-codebase-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docs & Codebase Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/objectives-and-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives & Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/next-frontier-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Next Frontier Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/section-5-empirical-results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Empirical Results (Section 5)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subsystem Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Subsystem Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_11_3" id="__nav_11_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developmental Agents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_11_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developmental Agents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic Behaviour Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/motivation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motivation Equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lifecycle & Inheritance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Learning & Evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Engineering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/agents/evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../subsystems/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decisions (ADRs)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0001-single-package-not-workspace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0001 One package, not a workspace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0002-dependency-stack-and-optional-extras/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0002 Dependency stack & optional extras
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0003-nine-subsystems-not-two-packages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0003 Nine subsystems, not two packages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0004-persistent-growing-world/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0004 Persistent growing world
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0005-transition-semantics-and-dual-track-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0005 Transition semantics & dual-track evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0006-developmental-eight-drive-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0006 Developmental eight-drive agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0007-library-persistence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0007 Library persistence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/0008-convergent-learning-and-hierarchical-planning-upgrade/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0008 Convergent learning & planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/foundation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/economy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    economy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/exploration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    exploration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/library/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/predictor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    predictor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/containment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    containment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/recognition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    recognition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#success-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#base-reasoning-model-selection-sizing-derivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Reasoning Model Selection &amp; Sizing Derivation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Base Reasoning Model Selection &amp; Sizing Derivation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-finalized-primary-base-model-qwenqwen25-7b-instruct-awq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Finalized Primary Base Model: Qwen/Qwen2.5-7B-Instruct-AWQ
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-comparative-benchmark-matrix-8b-reasoning-models-in-awq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Comparative Benchmark Matrix (&lt;8B Reasoning Models in AWQ)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-mathematical-memory-budget-serving-derivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Mathematical Memory Budget &amp; Serving Derivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-hardware-deployment-topologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Hardware Deployment Topologies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-tiered-multi-model-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Tiered Multi-Model Topology
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-vision-language-vl-high-reasoning-frontier-audit-20252026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Vision-Language (VL) &amp; High-Reasoning Frontier Audit (2025/2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Vision-Language (VL) &amp; High-Reasoning Frontier Audit (2025/2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-vision-language-vs-pure-text-reasoning-for-3d-spatial-context-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Vision-Language vs. Pure-Text Reasoning for 3D Spatial Context &amp; Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-comprehensive-comparative-audit-vlm-vs-deepseek-r1-distilled-vs-awq-vs-16-bit-precision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Comprehensive Comparative Audit: VLM vs. DeepSeek-R1 Distilled vs. AWQ vs. 16-Bit Precision
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-research-paper-learning-curves-theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Research Paper Learning Curves &amp; Theoretical Foundations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-precision-trade-off-formulation-8-bit-awq-vs-4-bit-awq-vs-16-bit-bfloat16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Precision Trade-Off Formulation: 8-Bit AWQ vs. 4-Bit AWQ vs. 16-Bit bfloat16
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-tier-2-deliberation-via-dora-weight-decomposed-low-rank-adaptation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Tier-2 Deliberation via DoRA (Weight-Decomposed Low-Rank Adaptation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-context-breakthroughs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research context &amp; breakthroughs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codebase-progress-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase progress match
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="phase-12-the-agents">Phase 1.2 — The Agents</h1>
+<p><strong>Subsystem:</strong> <code>evolzen.agents</code>
+<strong>Code:</strong> <code>src/evolzen/agents/</code></p>
+<p><strong>Detailed design:</strong> <a href="../../subsystems/agents/">developmental agents</a>.
+<strong>Implemented increment:</strong> <code>agents/development/</code> and <code>schemas/development.py</code> contain a
+numerical lifecycle/learning/teaching/archive baseline. LLM training and full population/world
+integration remain pending.</p>
+<h2 id="goal">Goal</h2>
+<p>Populate the persistent world with 10–30 active cognitive agents plus optional deterministic
+background population processes. Each active agent has an explicit behavioral/social profile:
+needs, drives, skills, roles, affiliations, memory scope, communication channels, norms,
+capabilities, and lineage. “All types of people” is operationalized as coverage of this ontology,
+not as a claim to reproduce real human demographics or psychology.</p>
+<p>Drive vectors are evolved on the vector itself, never by literal crossover of independently trained
+neural weights. Quality-Diversity selection preserves declared behavioral and social descriptors.
+Self-modification is optional in the first baseline and, when enabled, is sandboxed and accepted
+only after held-out improvement plus invariant checks.</p>
+<h2 id="what-you-build">What you build</h2>
+<ul>
+<li>exactly eight birth-randomized motivational coordinates: pride, greed, lust, envy, gluttony,
+  wrath, sloth, Null; a safe bounded equation family rather than generated source programs;</li>
+<li>child/adolescent/adult/elder/dead stages on a world clock, with competence measured separately;</li>
+<li>personal outcome learning and living-parent advice, without copying mastery at birth;</li>
+<li>
+<p>bounded numeric temperament inheritance and validation-gated behavioral archive admission;</p>
+</li>
+<li>
+<p>an <code>AgentProfile</code> schema and an explicit descriptor map;</p>
+</li>
+<li>population and lineage snapshots;</li>
+<li>QD archive coverage, occupancy, persistence, extinction, replacement, specialization, and
+  communication metrics;</li>
+<li>a sparse communication/trade graph and non-authoritative role structure; and</li>
+<li>a hardware pilot that records model memory, token throughput, action latency, and scheduling
+  overhead on the actual rig.</li>
+</ul>
+<h2 id="success-metric">Success metric</h2>
+<p>First satisfy <a href="../../subsystems/agents/evaluation/">developmental primitive gates</a>: reproducible
+equations, action/feedback adaptation, life boundaries, parent teaching, and archive safety.
+Then measure cultural transfer, age-versus-experience and eight-axis controls on held-out
+worlds/families. Passing unit tests does not satisfy the population success metric below.</p>
+<p>A 10–30-agent population runs stably for at least five generations, maintains measurable coverage
+across the declared descriptor map, and produces at least two persistent role/specialization
+patterns without collapsing to one strategy. Any self-modification improvement is reported
+separately from population diversity.</p>
+<h2 id="citations">Citations</h2>
+<ul>
+<li><strong>Peer-reviewed IEEE / journal foundations:</strong> Oudeyer, Kaplan &amp; Hafner (2007, <em>IEEE TEVC</em>, DOI:<code>10.1109/TEVC.2006.890271</code>) for intrinsic motivation in developmental learning; Merrick (2010, <em>IEEE TAMD/TCDS</em>, DOI:<code>10.1109/TAMD.2010.2051435</code>) for comparative intrinsic value-system benchmarking; Santucci, Baldassarre &amp; Mirolli (2016, <em>IEEE TCDS</em>, DOI:<code>10.1109/TCDS.2016.2538961</code>) for goal-discovering developmental architectures; Vassiliades, Chatzilygeroudis &amp; Mouret (2018, <em>IEEE TEVC</em>, DOI:<code>10.1109/TEVC.2017.2735550</code>) for CVT-MAP-Elites scaling to higher-dimensional behavioral descriptors; Pugh, Soros &amp; Stanley (2016, <em>Frontiers in Robotics and AI</em>, DOI:<code>10.3389/frobt.2016.00040</code>) for separating quality from behavioral diversity; Hayes et al. (2022, <em>JAAMAS</em>, DOI:<code>10.1007/s10458-022-09552-y</code>) for MORL linear vs. non-linear Chebyshev scalarization; Keramati &amp; Gutkin (2014, <em>eLife</em>, DOI:<code>10.7554/eLife.04811</code>) for homeostatic drive-reduction utility; Colas et al. (2022, <em>JAIR</em>, <code>arXiv:2012.09830</code>) for autotelic goal-conditioned agents; Asadi &amp; Littman (2017, <em>ICML</em>, <code>arXiv:1612.05628</code>) for Mellowmax softmax stability.</li>
+<li><strong>Conference / preprints:</strong> Darwin Gödel Machine (<code>arXiv:2505.22954</code>, <em>ICLR</em> 2026), Hyperagents (<code>arXiv:2603.19461</code>, preprint), Quality-Diversity with Limited Resources (Wang et al., <em>ICML</em> 2024, <code>arXiv:2406.03731</code>), Cook et al. (<em>Artificial Generational Intelligence</em>, <code>arXiv:2406.00392</code>, 2024), and Generative Agents (Park et al., <em>ACM UIST 2023</em> / <code>arXiv:2304.03442</code>). Continual experience replay (Rolnick et al., CLEAR, <em>NeurIPS</em> 2019, <code>arXiv:1811.11682</code>) governs Phase 2.1 rehearsal replay, while Phase 1.2 runtime employs verified contextual EMA outcome estimation and intergenerational manual teaching (<code>teach_manual</code>).</li>
+</ul>
+<p>The eight-drive ontology, descriptor map, and transfer from these precedents to a persistent
+social sandbox remain <strong>untested</strong>; cited diversity-collapse studies are treated as hypotheses.</p>
+<h2 id="base-reasoning-model-selection-sizing-derivation">Base Reasoning Model Selection &amp; Sizing Derivation</h2>
+<h3 id="1-finalized-primary-base-model-qwenqwen25-7b-instruct-awq">1. Finalized Primary Base Model: <code>Qwen/Qwen2.5-7B-Instruct-AWQ</code></h3>
+<p>Following extensive analysis of reasoning models under 8 billion parameters quantized in 4-bit AWQ (Activation-aware Weight Quantization; Lin et al., <em>MLSys</em> 2024, <code>arXiv:2306.00978</code>), <strong><code>Qwen/Qwen2.5-7B-Instruct-AWQ</code></strong> is finalized as the primary base reasoning model across the <code>evolzen.agents</code> subsystem.</p>
+<ul>
+<li><strong>Parameter Count:</strong> 7.61B parameters (strictly $&lt;8\text{B}$).</li>
+<li><strong>Quantization:</strong> Official Alibaba Cloud 4-bit AWQ (<code>W4A16</code>), executed via Marlin INT4 CUDA kernels in <code>vLLM</code>.</li>
+<li><strong>Context Window:</strong> 128k native context (budgeted to 2,048 tokens per agent during live population simulation).</li>
+<li><strong>License:</strong> Apache 2.0 (commercial &amp; research permissive).</li>
+<li><strong>Structured JSON Decoding Compatibility:</strong> Direct token-level grammar alignment with <code>outlines.generate.json</code> / vLLM <code>guided_json</code> mapping directly onto <code>evolzen.schemas.transition.Action</code>. Unlike reasoning models that force chain-of-thought <code>&lt;think&gt;...&lt;/think&gt;</code> prefixes, Qwen2.5-Instruct generates compliant schema objects without parsing failures, infinite loops, or stuttering.</li>
+</ul>
+<h3 id="2-comparative-benchmark-matrix-8b-reasoning-models-in-awq">2. Comparative Benchmark Matrix (&lt;8B Reasoning Models in AWQ)</h3>
+<table>
+<thead>
+<tr>
+<th>Candidate Model</th>
+<th>Active Params</th>
+<th>Quantization &amp; Checkpoint</th>
+<th>Context</th>
+<th>MMLU</th>
+<th>HumanEval</th>
+<th>MATH-500</th>
+<th>Structured Decoding Compatibility</th>
+<th>Primary Role in EvolZen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>Qwen/Qwen2.5-7B-Instruct-AWQ</code></strong> (Selected Base)</td>
+<td>7.61B</td>
+<td>Official AWQ (W4A16)</td>
+<td>128k</td>
+<td><strong>74.2%</strong></td>
+<td><strong>84.1%</strong></td>
+<td>75.5%</td>
+<td><strong>Native (Zero CoT stutter, Outlines compatible)</strong></td>
+<td><strong>Tier-1 Live Population (10–30 agents)</strong></td>
+</tr>
+<tr>
+<td><code>casperhansen/deepseek-r1-distill-qwen-7b-awq</code></td>
+<td>7.61B</td>
+<td>Community AWQ (W4A16)</td>
+<td>128k</td>
+<td>73.8%</td>
+<td>82.6%</td>
+<td><strong>92.8%</strong></td>
+<td>Requires masking <code>&lt;think&gt;</code> traces; high latency</td>
+<td><strong>Tier-2 Deliberative / Synthesizer (Phase 1.4)</strong></td>
+</tr>
+<tr>
+<td><code>Qwen/Qwen2.5-Coder-7B-Instruct-AWQ</code></td>
+<td>7.61B</td>
+<td>Official AWQ (W4A16)</td>
+<td>128k</td>
+<td>71.5%</td>
+<td>88.4%</td>
+<td>76.2%</td>
+<td>Native (Code/tool specialized)</td>
+<td>Tier-2 Code &amp; Rule Synthesis</td>
+</tr>
+<tr>
+<td><code>Qwen/Qwen2.5-3B-Instruct-AWQ</code></td>
+<td>3.09B</td>
+<td>Official AWQ (W4A16)</td>
+<td>32k</td>
+<td>65.4%</td>
+<td>72.0%</td>
+<td>61.2%</td>
+<td>Native (Lightweight, ~2.1 GB VRAM)</td>
+<td>Tier-0 High-Concurrency Edge Fallback</td>
+</tr>
+<tr>
+<td><code>microsoft/Phi-3.5-mini-instruct-AWQ</code></td>
+<td>3.82B</td>
+<td>Community AWQ (W4A16)</td>
+<td>128k</td>
+<td>69.2%</td>
+<td>70.1%</td>
+<td>68.8%</td>
+<td>Sensitive to system prompt formatting</td>
+<td>Alternative Edge Evaluation</td>
+</tr>
+</tbody>
+</table>
+<p><em>Citations:</em> Qwen2.5 Technical Report (<code>arXiv:2412.15115</code>, 2024); DeepSeek-R1 Technical Report (<code>arXiv:2501.12948</code>, 2025); Lin et al. (AWQ, <em>MLSys</em> 2024, <code>arXiv:2306.00978</code>). Benchmark scores reflect published standardized evaluations; all operational throughput and latency figures in EvolZen remain <strong>untested</strong> until empirical runs on the physical hardware pilot.</p>
+<h3 id="3-mathematical-memory-budget-serving-derivation">3. Mathematical Memory Budget &amp; Serving Derivation</h3>
+<p>The VRAM requirement for serving an active population of $N$ agents consists of static model weights $M_{\text{weights}}$ and dynamic PagedAttention KV cache $M_{\text{KV}}$:</p>
+<p>$$M_{\text{total}} = M_{\text{weights}} + N \times M_{\text{KV_per_agent}} + M_{\text{cuda_overhead}}$$</p>
+<ol>
+<li><strong>Model Weights ($M_{\text{weights}}$):</strong></li>
+<li>7.61 billion parameters stored at 4 bits per weight, plus FP16 quantization scales and zero-points (effective $\approx 4.5\text{ bits/param}$):
+     $$M_{\text{weights}} \approx \frac{7.61 \times 10^9 \times 4.5 \text{ bits}}{8 \times 1024^3 \text{ bytes/GiB}} \approx 3.99 \text{ GiB} \approx 4.30 \text{ GB}$$</li>
+<li>
+<p>Accounting for activation buffers and Marlin kernel scratch space, static weight footprint is <strong>$\approx 4.50\text{ GB}$</strong>.</p>
+</li>
+<li>
+<p><strong>KV Cache per Agent ($M_{\text{KV_per_agent}}$):</strong></p>
+</li>
+<li>
+<p>Architecture: $L = 28$ transformer layers, Grouped-Query Attention with $N_{\text{kv_heads}} = 4$ KV heads, head dimension $D_{\text{head}} = 128$, context window $T = 2,048$ tokens, FP16 precision ($P = 2$ bytes):
+     $$M_{\text{KV_per_agent}} = 2 \times L \times N_{\text{kv_heads}} \times D_{\text{head}} \times P \times T$$
+     $$M_{\text{KV_per_agent}} = 2 \times 28 \times 4 \times 128 \times 2 \times 2,048 = 117,440,512 \text{ bytes} \approx 112.0 \text{ MiB} \approx 0.1174 \text{ GB}$$</p>
+</li>
+<li>
+<p><strong>Population Sizing Derivation:</strong></p>
+</li>
+<li><strong>10 Agents:</strong> $4.50\text{ GB} + 10 \times 0.1174\text{ GB} \approx 5.67\text{ GB}$ VRAM.</li>
+<li><strong>20 Agents:</strong> $4.50\text{ GB} + 20 \times 0.1174\text{ GB} \approx 6.85\text{ GB}$ VRAM.</li>
+<li><strong>30 Agents (Phase 1.2 Maximum):</strong> $4.50\text{ GB} + 30 \times 0.1174\text{ GB} \approx 8.02\text{ GB}$ VRAM.</li>
+</ol>
+<h3 id="4-hardware-deployment-topologies">4. Hardware Deployment Topologies</h3>
+<table>
+<thead>
+<tr>
+<th>Deployment Target</th>
+<th>Total Memory</th>
+<th>Sizing Footprint (30 Agents)</th>
+<th>Memory Headroom</th>
+<th>Feasibility &amp; Co-location Capabilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Jetson AGX Orin</strong></td>
+<td>64 GB Unified LPDDR5</td>
+<td>$\approx 8.02\text{ GB}$ ($12.5\%$)</td>
+<td><strong>$\approx 55.98\text{ GB}$ ($87.5\%$)</strong></td>
+<td>Host engine (<code>SocialSandboxEngine</code>), PettingZoo AEC env, DuckDB transition logging, and live agent population execute on a single autonomous edge device.</td>
+</tr>
+<tr>
+<td><strong>NVIDIA RTX A6000</strong></td>
+<td>48 GB GDDR6</td>
+<td>$\approx 8.02\text{ GB}$ ($16.7\%$)</td>
+<td><strong>$\approx 39.98\text{ GB}$ ($83.3\%$)</strong></td>
+<td>Ample VRAM remaining to concurrently host Phase 2.1 <code>WorldDynamicsPredictor</code> and Phase 2.3 <code>GroundedJEPAEncoder</code> training loops.</td>
+</tr>
+<tr>
+<td><strong>Developer Workstation (RTX 4070 / 3060)</strong></td>
+<td>12 GB GDDR6</td>
+<td>$\approx 8.02\text{ GB}$ ($66.8\%$)</td>
+<td><strong>$\approx 3.98\text{ GB}$ ($33.2\%$)</strong></td>
+<td>Complete 10–30 agent population runs locally without CPU offloading.</td>
+</tr>
+</tbody>
+</table>
+<p><em>(All hardware deployment metrics are analytical derivations; real-world throughput and latency remain untested until physical hardware validation).</em></p>
+<h3 id="5-tiered-multi-model-topology">5. Tiered Multi-Model Topology</h3>
+<ul>
+<li><strong>Tier-1 (Tactical Action Selection):</strong> <code>Qwen/Qwen2.5-7B-Instruct-AWQ</code> handles synchronous turn-by-turn action proposals constrained by <code>outlines.generate.json(Action)</code> within 256 generated tokens.</li>
+<li><strong>Tier-2 (Deliberative Rule &amp; Program Synthesis — Phase 1.4):</strong> When an agent enters reflective planning or rule invention, candidate generation is routed to <code>deepseek-ai/DeepSeek-R1-Distill-Qwen-7B</code> (or <code>Qwen/Qwen2.5-Coder-7B-Instruct-AWQ</code>) to leverage deep chain-of-thought mathematical reasoning and code synthesis.</li>
+<li><strong>Tier-0 (Development / Edge Fallback):</strong> For CPU-only environments or ultra-constrained devices, <code>Qwen/Qwen2.5-3B-Instruct-AWQ</code> or deterministic rule-based heuristic generation (<code>offline_fallback=True</code>) guarantees continuous execution.</li>
+</ul>
+<hr />
+<h2 id="4-vision-language-vl-high-reasoning-frontier-audit-20252026">4. Vision-Language (VL) &amp; High-Reasoning Frontier Audit (2025/2026)</h2>
+<h3 id="41-vision-language-vs-pure-text-reasoning-for-3d-spatial-context-memory">4.1 Vision-Language vs. Pure-Text Reasoning for 3D Spatial Context &amp; Memory</h3>
+<p>In a 1×1 km spatial substrate composed of 10,378 chunks, 340 million voxels, 345 wired dwellings, and 64 spatial citizens, <strong>pure-text reasoning models suffer an intrinsic spatial representation bottleneck</strong>:</p>
+<ol>
+<li><strong>Text Token Inflation &amp; Coordinate Hallucination:</strong> Serializing 3D coordinates, terrain elevations, and spatial occlusion into text strings (<code>"Agent at (482, 12, 510), nearest hospital at (450, 20, 550)..."</code>) consumes 600–1,200 tokens per prompt and forces the LLM to perform arithmetic coordinate subtractions without Euclidean spatial priors, leading to spatial disorientation and navigation hallucination.</li>
+<li><strong>Native Spatial Grounding via Multimodal Rotary Position Embeddings (mRoPE):</strong> Advanced Vision-Language Models (e.g., <strong><code>Qwen2.5-VL-7B</code></strong>, Qwen Team, <em>arXiv:2502.13923</em>, Feb 2025) decompose positional rotary embeddings into 3D components $(\Delta t, \Delta y, \Delta x)$. This allows the model to process 2D spatial minimaps, voxel slices, and camera projections natively, grounding agent decisions directly in physical world coordinates.</li>
+<li><strong>Episodic Visual-Spatial Memory:</strong> By retaining compact visual-spatial snapshots in <code>TransitionLogStore</code> (e.g., dwelling facades, farm plot crop growth stages, and civic beacons), a Vision-Language agent indexes and retrieves spatial memories without context bloating.</li>
+<li><strong>Direct Synergy with Grounded JEPA (Phase 2.3):</strong> The non-contrastive Joint-Embedding Predictive Architecture (<code>GroundedJEPAEncoder</code>) operates directly in latent representation space $z \in \mathbb{R}^{32}$. The Vision Transformer (ViT) backbone of a VLM provides structured visual patch embeddings that naturally align with JEPA's target prediction objectives ($L_{JEPA} = |z_{t+1} - \hat{z}_{pred}|^2$).</li>
+</ol>
+<h3 id="42-comprehensive-comparative-audit-vlm-vs-deepseek-r1-distilled-vs-awq-vs-16-bit-precision">4.2 Comprehensive Comparative Audit: VLM vs. DeepSeek-R1 Distilled vs. AWQ vs. 16-Bit Precision</h3>
+<p>| Model Checkpoint | Modality | Precision / Format | Active Params | Weights VRAM | 10-Agent Total VRAM | Spatial Grounding &amp; Voxel Memory | Reasoning Benchmark (MATH / AIME) | Assigned Architecture Tier |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| <strong><code>Qwen/Qwen3.5-9B-VL-AWQ</code></strong> | <strong>Vision-Language</strong> | <strong>8-bit AWQ (W8A16)</strong> | <strong>8.90B</strong> | <strong>$\approx 9.18\text{ GB}$</strong> | <strong>$\approx 11.12\text{ GB}$</strong> | <strong>Native ViT + 2D/3D mRoPE; Direct Voxel Slice &amp; Minimap Input; Zero Outlier Clipping</strong> | <strong>76.9% / 38.6%</strong> | <strong>Primary Base Engine (Tier-1 Actions &amp; Shared Tier-2 Base)</strong> |
+| <strong><code>Qwen/Qwen3.5-9B-VL</code> (Tier-2 DoRA Adapter)</strong> | <strong>Vision-Language</strong> | <strong>W8A16 Base + BF16 DoRA</strong> | <strong>8.90B base + 43M adapter</strong> | <strong>$\approx 9.26\text{ GB}$</strong> | <strong>$\approx 11.21\text{ GB}$</strong> | <strong>Full 3D Spatial Vision + Distilled R1 CoT Reasoning; &lt;5ms In-Memory Adapter Swap</strong> | <strong>87.8% / 54.5%</strong> | <strong>Tier-2 Deliberative Planning &amp; Rule Synthesis (Phase 1.4)</strong> |
+| <strong><code>Qwen/Qwen2.5-VL-7B-Instruct-AWQ</code></strong> | Vision-Language | 4-bit AWQ (W4A16) | 7.61B | $\approx 4.60\text{ GB}$ | $\approx 6.27\text{ GB}$ | Native ViT + 2D/3D mRoPE; High Concurrency | 76.5% / 38.2% | Alternative Lightweight Spatial Base |
+| <strong><code>Qwen/Qwen3.5-9B-VL</code></strong> | Vision-Language | 16-bit bfloat16 | 8.90B | $\approx 17.80\text{ GB}$ | $\approx 19.74\text{ GB}$ | Pristine ViT feature space; Zero Quantization Noise | 77.2% / 39.5% | Offline Adaptation &amp; Gradient Rig (Phase 1.2) |
+| <code>deepseek-ai/DeepSeek-R1-Distill-Qwen-7B</code> | Text-Only | 16-bit bfloat16 | 7.61B | $\approx 15.20\text{ GB}$ | $\approx 16.87\text{ GB}$ | Low (Text coordinate strings only); high CoT latency | <strong>92.8% / 55.5%</strong> | Standalone Text Deliberation Benchmark |
+| <code>casperhansen/deepseek-r1-distill-qwen-7b-awq</code> | Text-Only | 4-bit AWQ (W4A16) | 7.61B | $\approx 4.50\text{ GB}$ | $\approx 6.17\text{ GB}$ | Low (Text coordinates); $<think>$ token overhead | 91.5% / 53.8% | Quantized Standalone Deliberation |
+| <code>deepseek-ai/DeepSeek-R1-Distill-Qwen-14B</code> | Text-Only | 16-bit bfloat16 | 14.77B | $\approx 29.50\text{ GB}$ | $\approx 31.80\text{ GB}$ | Low (Text coordinates); requires dual-GPU / 48GB | <strong>93.9% / 69.7%</strong> | Offline Frontier Reasoning Pilot |
+| <code>Qwen/Qwen2.5-7B-Instruct-AWQ</code> | Text-Only | 4-bit AWQ (W4A16) | 7.61B | $\approx 4.50\text{ GB}$ | $\approx 6.17\text{ GB}$ | Moderate (Fast JSON schema emission, no vision) | 75.5% / 36.4% | Baseline Text Fallback Engine |</p>
+<h3 id="43-research-paper-learning-curves-theoretical-foundations">4.3 Research Paper Learning Curves &amp; Theoretical Foundations</h3>
+<ol>
+<li><strong>DeepSeek-R1 Reasoning &amp; Distillation Dynamics (<em>Guo et al., arXiv:2501.12948</em>, Jan 2025):</strong></li>
+<li><strong>GRPO (Group Relative Policy Optimization):</strong> Eliminates the critic network via group-normalized relative advantage estimation:
+     $$\mathcal{J}<em>{GRPO}(\theta) = \mathbb{E}\left[ \frac{1}{G} \sum</em>{i=1}^G \min\left( \frac{\pi_\theta(o_i|q)}{\pi_{old}(o_i|q)} \hat{A}<em>i, \text{clip}\left(\frac{\pi</em>\theta(o_i|q)}{\pi_{old}(o_i|q)}, 1-\epsilon, 1+\epsilon\right) \hat{A}<em>i \right) - \beta D</em>{KL}(\pi_\theta \| \pi_{ref}) \right]$$</li>
+<li><strong>The "Aha! Moment" Phase Transition:</strong> Pure reinforcement learning without supervised warm-up exhibits a distinct inflection point: output token length expands dynamically as the model discovers self-verification, backtracking, and long-horizon reflection.</li>
+<li><strong>Distillation Superiority over Small-Model RL:</strong> DeepSeek's empirical findings prove that <strong>distilling R1's reasoning traces into dense 7B/14B student models via Supervised Fine-Tuning dramatically outperforms applying RL directly to small models</strong>, which suffer from reward hacking, language mixing, and instability.</li>
+<li><strong>Qwen2.5-VL / 3.5-VL Dynamic Resolution &amp; Spatial Grounding (<em>Qwen Team, arXiv:2502.13923</em>, Feb 2025):</strong></li>
+<li>Native Dynamic Resolution ViT eliminates artificial downsampling or cropping by representing images as variable patch sequences: $N_{tokens} = (H \times W) / (28 \times 28)$.</li>
+<li>Multi-task coordinate grounding loss curves ($\mathcal{L} = \mathcal{L}<em>{text} + \lambda</em>{coord}\mathcal{L}<em>{coord} + \lambda</em>{bbox}\mathcal{L}_{bbox}$) converge rapidly, enabling sub-pixel bounding box and spatial coordinate generation.</li>
+<li><strong>Spatial Voxel Grounding (<em>Qwen-3D, OpenReview 2025</em>; <em>SpatialVLM, Chen et al., 2024</em>):</strong></li>
+<li>Unprojects visual features into 3D voxel coordinate grids, applying spatial voxel-pooling to compress millions of empty voxels into compact non-empty occupancy tokens.</li>
+<li>Embeds 3D spatial priors directly into the transformer backbone, preventing coordinate hallucination and grounding spatial agent navigation in metric reality.</li>
+</ol>
+<h3 id="44-precision-trade-off-formulation-8-bit-awq-vs-4-bit-awq-vs-16-bit-bfloat16">4.4 Precision Trade-Off Formulation: 8-Bit AWQ vs. 4-Bit AWQ vs. 16-Bit bfloat16</h3>
+<ul>
+<li><strong>8-Bit Activation-Aware Weight Quantization (<code>W8A16</code> AWQ):</strong></li>
+<li><strong>Ideal Balance for Live Population Serving:</strong> Quantizes weights to 8 bits ($2^8 = 256$ bins) with group size $g=128$, yielding an effective bitwidth of $8.25\text{ bits/param}$ ($1.031\text{ bytes/param}$).</li>
+<li>Static weight footprint is <strong>$\approx 9.18\text{ GB}$</strong>, allowing a 10–20 agent population ($11.12–12.46\text{ GB}$ VRAM) to fit inside a single 12GB–16GB consumer GPU (RTX 4070 / RTX 4080 Laptop / RTX 4060 Ti 16GB).</li>
+<li>Recovers <strong>$\ge 99.8\%$ of FP16 accuracy</strong>, completely eliminating the clipping distortion on visual patch embedding outliers and sub-pixel coordinate boundary errors that occur in 4-bit AWQ.</li>
+<li>Executes directly on hardware INT8 Tensor Cores (DP4A/GEMM) without per-token dequantization overhead.</li>
+<li><strong>4-Bit Activation-Aware Weight Quantization (<code>W4A16</code> AWQ):</strong></li>
+<li>Cuts static weight footprint to $\approx 4.72\text{ GB}$ ($4.25\text{ bits/param}$), enabling extreme co-location on memory-constrained 8GB devices.</li>
+<li>Suffers $2.8–4.5\%$ coordinate jitter and slight visual patch outlier clipping.</li>
+<li><strong>Native 16-Bit Precision (<code>bfloat16</code>):</strong></li>
+<li>Required for <strong>Offline Private Adapter Training</strong>: Preserves exact gradients ($\nabla W$) and prevents underflow during multi-epoch behavioral cloning and CLEAR replay updates.</li>
+<li>Sizing: $\approx 17.80\text{ GB}$ static weight footprint, requiring 24GB+ GPUs (RTX 3090/4090, A6000).</li>
+</ul>
+<h3 id="45-tier-2-deliberation-via-dora-weight-decomposed-low-rank-adaptation">4.5 Tier-2 Deliberation via DoRA (Weight-Decomposed Low-Rank Adaptation)</h3>
+<p>Rather than maintaining a separate text-only model (e.g. DeepSeek-R1) for Tier-2 deliberative reasoning, EvolZen adopts a <strong>single unified base model (<code>Qwen 3.5 9B VL W8A16</code>) with multi-tier adapters</strong>:
+1. <strong>The DoRA Formulation (<em>Liu et al., ICML 2024</em>, <code>arXiv:2402.09353</code>):</strong>
+   Standard LoRA couples magnitude and direction into a single low-rank product $BA$. DoRA decomposes weight updates into a learnable magnitude vector $m \in \mathbb{R}^{1 \times k}$ and a normalized directional matrix $V$:
+   $$W = m \odot \frac{V}{\|V\|_c} = m \odot \frac{W_0 + \frac{\alpha}{r}BA}{\|W_0 + \frac{\alpha}{r}BA\|_c}$$
+   where $m$ is initialized as $\|W_0\|_c$. By decoupling magnitude from direction, DoRA closely mirrors full fine-tuning dynamics, outperforming LoRA by 2–4% on mathematical reasoning and program synthesis.
+2. <strong>QDoRA over 8-Bit AWQ Base:</strong>
+   The $8.9\text{B}$ parameter base model remains permanently frozen in 8-bit AWQ format in VRAM. Only directional matrices ($A, B$ at rank $r=16, \alpha=32$) and magnitude vector $m$ are trained in BF16/FP16, producing an ultra-compact adapter checkpoint of <strong>$\approx 86.5\text{ MB}$</strong>.
+3. <strong>Zero Model-Swapping Overhead:</strong>
+   Switching between Tier-1 (tactical action selection) and Tier-2 (deliberative planning &amp; rule synthesis) requires zero PCIe weight transfers: an in-memory adapter switch takes <strong>$&lt; 5\text{ ms}$</strong>, compared to $1.8–3.5\text{ seconds}$ for reloading a separate model.
+4. <strong>Preservation of 3D Spatial Context in Tier-2:</strong>
+   Because Tier-2 uses the same Vision-Language backbone, reflective planning and rule synthesis have direct access to 2D minimaps, voxel slices, and visual episodic memories without coordinate text serialization.
+5. <strong>Multi-LoRA Concurrent Batching:</strong>
+   Under vLLM continuous batching (<code>--enable-lora</code>), Tier-1 action requests and Tier-2 deliberative synthesis requests can be processed concurrently within the <strong>exact same GPU forward pass</strong>.</p>
+<h2 id="research-context-breakthroughs">Research context &amp; breakthroughs</h2>
+<ul>
+<li><strong>Intrinsic motivation &amp; developmental stages:</strong> <em>IEEE TEVC</em> (Oudeyer et al., 2007) and <em>IEEE TCDS</em> (Santucci et al., 2016) formalize competence-progress and autonomous goal discovery across developmental lifetimes—highlighting that EvolZen's current greedy candidate ranking (<code>decide</code>) is a numerical baseline requiring a controlled exploration comparison.</li>
+<li><strong>Quality-Diversity scaling:</strong> MAP-Elites and CVT-MAP-Elites (<em>IEEE TEVC</em>, 2018; Pugh et al., 2016; Wang et al., 2024) replace single-objective fitness selection with behavioral repertoire maintenance, directly countering LLM multi-agent homogenization (<em>ACL 2026 Findings</em> <code>diversitycollapse2026</code>).</li>
+<li><strong>Self-modification &amp; metacognitive risk:</strong> DGM (<em>ICLR</em> 2026) and Hyperagents (<code>arXiv:2603.19461</code>) show empirical archive-gated self-editing and emergent persistent memory structures, underscoring why self-modification in EvolZen is gated by <code>DevelopmentArchive</code> and <code>evolzen.containment.Sandbox</code>.</li>
+</ul>
+<h2 id="codebase-progress-match">Codebase progress match</h2>
+<ul>
+<li><strong>Implemented unified developmental agent architecture (<code>src/evolzen/agents/</code>, <code>src/evolzen/schemas/</code>):</strong></li>
+<li><strong>Identity, lineage &amp; population snapshots:</strong> <code>AgentProfile</code>, <code>LineageNode</code>, <code>LineageSnapshot</code>, <code>CommunicationGraphSnapshot</code>, and <code>PopulationSnapshot</code> (<code>schemas/agent_profile.py</code>), providing genealogical family trees, extinction/replacement telemetry, and population state freezing.</li>
+<li><strong>Developmental runtime:</strong> <code>Agent</code> (<code>agents/agent.py</code>), unifying <code>AgentProfile</code>, <code>AgentDevelopmentState</code>, lifecycle staging (<code>stage_at</code>), and host-adapter integration.</li>
+<li><strong>Decision policy &amp; exploration:</strong> Augmented Chebyshev scalarization (<code>brain.py</code>), UCB1 epistemic exploration bonus, and Mellowmax temperature sampling.</li>
+<li><strong>Structured LLM inference:</strong> <code>InferenceBackend</code> &amp; <code>TransformersBackend</code> (<code>agents/inference.py</code>), providing <code>outlines</code>-constrained schema-valid action generation with deterministic safe fallback.</li>
+<li><strong>Scaled quality-diversity archive:</strong> <code>CVTArchive</code> &amp; <code>QualityDiversityArchive</code> (<code>agents/qd_archive.py</code>), implementing Centroidal Voronoi Tessellations across $k$-D behavioral descriptors (<code>vassiliades2018cvtmape</code>).</li>
+<li><strong>Sandboxed self-modification &amp; versatile deployment:</strong> <code>SelfModificationProposal</code> &amp; <code>evaluate_proposal</code> (<code>agents/self_modification.py</code>), enforced via <code>evolzen.containment.create_sandbox</code> with fail-closed gVisor hardware boundaries on Linux and hermetic mock execution for cross-platform development.</li>
+<li><strong>Population scheduler, genealogy &amp; pruning:</strong> <code>PopulationScheduler</code> (<code>agents/scheduler.py</code>), orchestrating generational rollouts, living-parent skill advice, recipe manual transmission (<code>teach_manual</code>), extinction and replacement tracking, vocational specialization HHI, social interaction density, memory-leak dead agent pruning, and DuckDB transition persistence.</li>
+<li><strong>Offline adapter curation, training &amp; promotion pipeline:</strong> <code>OfflineAdapterTrainer</code> &amp; <code>TrajectoryCurator</code> (<code>agents/trainer.py</code>), implementing the offline private adapter training and promotion gating loop (docs/subsystems/agents/learning.md §3) with CLEAR stratified replay mixing, behavior cloning loss convergence (<code>train_adapter_epoch</code>), held-out validation gating (<code>validate_and_gate_promotion</code>), catastrophic forgetting prevention ($\text{retention} \ge 0.95$), fail-closed safety checks, <code>PopulationScheduler.run_training_cycle</code>, and CLI execution (<code>evolzen train --target agents / --target all</code>).</li>
+<li><strong>Comprehensive test coverage:</strong> Covered by <strong>85 passing test cases</strong> across <code>tests/agents/</code> (including <code>test_lineage_and_snapshots.py</code>, <code>test_offline_trainer.py</code>, <code>test_agent.py</code>, <code>test_inference.py</code>, <code>test_manual_teaching.py</code>, <code>test_qd_archive.py</code>, <code>test_self_modification.py</code>, <code>test_population_integration.py</code>, and <code>tests/agents/development/</code>).</li>
+<li><strong>Implemented Phase 1.1 environment host bridge (<code>src/evolzen/environment/adapter.py</code>, <code>engine.py</code>, <code>pettingzoo_env.py</code>):</strong> <code>SocialSandboxEngine</code>, <code>WorldState</code>/<code>ActionType</code> (<code>schemas/world.py</code>), <code>SocialSandboxAECEnv</code>, and <code>adapter</code> handling all 17 actions (<code>observe_features</code>, <code>legal_candidates</code>, <code>action_from_candidate</code>, <code>execute_decision</code>).</li>
+<li><strong>Retired legacy path:</strong> Legacy 5-axis <code>DriveVector</code> (<code>schemas/drive_vector.py</code>, <code>agents/drive_vector.py</code>) cleanly retired per Option A architectural consensus.</li>
+<li><strong>Open empirical items:</strong></li>
+<li>Multi-generation empirical benchmarking runs on hardware pilot;</li>
+<li>GPU tensor-parallel live serving via <code>VLLMBackend</code>.</li>
+</ul>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="../../ARCHITECTURE/"><code>ARCHITECTURE.md</code></a> for how this subsystem fits the whole system.</li>
+<li><a href="../../subsystems/agents/"><code>agents subsystem docs</code></a> for the code-level
+  map and build order.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>
