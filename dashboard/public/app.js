@@ -521,14 +521,20 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
       // 1. Renderer: Optimized for Apple Silicon & WebKit GPUProcess Stability
       const renderer = new THREE.WebGLRenderer({
-        antialias: false,
+        antialias: true,
         alpha: false,
-        powerPreference: 'default'
+        powerPreference: 'high-performance',
+        stencil: false
       });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      const mobileViewport = width < 900;
+      const pixelRatioCap = mobileViewport ? 1.75 : 2.25;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.sortObjects = true;
+      state.three.maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.15;
       container.innerHTML = '';
@@ -626,8 +632,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const sun = new THREE.DirectionalLight(0xe0f2fe, 1.8);
     sun.position.set(350, 650, 450);
     sun.castShadow = true;
-    sun.shadow.mapSize.width = 1024;
-    sun.shadow.mapSize.height = 1024;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+    sun.shadow.bias = -0.00012;
+    sun.shadow.normalBias = 0.02;
     sun.shadow.camera.near = 10;
     sun.shadow.camera.far = 1800;
     sun.shadow.camera.left = -650;
@@ -642,12 +650,12 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     state.three.celestialGroup = celestialGroup;
 
     // 1. Orbiting 3D Sun with Glowing Corona Halo
-    const sunGeo = new THREE.SphereGeometry(18, 20, 20);
+    const sunGeo = new THREE.SphereGeometry(18, 48, 32);
     const sunMat = new THREE.MeshBasicMaterial({ color: 0xffedd5 });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
     sunMesh.position.set(350, 650, 450);
 
-    const coronaGeo = new THREE.SphereGeometry(26, 16, 16);
+    const coronaGeo = new THREE.SphereGeometry(26, 32, 24);
     const coronaMat = new THREE.MeshBasicMaterial({
       color: 0xf59e0b,
       transparent: true,
@@ -661,7 +669,7 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     state.three.sunCorona = sunCorona;
 
     // 2. Orbiting 3D Moon with Silver-Blue Disc & Soft Glow
-    const moonGeo = new THREE.SphereGeometry(14, 20, 20);
+    const moonGeo = new THREE.SphereGeometry(14, 48, 32);
     const moonMat = new THREE.MeshStandardMaterial({
       color: 0xe2e8f0,
       roughness: 0.85,
@@ -766,6 +774,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     state.three.lastH = h;
     state.three.camera.aspect = w / h;
     state.three.camera.updateProjectionMatrix();
+    const pixelRatioCap = w < 900 ? 1.75 : 2.25;
+    state.three.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
     state.three.renderer.setSize(w, h, false);
   }
 
@@ -1318,11 +1328,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
       if (id === 4) {
         houseAssets.roofGeos[id] = new THREE.BoxGeometry(dim.w + 1.2, 0.45, dim.d + 1.2);
       } else if (id === 1) {
-        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.72, 3.2, 4);
+        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.72, 3.2, 8);
       } else if (id === 2) {
-        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.75, 3.6, 4);
+        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.75, 3.6, 8);
       } else {
-        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.68, 2.4, 4);
+        houseAssets.roofGeos[id] = new THREE.ConeGeometry(Math.max(dim.w, dim.d) * 0.68, 2.4, 8);
       }
 
       const arch = state.archetypes[id] || state.archetypes[0];
@@ -1535,9 +1545,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const g = humanoidAssets.geos;
     g.torso = new THREE.BoxGeometry(0.65, 0.75, 0.38);
     g.belt = new THREE.BoxGeometry(0.67, 0.12, 0.40);
-    g.neck = new THREE.CylinderGeometry(0.12, 0.14, 0.16, 6);
-    g.head = new THREE.SphereGeometry(0.28, 8, 8);
-    g.eye = new THREE.SphereGeometry(0.04, 4, 4);
+    g.neck = new THREE.CylinderGeometry(0.12, 0.14, 0.16, 12);
+    g.head = new THREE.SphereGeometry(0.28, 16, 12);
+    g.eye = new THREE.SphereGeometry(0.04, 8, 8);
 
     const armGeo = new THREE.BoxGeometry(0.18, 0.65, 0.18);
     armGeo.translate(0, -0.28, 0);
@@ -1547,9 +1557,9 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     legGeo.translate(0, -0.32, 0);
     g.leg = legGeo;
 
-    g.hand = new THREE.SphereGeometry(0.09, 6, 6);
+    g.hand = new THREE.SphereGeometry(0.09, 12, 8);
     g.boot = new THREE.BoxGeometry(0.24, 0.14, 0.32);
-    g.ring = new THREE.RingGeometry(0.85, 1.15, 16);
+    g.ring = new THREE.RingGeometry(0.85, 1.15, 32);
 
     // Hats and accessories
     g.strawBrim = new THREE.CylinderGeometry(0.65, 0.65, 0.04, 12);
@@ -2111,7 +2121,11 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     renderAgentBillboardCanvas(ctx, canvas, agentData, colorHex);
 
     const texture = new THREE.CanvasTexture(canvas);
-    texture.minFilter = THREE.LinearFilter;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.anisotropy = state.three.maxAnisotropy ? Math.min(state.three.maxAnisotropy, 8) : 1;
     const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
     const sprite = new THREE.Sprite(spriteMat);
     sprite.scale.set(5.0, 1.35, 1.0);
@@ -2224,18 +2238,23 @@ import { OrbitControls } from './vendor/OrbitControls.js';
     const zzzTexts = ['💤 Zzz', '💤 z Z', 'Z z z...'];
     const zzzTextures = zzzTexts.map(text => {
       const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 128;
+      canvas.width = 512;
+      canvas.height = 256;
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 256, 128);
+      ctx.clearRect(0, 0, 512, 256);
       ctx.shadowColor = '#38bdf8';
-      ctx.shadowBlur = 12;
-      ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
+      ctx.shadowBlur = 24;
+      ctx.font = 'bold 88px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace';
       ctx.fillStyle = '#e0f2fe';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, 128, 64);
+      ctx.fillText(text, 256, 128);
       const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = state.three.maxAnisotropy ? Math.min(state.three.maxAnisotropy, 8) : 1;
       tex.needsUpdate = true;
       return tex;
     });
